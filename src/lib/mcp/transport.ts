@@ -62,3 +62,4 @@ export async function authenticateToken(req: Request) {
     extra: { userId: data.user_id } 
   };
 }
+

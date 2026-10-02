@@ -15,6 +15,8 @@ async function handleMcpRequest(req: NextRequest) {
           "Content-Type": "application/json",
           "WWW-Authenticate": `Bearer resource_metadata="${baseUrl}/.well-known/oauth-protected-resource"`,
           "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+          "Access-Control-Allow-Headers": "*",
         } 
       });
     }
@@ -27,7 +29,18 @@ async function handleMcpRequest(req: NextRequest) {
     });
 
     const response = await handleStatelessMcpRequest(webRequest, authInfo);
-    return response;
+
+    // Ensure permissive CORS headers on all MCP responses for Claude Web / Desktop
+    const headers = new Headers(response.headers);
+    headers.set("Access-Control-Allow-Origin", "*");
+    headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    headers.set("Access-Control-Allow-Headers", "*");
+
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
   } catch (error: any) {
     console.error("[MCP Route Error]:", error);
     return new Response(JSON.stringify({
@@ -36,7 +49,12 @@ async function handleMcpRequest(req: NextRequest) {
       id: null
     }), {
       status: 500,
-      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+      headers: { 
+        "Content-Type": "application/json", 
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "*",
+      }
     });
   }
 }
