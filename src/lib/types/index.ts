@@ -19,6 +19,8 @@ export interface UserProfile {
   currentWeightKg?: number;
   activityLevel?: 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extremely_active';
   goal?: 'lose_weight' | 'maintain_weight' | 'gain_weight' | 'gain_muscle' | 'general_health';
+  goalWeightKg?: number;
+  goalRate?: 'slow' | 'moderate' | 'fast';
   diet?: 'omnivore' | 'vegetarian' | 'vegan' | 'pescatarian' | 'keto' | 'paleo' | 'other';
   preferences?: string[];
   allergies?: string[];

@@ -6,6 +6,7 @@ import { executeTool } from '@/lib/ai/tool-executor';
 import { buildSystemPrompt } from '@/lib/ai/system-prompt';
 import { getProfile } from '@/lib/services/profile.service';
 import { getActiveGoals } from '@/lib/services/goals.service';
+import { getInsights } from '@/lib/services/insights.service';
 import type { AIMessage } from '@/lib/ai/provider';
 
 export async function POST(req: Request) {
@@ -20,13 +21,14 @@ export async function POST(req: Request) {
     const { messages } = await req.json();
 
     // Get user context for system prompt
-    const [profile, goals] = await Promise.all([
+    const [profile, goals, insights] = await Promise.all([
       getProfile(user.id).catch(() => null),
       getActiveGoals(user.id).catch(() => null),
+      getInsights(user.id, 7).catch(() => null),
     ]);
 
     // Build system prompt with user context
-    const systemPrompt = buildSystemPrompt(profile, goals);
+    const systemPrompt = buildSystemPrompt(profile, goals, insights);
 
     // Prepare messages for AI
     const aiMessages: AIMessage[] = [

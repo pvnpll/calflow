@@ -3,7 +3,9 @@ import { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import InsightCard from '@/components/insights/InsightCard';
 import NutritionChart from '@/components/insights/NutritionChart';
-import WeightChart from '@/components/insights/WeightChart';
+import { GoalProgress } from '@/components/insights/GoalProgress';
+import { EnergyBalance } from '@/components/insights/EnergyBalance';
+import { GoalCheck } from '@/components/insights/GoalCheck';
 import WaterChart from '@/components/insights/WaterChart';
 
 export default function InsightsPage() {
@@ -11,6 +13,8 @@ export default function InsightsPage() {
   const [loading, setLoading] = useState(true);
   const [insights, setInsights] = useState<any>(null);
   const [chartData, setChartData] = useState<any[]>([]);
+  const [profileData, setProfileData] = useState<any>(null);
+  const [weightInfo, setWeightInfo] = useState<{current: number, trend: number}>({ current: 0, trend: 0 });
 
   useEffect(() => {
     const fetchInsightsData = async () => {
@@ -22,15 +26,42 @@ export default function InsightsPage() {
         startDateObj.setDate(startDateObj.getDate() - (days - 1));
         const startDate = startDateObj.toISOString().split('T')[0];
 
-        const [insightsRes, mealsRes, waterRes] = await Promise.allSettled([
+        const [insightsRes, mealsRes, waterRes, weightRes, profileRes] = await Promise.allSettled([
           fetch(`/api/insights?days=${days}`),
           fetch(`/api/meals?start=${startDate}&end=${endDate}`),
-          fetch(`/api/water?start=${startDate}&end=${endDate}`)
+          fetch(`/api/water?start=${startDate}&end=${endDate}`),
+          fetch('/api/weight'),
+          fetch('/api/profile')
         ]);
 
         if (insightsRes.status === 'fulfilled' && insightsRes.value.ok) {
           const data = await insightsRes.value.json();
           setInsights(data);
+        }
+        
+        let profile = null;
+        if (profileRes.status === 'fulfilled' && profileRes.value.ok) {
+          profile = await profileRes.value.json();
+          setProfileData(profile);
+        }
+
+        if (weightRes.status === 'fulfilled' && weightRes.value.ok) {
+          const weightData = await weightRes.value.json();
+          let currentW = 0;
+          let trendW = 0;
+
+          if (Array.isArray(weightData) && weightData.length > 0) {
+            const latest = weightData[weightData.length - 1];
+            currentW = latest.weight_kg;
+            if (weightData.length >= 2) {
+              const previous = weightData[weightData.length - 2];
+              trendW = latest.weight_kg - previous.weight_kg;
+            }
+          } else if (profile && profile.current_weight_kg) {
+            currentW = profile.current_weight_kg;
+          }
+
+          setWeightInfo({ current: currentW, trend: trendW });
         }
 
         // Build continuous chart series for the period
@@ -94,6 +125,20 @@ export default function InsightsPage() {
   const avgProtein = Number(averages.protein || 0);
   const avgWater = Number(averages.water || 0);
 
+  let estimatedMaintenance = 2000;
+  if (profileData && profileData.current_weight_kg && profileData.height_cm && profileData.age) {
+    let bmr = 10 * profileData.current_weight_kg + 6.25 * profileData.height_cm - 5 * profileData.age;
+    bmr += (profileData.sex === 'male') ? 5 : -161;
+    let multiplier = 1.2;
+    switch(profileData.activity_level) {
+      case 'lightly_active': multiplier = 1.375; break;
+      case 'moderately_active': multiplier = 1.55; break;
+      case 'very_active': multiplier = 1.725; break;
+      case 'extremely_active': multiplier = 1.9; break;
+    }
+    estimatedMaintenance = bmr * multiplier;
+  }
+
   return (
     <div className="container mx-auto p-4 max-w-5xl space-y-8 pb-24">
       <div className="flex items-center justify-between">
@@ -109,6 +154,37 @@ export default function InsightsPage() {
           </SelectContent>
         </Select>
       </div>
+
+      {profileData?.goal && (
+        <>
+          <div className="grid md:grid-cols-2 gap-6">
+            <GoalProgress 
+              goal={profileData.goal}
+              currentWeight={weightInfo.current}
+              goalWeight={profileData.goal_weight_kg}
+              weightTrend={weightInfo.trend}
+              estimatedMaintenance={estimatedMaintenance}
+              averageIntake={avgCalories}
+            />
+            <div className="space-y-6 flex flex-col">
+              <div className="flex-1">
+                <EnergyBalance 
+                  maintenance={estimatedMaintenance}
+                  averageIntake={avgCalories}
+                  weightTrend={weightInfo.trend}
+                />
+              </div>
+              <div className="flex-1">
+                <GoalCheck 
+                  goal={profileData.goal}
+                  weightTrend={weightInfo.trend}
+                  goalRate={profileData.goal_rate || 'moderate'}
+                />
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <InsightCard 

@@ -6,7 +6,7 @@ import { CalorieRing } from '@/components/dashboard/CalorieRing';
 import { MacroCard } from '@/components/dashboard/MacroCard';
 import { WaterTracker } from '@/components/dashboard/WaterTracker';
 import { RecentMeals } from '@/components/dashboard/RecentMeals';
-import { WeightCard } from '@/components/dashboard/WeightCard';
+import { BodyAndHealth } from '@/components/dashboard/BodyAndHealth';
 import { createClient } from '@/lib/supabase/client';
 
 export default function DashboardContent() {
@@ -23,7 +23,8 @@ export default function DashboardContent() {
   
   const [water, setWater] = useState({ consumed: 0, target: 2500 });
   const [meals, setMeals] = useState<any[]>([]);
-  const [weight, setWeight] = useState<{ current: number; trend: 'up' | 'down' | 'stable'; trendValue: number }>({ current: 0, trend: 'stable', trendValue: 0 });
+  const [weightHistory, setWeightHistory] = useState<any[]>([]);
+  const [weight, setWeight] = useState<{ current: number; trend: 'up' | 'down' | 'stable'; trendValue: number; targetWeight?: number }>({ current: 0, trend: 'stable', trendValue: 0 });
 
   const fetchDashboardData = useCallback(async () => {
     try {
@@ -36,12 +37,18 @@ export default function DashboardContent() {
 
       const dateStr = new Date().toISOString().split('T')[0];
 
-      const [nutritionRes, waterRes, mealsRes, weightRes] = await Promise.allSettled([
+      const [nutritionRes, waterRes, mealsRes, weightRes, profileRes] = await Promise.allSettled([
         fetch('/api/nutrition/today'),
         fetch(`/api/water?date=${dateStr}`),
         fetch(`/api/meals?date=${dateStr}`),
-        fetch('/api/weight')
+        fetch('/api/weight'),
+        fetch('/api/profile')
       ]);
+
+      let profileData = null;
+      if (profileRes.status === 'fulfilled' && profileRes.value.ok) {
+        profileData = await profileRes.value.json();
+      }
 
       // Parse nutrition summary
       if (nutritionRes.status === 'fulfilled' && nutritionRes.value.ok) {
@@ -94,6 +101,8 @@ export default function DashboardContent() {
       // Parse weight
       if (weightRes.status === 'fulfilled' && weightRes.value.ok) {
         const weightData = await weightRes.value.json();
+        setWeightHistory(Array.isArray(weightData) ? weightData : []);
+        
         if (Array.isArray(weightData) && weightData.length > 0) {
           const latest = weightData[weightData.length - 1];
           let trend: 'up' | 'down' | 'stable' = 'stable';
@@ -109,8 +118,11 @@ export default function DashboardContent() {
           setWeight({ 
             current: Number(latest.weight_kg), 
             trend, 
-            trendValue 
+            trendValue,
+            targetWeight: profileData?.goal_weight_kg || undefined
           });
+        } else {
+          setWeight(prev => ({ ...prev, targetWeight: profileData?.goal_weight_kg || undefined }));
         }
       }
     } catch (error) {
@@ -185,22 +197,24 @@ export default function DashboardContent() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-4">
+        <div className="space-y-4 flex flex-col">
           <WaterTracker 
             initialConsumed={water.consumed} 
             target={water.target} 
           />
-          {weight.current > 0 && (
-            <WeightCard 
-              currentWeight={weight.current}
-              trend={weight.trend}
-              trendValue={weight.trendValue}
+          <div className="flex-grow">
+            <BodyAndHealth 
+              weight={weight} 
+              weightHistory={weightHistory} 
+              onWeightLogged={fetchDashboardData} 
             />
-          )}
+          </div>
         </div>
         
-        <div>
-          <RecentMeals meals={meals} />
+        <div className="space-y-4 flex flex-col">
+          <div className="flex-grow">
+            <RecentMeals meals={meals} />
+          </div>
         </div>
       </div>
 

@@ -11,6 +11,8 @@ function toDbProfile(data: Partial<UserProfile>) {
   if (data.currentWeightKg !== undefined) dbData.current_weight_kg = data.currentWeightKg
   if (data.activityLevel !== undefined) dbData.activity_level = data.activityLevel
   if (data.goal !== undefined) dbData.goal = data.goal
+  if (data.goalWeightKg !== undefined) dbData.goal_weight_kg = data.goalWeightKg
+  if (data.goalRate !== undefined) dbData.goal_rate = data.goalRate
   if (data.diet !== undefined) dbData.diet = data.diet
   if (data.preferences !== undefined) dbData.preferences = data.preferences
   if (data.allergies !== undefined) dbData.allergies = data.allergies
