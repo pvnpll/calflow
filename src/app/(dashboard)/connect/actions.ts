@@ -1,7 +1,7 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
-import { randomBytes } from 'crypto';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
+import { TABLES } from '@/lib/db-tables';
 
 export async function getOrCreateMcpToken() {
   const supabase = await createClient();
@@ -11,15 +11,7 @@ export async function getOrCreateMcpToken() {
     throw new Error('Not authenticated');
   }
 
-  // We need to use service role to query/insert if RLS doesn't permit.
-  // The codebase earlier used admin client for MCP tokens.
-  const { createClient: createAdmin } = await import('@supabase/supabase-js');
-  const admin = createAdmin(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-
-  const { TABLES } = await import('@/lib/db-tables');
+  const admin = createAdminClient();
 
   // Try to find an existing long-lived token (client_id = 'personal-access-token')
   const { data: existing } = await admin
@@ -34,8 +26,11 @@ export async function getOrCreateMcpToken() {
     return existing.access_token;
   }
 
-  // Create a new one
-  const token = randomBytes(32).toString('hex');
+  // Create a new one using Web Crypto API instead of Node.js crypto
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  const token = Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
+  
   await admin.from(TABLES.MCP_TOKENS).insert({
     access_token: token,
     user_id: user.id,

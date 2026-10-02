@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { randomBytes } from 'crypto';
 
+export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 
@@ -67,7 +67,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Generate access token
-    const access_token = randomBytes(32).toString('hex');
+    const array = new Uint8Array(32);
+    crypto.getRandomValues(array);
+    const access_token = Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
+
     
     await admin.from(TABLES.MCP_TOKENS).insert({
       access_token,

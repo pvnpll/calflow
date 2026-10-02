@@ -1,8 +1,7 @@
 import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { randomBytes } from 'crypto';
 
 export default async function AuthorizePage(props: { searchParams: Promise<Record<string, string | undefined>> }) {
   const searchParams = await props.searchParams;
@@ -40,15 +39,12 @@ export default async function AuthorizePage(props: { searchParams: Promise<Recor
     }
 
     // Generate auth code
-    const code = randomBytes(32).toString('hex');
+    const array = new Uint8Array(32);
+    crypto.getRandomValues(array);
+    const code = Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
     
-    // Store in DB using service role to bypass RLS, or we can just use the user's session if RLS allows.
-    // Wait, the migration didn't add an insert policy. Let's just use service role client.
-    const { createClient: createAdmin } = await import('@supabase/supabase-js');
-    const admin = createAdmin(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    // Store in DB using service role to bypass RLS
+    const admin = createAdminClient();
 
     const { TABLES } = await import('@/lib/db-tables');
     await admin.from(TABLES.MCP_AUTH_CODES).insert({

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { randomBytes } from 'crypto';
+export const runtime = 'edge';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,8 +14,13 @@ export async function POST(req: NextRequest) {
       // Body may be empty or form-encoded
     }
 
-    const clientId = `claude_${randomBytes(16).toString('hex')}`;
-    const clientSecret = randomBytes(32).toString('hex');
+    const array1 = new Uint8Array(16);
+    crypto.getRandomValues(array1);
+    const clientId = `claude_${Array.from(array1).map(b => b.toString(16).padStart(2, '0')).join('')}`;
+
+    const array2 = new Uint8Array(32);
+    crypto.getRandomValues(array2);
+    const clientSecret = Array.from(array2).map(b => b.toString(16).padStart(2, '0')).join('');
     const redirectUris = body.redirect_uris || [];
 
     return NextResponse.json({
