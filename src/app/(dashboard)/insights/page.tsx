@@ -21,48 +21,36 @@ export default function InsightsPage() {
       setLoading(true);
       try {
         const days = parseInt(period, 10) || 7;
-        const endDate = new Date().toISOString().split('T')[0];
+        const endDateObj = new Date();
         const startDateObj = new Date();
         startDateObj.setDate(startDateObj.getDate() - (days - 1));
-        const startDate = startDateObj.toISOString().split('T')[0];
 
-        const [insightsRes, mealsRes, waterRes, weightRes, profileRes] = await Promise.allSettled([
-          fetch(`/api/insights?days=${days}`),
-          fetch(`/api/meals?start=${startDate}&end=${endDate}`),
-          fetch(`/api/water?start=${startDate}&end=${endDate}`),
-          fetch('/api/weight'),
-          fetch('/api/profile')
-        ]);
-
-        if (insightsRes.status === 'fulfilled' && insightsRes.value.ok) {
-          const data = await insightsRes.value.json();
-          setInsights(data);
-        }
+        const res = await fetch(`/api/insights?days=${days}`);
+        if (!res.ok) throw new Error('Failed to fetch insights');
         
-        let profile = null;
-        if (profileRes.status === 'fulfilled' && profileRes.value.ok) {
-          profile = await profileRes.value.json();
-          setProfileData(profile);
+        const data = await res.json();
+        setInsights(data);
+        
+        if (data.profile) {
+          setProfileData(data.profile);
         }
 
-        if (weightRes.status === 'fulfilled' && weightRes.value.ok) {
-          const weightData = await weightRes.value.json();
-          let currentW = 0;
-          let trendW = 0;
+        const weightData = data.rawWeightHistory || [];
+        let currentW = 0;
+        let trendW = 0;
 
-          if (Array.isArray(weightData) && weightData.length > 0) {
-            const latest = weightData[weightData.length - 1];
-            currentW = latest.weight_kg;
-            if (weightData.length >= 2) {
-              const previous = weightData[weightData.length - 2];
-              trendW = latest.weight_kg - previous.weight_kg;
-            }
-          } else if (profile && profile.current_weight_kg) {
-            currentW = profile.current_weight_kg;
+        if (Array.isArray(weightData) && weightData.length > 0) {
+          const latest = weightData[weightData.length - 1];
+          currentW = latest.weight_kg;
+          if (weightData.length >= 2) {
+            const previous = weightData[weightData.length - 2];
+            trendW = latest.weight_kg - previous.weight_kg;
           }
-
-          setWeightInfo({ current: currentW, trend: trendW });
+        } else if (data.profile && data.profile.current_weight_kg) {
+          currentW = data.profile.current_weight_kg;
         }
+
+        setWeightInfo({ current: currentW, trend: trendW });
 
         // Build continuous chart series for the period
         const dailyMap: Record<string, any> = {};
@@ -81,29 +69,25 @@ export default function InsightsPage() {
           };
         }
 
-        if (mealsRes.status === 'fulfilled' && mealsRes.value.ok) {
-          const mealsData = await mealsRes.value.json();
-          if (Array.isArray(mealsData)) {
-            for (const meal of mealsData) {
-              const d = meal.date;
-              if (dailyMap[d]) {
-                dailyMap[d].calories += Number(meal.estimated_calories || 0);
-                dailyMap[d].protein += Number(meal.estimated_protein || 0);
-                dailyMap[d].carbs += Number(meal.estimated_carbs || 0);
-                dailyMap[d].fat += Number(meal.estimated_fat || 0);
-              }
+        const mealsData = data.rawMeals || [];
+        if (Array.isArray(mealsData)) {
+          for (const meal of mealsData) {
+            const d = meal.date;
+            if (dailyMap[d]) {
+              dailyMap[d].calories += Number(meal.estimated_calories || 0);
+              dailyMap[d].protein += Number(meal.estimated_protein || 0);
+              dailyMap[d].carbs += Number(meal.estimated_carbs || 0);
+              dailyMap[d].fat += Number(meal.estimated_fat || 0);
             }
           }
         }
 
-        if (waterRes.status === 'fulfilled' && waterRes.value.ok) {
-          const waterData = await waterRes.value.json();
-          if (Array.isArray(waterData)) {
-            for (const log of waterData) {
-              const d = log.date;
-              if (dailyMap[d]) {
-                dailyMap[d].water += Number(log.amount_ml || 0);
-              }
+        const waterData = data.rawWaterLogs || [];
+        if (Array.isArray(waterData)) {
+          for (const log of waterData) {
+            const d = log.date;
+            if (dailyMap[d]) {
+              dailyMap[d].water += Number(log.amount_ml || 0);
             }
           }
         }

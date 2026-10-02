@@ -1,13 +1,13 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useProfile } from '@/lib/context/ProfileContext';
 
 export default function PreferencesForm() {
-  const [loading, setLoading] = useState(false);
+  const { profile, loading, refresh } = useProfile();
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState({
@@ -18,31 +18,18 @@ export default function PreferencesForm() {
     foodsToAvoid: ''
   });
 
+  // Pre-fill when profile arrives from context
   useEffect(() => {
-    const fetchProfile = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch('/api/profile');
-        if (res.ok) {
-          const data = await res.json();
-          if (data) {
-            setFormData({
-              diet: data.diet || 'omnivore',
-              preferred_meal_count: data.preferred_meal_count ? String(data.preferred_meal_count) : '3',
-              allergies: Array.isArray(data.allergies) ? data.allergies.join(', ') : '',
-              preferences: Array.isArray(data.preferences) ? data.preferences.join(', ') : '',
-              foodsToAvoid: Array.isArray(data.foods_to_avoid) ? data.foods_to_avoid.join(', ') : ''
-            });
-          }
-        }
-      } catch (err) {
-        console.error('Failed to load preferences:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProfile();
-  }, []);
+    if (profile) {
+      setFormData({
+        diet: profile.diet || 'omnivore',
+        preferred_meal_count: profile.preferred_meal_count ? String(profile.preferred_meal_count) : '3',
+        allergies: Array.isArray(profile.allergies) ? profile.allergies.join(', ') : '',
+        preferences: Array.isArray(profile.preferences) ? profile.preferences.join(', ') : '',
+        foodsToAvoid: Array.isArray(profile.foods_to_avoid) ? profile.foods_to_avoid.join(', ') : ''
+      });
+    }
+  }, [profile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,6 +53,7 @@ export default function PreferencesForm() {
       });
       if (res.ok) {
         setSuccess(true);
+        refresh();
         setTimeout(() => setSuccess(false), 3000);
       }
     } catch (err) {
@@ -95,8 +83,8 @@ export default function PreferencesForm() {
 
         <div className="space-y-2">
           <Label>Food Preferences (comma separated)</Label>
-          <Input 
-            placeholder="e.g. spicy food, high protein, Indian cuisine" 
+          <Input
+            placeholder="e.g. spicy food, high protein, Indian cuisine"
             value={formData.preferences}
             onChange={(e) => setFormData({ ...formData, preferences: e.target.value })}
           />
@@ -104,8 +92,8 @@ export default function PreferencesForm() {
 
         <div className="space-y-2">
           <Label>Food Restrictions / Foods to Avoid (comma separated)</Label>
-          <Input 
-            placeholder="e.g. dairy, gluten, high sugar" 
+          <Input
+            placeholder="e.g. dairy, gluten, high sugar"
             value={formData.foodsToAvoid}
             onChange={(e) => setFormData({ ...formData, foodsToAvoid: e.target.value })}
           />
@@ -113,8 +101,8 @@ export default function PreferencesForm() {
 
         <div className="space-y-2">
           <Label>Allergies (comma separated)</Label>
-          <Input 
-            placeholder="e.g. peanuts, shellfish" 
+          <Input
+            placeholder="e.g. peanuts, shellfish"
             value={formData.allergies}
             onChange={(e) => setFormData({ ...formData, allergies: e.target.value })}
           />
@@ -122,15 +110,15 @@ export default function PreferencesForm() {
 
         <div className="space-y-2 pt-4 border-t">
           <Label>Meals per day</Label>
-          <Input 
-            type="number" 
-            placeholder="3" 
+          <Input
+            type="number"
+            placeholder="3"
             value={formData.preferred_meal_count}
             onChange={(e) => setFormData({ ...formData, preferred_meal_count: e.target.value })}
           />
         </div>
       </div>
-      
+
       <div className="flex items-center gap-4">
         <Button type="submit" disabled={saving || loading}>
           {saving ? 'Saving...' : 'Save Preferences'}

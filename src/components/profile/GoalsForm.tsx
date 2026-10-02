@@ -4,15 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useProfile } from '@/lib/context/ProfileContext';
 
 export default function GoalsForm() {
-  const [loading, setLoading] = useState(false);
+  const { profile: profileData, goals, loading, refresh } = useProfile();
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [recalcFlash, setRecalcFlash] = useState(false);
-
-  // Profile data needed for calculation
-  const [profileData, setProfileData] = useState<any>(null);
 
   const [formData, setFormData] = useState({
     primaryGoal: 'maintain_weight',
@@ -26,53 +24,27 @@ export default function GoalsForm() {
     waterTargetL: '2.5'
   });
 
+  // Pre-fill from context data when it arrives
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const [goalsRes, profileRes] = await Promise.all([
-          fetch('/api/goals'),
-          fetch('/api/profile')
-        ]);
+    const goalUpdates: any = goals ? {
+      calorieTarget: goals.calorie_target ? String(goals.calorie_target) : '2000',
+      proteinTarget: goals.protein_target ? String(goals.protein_target) : '150',
+      carbohydrateTarget: goals.carbohydrate_target ? String(goals.carbohydrate_target) : '200',
+      fatTarget: goals.fat_target ? String(goals.fat_target) : '65',
+      fiberTarget: goals.fiber_target ? String(goals.fiber_target) : '30',
+      waterTargetL: goals.water_target_ml ? String(goals.water_target_ml / 1000) : '2.5',
+    } : {};
 
-        let goalUpdates: any = {};
-        let profileUpdates: any = {};
+    const profileUpdates: any = profileData ? {
+      primaryGoal: profileData.goal || 'maintain_weight',
+      goalWeightKg: profileData.goal_weight_kg ? String(profileData.goal_weight_kg) : '',
+      goalRate: profileData.goal_rate || 'moderate',
+    } : {};
 
-        if (goalsRes.ok) {
-          const data = await goalsRes.json();
-          if (data) {
-            goalUpdates = {
-              calorieTarget: data.calorie_target ? String(data.calorie_target) : '2000',
-              proteinTarget: data.protein_target ? String(data.protein_target) : '150',
-              carbohydrateTarget: data.carbohydrate_target ? String(data.carbohydrate_target) : '200',
-              fatTarget: data.fat_target ? String(data.fat_target) : '65',
-              fiberTarget: data.fiber_target ? String(data.fiber_target) : '30',
-              waterTargetL: data.water_target_ml ? String(data.water_target_ml / 1000) : '2.5'
-            };
-          }
-        }
-
-        if (profileRes.ok) {
-          const profile = await profileRes.json();
-          setProfileData(profile);
-          if (profile) {
-            profileUpdates = {
-              primaryGoal: profile.goal || 'maintain_weight',
-              goalWeightKg: profile.goal_weight_kg ? String(profile.goal_weight_kg) : '',
-              goalRate: profile.goal_rate || 'moderate',
-            };
-          }
-        }
-
-        setFormData(prev => ({ ...prev, ...goalUpdates, ...profileUpdates }));
-      } catch (err) {
-        console.error('Failed to load data:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+    if (goals || profileData) {
+      setFormData(prev => ({ ...prev, ...goalUpdates, ...profileUpdates }));
+    }
+  }, [goals, profileData]);
 
   // Returns which profile fields are missing for BMR calculation
   const getMissingFields = (profile: any): string[] => {
@@ -139,7 +111,6 @@ export default function GoalsForm() {
   const updateGoal = (goal: string | null) => {
     const validGoal = goal ?? 'maintain_weight';
     setFormData(prev => ({ ...prev, primaryGoal: validGoal }));
-    // Use latest profileData from closure; goal is passed explicitly
     applyCalculation(validGoal, formData.goalRate);
   };
 
@@ -184,6 +155,7 @@ export default function GoalsForm() {
 
       if (goalsRes.ok && profileRes.ok) {
         setSuccess(true);
+        refresh();
         setTimeout(() => setSuccess(false), 3000);
       }
     } catch (err) {
@@ -258,9 +230,7 @@ export default function GoalsForm() {
               </div>
               <div className="flex items-center gap-3">
                 {recalcFlash && (
-                  <span className="text-xs text-emerald-500 font-medium">
-                    ✓ Targets updated
-                  </span>
+                  <span className="text-xs text-emerald-500 font-medium">✓ Targets updated</span>
                 )}
                 <Button
                   type="button"

@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useProfile } from '@/lib/context/ProfileContext';
 
 export default function ProfileForm() {
-  const [loading, setLoading] = useState(false);
+  const { profile, loading, refresh } = useProfile();
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState({
@@ -18,32 +19,19 @@ export default function ProfileForm() {
     activity_level: 'moderately_active'
   });
 
+  // Pre-fill form when profile data arrives from context
   useEffect(() => {
-    const fetchProfile = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch('/api/profile');
-        if (res.ok) {
-          const data = await res.json();
-          if (data) {
-            setFormData({
-              name: data.name || '',
-              age: data.age ? String(data.age) : '',
-              sex: data.sex || 'male',
-              height_cm: data.height_cm ? String(data.height_cm) : '',
-              current_weight_kg: data.current_weight_kg ? String(data.current_weight_kg) : '',
-              activity_level: data.activity_level || 'moderately_active'
-            });
-          }
-        }
-      } catch (err) {
-        console.error('Failed to load profile:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProfile();
-  }, []);
+    if (profile) {
+      setFormData({
+        name: profile.name || '',
+        age: profile.age ? String(profile.age) : '',
+        sex: profile.sex || 'male',
+        height_cm: profile.height_cm ? String(profile.height_cm) : '',
+        current_weight_kg: profile.current_weight_kg ? String(profile.current_weight_kg) : '',
+        activity_level: profile.activity_level || 'moderately_active'
+      });
+    }
+  }, [profile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,6 +54,7 @@ export default function ProfileForm() {
       });
       if (res.ok) {
         setSuccess(true);
+        refresh(); // Update context so GoalsForm recalculates
         setTimeout(() => setSuccess(false), 3000);
       }
     } catch (err) {
@@ -80,22 +69,22 @@ export default function ProfileForm() {
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Name</Label>
-          <Input 
-            placeholder="Your name" 
-            value={formData.name} 
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
+          <Input
+            placeholder="Your name"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           />
         </div>
         <div className="space-y-2">
           <Label>Age</Label>
-          <Input 
-            type="number" 
-            placeholder="25" 
-            value={formData.age} 
-            onChange={(e) => setFormData({ ...formData, age: e.target.value })} 
+          <Input
+            type="number"
+            placeholder="25"
+            value={formData.age}
+            onChange={(e) => setFormData({ ...formData, age: e.target.value })}
           />
         </div>
-        
+
         <div className="space-y-2">
           <Label>Sex</Label>
           <Select value={formData.sex} onValueChange={(v) => setFormData({ ...formData, sex: v ?? 'male' })}>
@@ -108,22 +97,22 @@ export default function ProfileForm() {
         </div>
         <div className="space-y-2">
           <Label>Height (cm)</Label>
-          <Input 
-            type="number" 
-            placeholder="175" 
-            value={formData.height_cm} 
-            onChange={(e) => setFormData({ ...formData, height_cm: e.target.value })} 
+          <Input
+            type="number"
+            placeholder="175"
+            value={formData.height_cm}
+            onChange={(e) => setFormData({ ...formData, height_cm: e.target.value })}
           />
         </div>
-        
+
         <div className="space-y-2">
           <Label>Current Weight (kg)</Label>
-          <Input 
-            type="number" 
-            step="0.1" 
-            placeholder="70" 
-            value={formData.current_weight_kg} 
-            onChange={(e) => setFormData({ ...formData, current_weight_kg: e.target.value })} 
+          <Input
+            type="number"
+            step="0.1"
+            placeholder="70"
+            value={formData.current_weight_kg}
+            onChange={(e) => setFormData({ ...formData, current_weight_kg: e.target.value })}
           />
         </div>
         <div className="space-y-2">
@@ -139,7 +128,7 @@ export default function ProfileForm() {
           </Select>
         </div>
       </div>
-      
+
       <div className="flex items-center gap-4">
         <Button type="submit" disabled={saving || loading}>
           {saving ? 'Saving...' : 'Save Personal Info'}

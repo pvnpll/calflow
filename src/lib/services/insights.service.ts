@@ -3,6 +3,8 @@ import { getWaterByDateRange } from './water.service'
 import { getWeightHistory } from './weight.service'
 import { getActiveGoals } from './goals.service'
 
+import { getProfile } from './profile.service'
+
 export async function getInsights(userId: string, days = 30) {
   const endDate = new Date()
   const startDate = new Date(endDate)
@@ -11,11 +13,12 @@ export async function getInsights(userId: string, days = 30) {
   const startIso = startDate.toISOString().split('T')[0]
   const endIso = endDate.toISOString().split('T')[0]
   
-  const [meals, waterLogs, weightHistory, goals] = await Promise.all([
+  const [meals, waterLogs, weightHistory, goals, profile] = await Promise.all([
     getMealsByDateRange(userId, startIso, endIso),
     getWaterByDateRange(userId, startIso, endIso),
     getWeightHistory(userId, startIso, endIso),
-    getActiveGoals(userId)
+    getActiveGoals(userId),
+    getProfile(userId)
   ])
   
   // Averages
@@ -127,6 +130,10 @@ export async function getInsights(userId: string, days = 30) {
       carbs: loggedDays > 0 ? (daysMetTarget.carbs / loggedDays) * 100 : 0,
       fat: loggedDays > 0 ? (daysMetTarget.fat / loggedDays) * 100 : 0,
       water: Object.keys(dailyWater).length > 0 ? (daysMetTarget.water / Object.keys(dailyWater).length) * 100 : 0,
-    }
+    },
+    rawMeals: meals,
+    rawWaterLogs: waterLogs,
+    rawWeightHistory: weightHistory,
+    profile
   }
 }

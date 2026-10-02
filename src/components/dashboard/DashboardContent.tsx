@@ -28,79 +28,60 @@ export default function DashboardContent() {
 
   const fetchDashboardData = useCallback(async () => {
     try {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      const res = await fetch('/api/dashboard');
+      if (!res.ok) throw new Error('Failed to fetch dashboard data');
+      const data = await res.json();
       
-      if (user) {
-        setUserName(user.user_metadata?.full_name?.split(' ')[0] || '');
-      }
-
-      const dateStr = new Date().toISOString().split('T')[0];
-
-      const [nutritionRes, waterRes, mealsRes, weightRes, profileRes] = await Promise.allSettled([
-        fetch('/api/nutrition/today'),
-        fetch(`/api/water?date=${dateStr}`),
-        fetch(`/api/meals?date=${dateStr}`),
-        fetch('/api/weight'),
-        fetch('/api/profile')
-      ]);
-
-      let profileData = null;
-      if (profileRes.status === 'fulfilled' && profileRes.value.ok) {
-        profileData = await profileRes.value.json();
+      if (data.profile) {
+        setUserName(data.profile.name?.split(' ')[0] || '');
       }
 
       // Parse nutrition summary
-      if (nutritionRes.status === 'fulfilled' && nutritionRes.value.ok) {
-        const data = await nutritionRes.value.json();
-        if (data) {
-          const targets = data.targets || {};
-          const consumed = data.consumed || {};
-          setNutrition({
-            calories: { 
-              consumed: Math.round(consumed.calories || 0), 
-              target: targets.calorie_target || 2000 
-            },
-            protein: { 
-              consumed: Math.round(consumed.protein || 0), 
-              target: targets.protein_target || 150 
-            },
-            carbs: { 
-              consumed: Math.round(consumed.carbs || 0), 
-              target: targets.carbohydrate_target || 250 
-            },
-            fat: { 
-              consumed: Math.round(consumed.fat || 0), 
-              target: targets.fat_target || 65 
-            },
-            fiber: { 
-              consumed: Math.round(consumed.fiber || 0), 
-              target: targets.fiber_target || 30 
-            }
-          });
-
-          if (targets.water_target_ml) {
-            setWater(prev => ({ ...prev, target: targets.water_target_ml }));
+      if (data.nutrition) {
+        const targets = data.nutrition.targets || {};
+        const consumed = data.nutrition.consumed || {};
+        setNutrition({
+          calories: { 
+            consumed: Math.round(consumed.calories || 0), 
+            target: targets.calorie_target || 2000 
+          },
+          protein: { 
+            consumed: Math.round(consumed.protein || 0), 
+            target: targets.protein_target || 150 
+          },
+          carbs: { 
+            consumed: Math.round(consumed.carbs || 0), 
+            target: targets.carbohydrate_target || 250 
+          },
+          fat: { 
+            consumed: Math.round(consumed.fat || 0), 
+            target: targets.fat_target || 65 
+          },
+          fiber: { 
+            consumed: Math.round(consumed.fiber || 0), 
+            target: targets.fiber_target || 30 
           }
+        });
+
+        if (targets.water_target_ml) {
+          setWater(prev => ({ ...prev, target: targets.water_target_ml }));
         }
       }
 
       // Parse water
-      if (waterRes.status === 'fulfilled' && waterRes.value.ok) {
-        const waterData = await waterRes.value.json();
-        const waterAmount = typeof waterData === 'number' ? waterData : (waterData?.total || 0);
+      if (data.waterTotal !== null) {
+        const waterAmount = typeof data.waterTotal === 'number' ? data.waterTotal : (data.waterTotal?.total || 0);
         setWater(prev => ({ ...prev, consumed: waterAmount }));
       }
 
       // Parse meals
-      if (mealsRes.status === 'fulfilled' && mealsRes.value.ok) {
-        const mealsData = await mealsRes.value.json();
-        setMeals(Array.isArray(mealsData) ? mealsData : []);
+      if (data.meals) {
+        setMeals(Array.isArray(data.meals) ? data.meals : []);
       }
 
       // Parse weight
-      if (weightRes.status === 'fulfilled' && weightRes.value.ok) {
-        const weightData = await weightRes.value.json();
+      if (data.weightHistory) {
+        const weightData = data.weightHistory;
         setWeightHistory(Array.isArray(weightData) ? weightData : []);
         
         if (Array.isArray(weightData) && weightData.length > 0) {
@@ -119,10 +100,10 @@ export default function DashboardContent() {
             current: Number(latest.weight_kg), 
             trend, 
             trendValue,
-            targetWeight: profileData?.goal_weight_kg || undefined
+            targetWeight: data.profile?.goal_weight_kg || undefined
           });
         } else {
-          setWeight(prev => ({ ...prev, targetWeight: profileData?.goal_weight_kg || undefined }));
+          setWeight(prev => ({ ...prev, targetWeight: data.profile?.goal_weight_kg || undefined }));
         }
       }
     } catch (error) {
