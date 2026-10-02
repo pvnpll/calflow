@@ -19,7 +19,6 @@ function safeNum(v: unknown): number {
 
 export default function MealCard({ meal, onUpdate }: MealCardProps) {
   const [itemsExpanded, setItemsExpanded] = useState(false);
-  const [microsExpanded, setMicrosExpanded] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -66,7 +65,6 @@ export default function MealCard({ meal, onUpdate }: MealCardProps) {
         )
       : [];
   const microCount = microEntries.length;
-  const visibleMicros = microsExpanded ? microEntries : microEntries.slice(0, 6);
 
   const macros = [
     { label: 'Calories', value: `${Math.round(totalCalories)}`, unit: 'kcal', icon: Flame, color: 'text-orange-500' },
@@ -117,18 +115,15 @@ export default function MealCard({ meal, onUpdate }: MealCardProps) {
             ))}
           </dl>
 
-          {microCount > 0 && (
+          {(itemsExpanded || items.length <= 1) && microCount > 0 && (
             <div className="mt-3 rounded-lg border bg-muted/30">
-              <button type="button" onClick={() => setMicrosExpanded((v) => !v)}
-                aria-expanded={microsExpanded}
-                className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:text-foreground">
+              <div className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium text-muted-foreground">
                 <span>Micronutrients
                   <span className="ml-1.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold tabular-nums">{microCount}</span>
                 </span>
-                {microsExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-              </button>
+              </div>
               <div className="grid grid-cols-2 gap-x-3 gap-y-1 px-3 pb-3 sm:grid-cols-3">
-                {visibleMicros.map(([key, val]) => {
+                {microEntries.map(([key, val]) => {
                   const { label, unit } = formatMicroKey(key);
                   return (
                     <div key={key} className="flex items-baseline justify-between gap-1 border-b border-muted py-1 text-xs">
@@ -140,16 +135,10 @@ export default function MealCard({ meal, onUpdate }: MealCardProps) {
                   );
                 })}
               </div>
-              {microCount > 6 && (
-                <button type="button" onClick={() => setMicrosExpanded((v) => !v)}
-                  className="w-full border-t px-3 py-1.5 text-center text-[11px] font-medium text-muted-foreground hover:text-foreground">
-                  {microsExpanded ? 'Show less' : `Show all ${microCount}`}
-                </button>
-              )}
             </div>
           )}
 
-          {(itemsExpanded || items.length === 1) && items.length > 0 && (
+          {(itemsExpanded || items.length <= 1) && items.length > 0 && (
             <ul className="mt-3 divide-y divide-muted rounded-lg border">
               {items.map((item: any, i: number) => {
                 const itemCals = safeNum(item.estimated_calories ?? item.calories);

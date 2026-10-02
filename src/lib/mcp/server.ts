@@ -21,7 +21,7 @@ export function createCalflowMcpServer() {
     "log_meal",
     "Record a meal and its complete estimated nutrition for the user. IMPORTANT: Provide comprehensive nutritional data including all vitamins (vitamin_a_mcg, vitamin_c_mg, vitamin_d_mcg, vitamin_e_mg, vitamin_k_mcg, b-complex) and minerals (calcium_mg, iron_mg, magnesium_mg, potassium_mg, zinc_mg, etc.) from the foods based on USDA/FDA reference standards, not just basic calories and macros.",
     {
-      meal_text: z.string().describe("A very short, concise title for the meal (e.g., 'Chicken Momos & Chai'). Max 3-5 words."),
+      meal_text: z.string().describe("An extremely short, 1-3 word title summarizing the meal (e.g., 'Omelette & Oats', 'Chicken Tikka'). DO NOT include quantities or descriptions."),
       calories: z.number().describe("Estimated total calories"),
       protein_g: z.number().describe("Estimated total protein in grams"),
       carbs_g: z.number().describe("Estimated total carbohydrates in grams"),
@@ -161,7 +161,7 @@ export function createCalflowMcpServer() {
     "Update an existing meal record. Use this to update the description, macros, items, and especially the structured 'micronutrients' dictionary with complete vitamins and minerals (e.g. vitamin_a_mcg, vitamin_c_mg, vitamin_d_mcg, vitamin_e_mg, vitamin_k_mcg, b-complex, calcium_mg, iron_mg, magnesium_mg, potassium_mg, zinc_mg, selenium_mcg, etc.). DO NOT append vitamins as text to description; pass them directly into the 'micronutrients' argument as structured key-value pairs.",
     {
       meal_id: z.string().describe("The ID of the meal to update"),
-      meal_text: z.string().optional().describe("Updated meal title (short, max 3-5 words)"),
+      meal_text: z.string().optional().describe("Updated meal title (extremely short, 1-3 words)"),
       meal_type: z.enum(["breakfast", "lunch", "dinner", "snack"]).optional().describe("Updated meal category"),
       calories: z.number().optional().describe("Updated calories"),
       protein_g: z.number().optional().describe("Updated protein in grams"),
