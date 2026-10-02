@@ -21,7 +21,7 @@ export function createCalflowMcpServer() {
     "log_meal",
     "Record a meal and its complete estimated nutrition for the user. IMPORTANT: Provide comprehensive nutritional data including all vitamins (vitamin_a_mcg, vitamin_c_mg, vitamin_d_mcg, vitamin_e_mg, vitamin_k_mcg, b-complex) and minerals (calcium_mg, iron_mg, magnesium_mg, potassium_mg, zinc_mg, etc.) from the foods based on USDA/FDA reference standards, not just basic calories and macros.",
     {
-      meal_text: z.string().describe("Original natural-language description of the meal"),
+      meal_text: z.string().describe("A very short, concise title for the meal (e.g., 'Chicken Momos & Chai'). Max 3-5 words."),
       calories: z.number().describe("Estimated total calories"),
       protein_g: z.number().describe("Estimated total protein in grams"),
       carbs_g: z.number().describe("Estimated total carbohydrates in grams"),
@@ -40,9 +40,9 @@ export function createCalflowMcpServer() {
         carbs_g: z.number().optional().describe("Carbohydrates in grams for this item"),
         fat_g: z.number().optional().describe("Fat in grams for this item"),
         fiber_g: z.number().optional().describe("Fiber in grams for this item"),
-        micronutrients: z.record(z.string(), z.any()).optional().describe("Vitamins and minerals for this specific food item (e.g. vitamin_a_mcg, calcium_mg, iron_mg, potassium_mg, vitamin_c_mg, etc.)")
+        micronutrients: z.record(z.number()).optional().describe("Vitamins and minerals for this specific food item as numeric values (e.g. vitamin_a_mcg: 240, calcium_mg: 300, etc.)")
       })).optional().describe("Individual constituent items of the meal"),
-      micronutrients: z.record(z.string(), z.any()).optional().describe("Complete vitamins and minerals breakdown for the entire meal (e.g. calcium_mg, iron_mg, potassium_mg, magnesium_mg, zinc_mg, vitamin_a_mcg, vitamin_c_mg, vitamin_d_mcg, vitamin_b12_mcg, etc.)")
+      micronutrients: z.record(z.number()).optional().describe("Complete vitamins and minerals breakdown for the entire meal with numeric values only (e.g. calcium_mg: 350, iron_mg: 2.8, potassium_mg: 480, vitamin_c_mg: 15)")
     },
     async (args, extra) => {
       try {
@@ -161,7 +161,7 @@ export function createCalflowMcpServer() {
     "Update an existing meal record. Use this to update the description, macros, items, and especially the structured 'micronutrients' dictionary with complete vitamins and minerals (e.g. vitamin_a_mcg, vitamin_c_mg, vitamin_d_mcg, vitamin_e_mg, vitamin_k_mcg, b-complex, calcium_mg, iron_mg, magnesium_mg, potassium_mg, zinc_mg, selenium_mcg, etc.). DO NOT append vitamins as text to description; pass them directly into the 'micronutrients' argument as structured key-value pairs.",
     {
       meal_id: z.string().describe("The ID of the meal to update"),
-      meal_text: z.string().optional().describe("Updated meal description"),
+      meal_text: z.string().optional().describe("Updated meal title (short, max 3-5 words)"),
       meal_type: z.enum(["breakfast", "lunch", "dinner", "snack"]).optional().describe("Updated meal category"),
       calories: z.number().optional().describe("Updated calories"),
       protein_g: z.number().optional().describe("Updated protein in grams"),
@@ -177,9 +177,9 @@ export function createCalflowMcpServer() {
         carbs_g: z.number().optional().describe("Carbohydrates in grams for this item"),
         fat_g: z.number().optional().describe("Fat in grams for this item"),
         fiber_g: z.number().optional().describe("Fiber in grams for this item"),
-        micronutrients: z.record(z.string(), z.any()).optional().describe("Key micronutrients for this item")
+        micronutrients: z.record(z.number()).optional().describe("Key micronutrients for this item as numeric values")
       })).optional().describe("Updated constituent items of the meal"),
-      micronutrients: z.record(z.string(), z.any()).optional().describe("Structured dictionary of all vitamins and minerals (e.g. {\"vitamin_a_mcg\": 240, \"vitamin_c_mg\": 15, \"vitamin_d_mcg\": 3.2, \"vitamin_b12_mcg\": 2.3, \"calcium_mg\": 350, \"iron_mg\": 2.8, \"potassium_mg\": 480, \"magnesium_mg\": 55, \"zinc_mg\": 2.7, \"selenium_mcg\": 50, \"iodine_mcg\": 100}). Pass numeric values.")
+      micronutrients: z.record(z.number()).optional().describe("Structured dictionary of all vitamins and minerals with numeric values only. (e.g. {\"vitamin_a_mcg\": 240, \"vitamin_c_mg\": 15, \"calcium_mg\": 350}).")
     },
     async (args, extra) => {
       try {

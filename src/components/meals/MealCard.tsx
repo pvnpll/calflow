@@ -149,7 +149,7 @@ export default function MealCard({ meal, onUpdate }: MealCardProps) {
             </div>
           )}
 
-          {itemsExpanded && items.length > 0 && (
+          {(itemsExpanded || items.length === 1) && items.length > 0 && (
             <ul className="mt-3 divide-y divide-muted rounded-lg border">
               {items.map((item: any, i: number) => {
                 const itemCals = safeNum(item.estimated_calories ?? item.calories);
@@ -179,11 +179,11 @@ export default function MealCard({ meal, onUpdate }: MealCardProps) {
             </ul>
           )}
         </CardContent>
-        {items.length > 0 && (
+        {items.length > 1 && (
           <CardFooter className="p-0">
             <Button variant="ghost" size="sm" className="h-9 w-full rounded-none text-xs font-medium text-muted-foreground" onClick={() => setItemsExpanded((v) => !v)} aria-expanded={itemsExpanded}>
               {itemsExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-              {itemsExpanded ? 'Hide items' : `Show ${items.length} item${items.length > 1 ? 's' : ''}`}
+              {itemsExpanded ? 'Hide items' : `Show ${items.length} items`}
             </Button>
           </CardFooter>
         )}
