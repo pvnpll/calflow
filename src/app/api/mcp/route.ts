@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getMcpTransport, authenticateToken } from "@/lib/mcp/transport";
+import { handleStatelessMcpRequest, authenticateToken } from "@/lib/mcp/transport";
 
 export const dynamic = "force-dynamic";
 
@@ -26,8 +26,7 @@ async function handleMcpRequest(req: NextRequest) {
       body: req.method !== 'GET' && req.method !== 'HEAD' ? await req.text() : undefined,
     });
 
-    const transport = getMcpTransport();
-    const response = await transport.handleRequest(webRequest, { authInfo });
+    const response = await handleStatelessMcpRequest(webRequest, authInfo);
     return response;
   } catch (error: any) {
     console.error("[MCP Route Error]:", error);

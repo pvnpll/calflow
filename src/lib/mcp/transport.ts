@@ -2,23 +2,18 @@ import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/
 import { createCalflowMcpServer } from "./server";
 import { createClient } from "@supabase/supabase-js";
 
-// Global instances across invocations
-declare global {
-  var _mcpTransport: WebStandardStreamableHTTPServerTransport | undefined;
-  var _mcpServer: any | undefined;
-}
-
-export function getMcpTransport() {
-  if (!global._mcpTransport) {
-    global._mcpTransport = new WebStandardStreamableHTTPServerTransport({
-      sessionIdGenerator: undefined, // Stateless mode for serverless lambdas
-      enableDnsRebindingProtection: false,
-    });
-    const server = createCalflowMcpServer();
-    global._mcpServer = server;
-    server.connect(global._mcpTransport).catch(console.error);
-  }
-  return global._mcpTransport;
+/**
+ * For stateless HTTP mode in MCP SDK, each HTTP request must create a fresh
+ * instance of WebStandardStreamableHTTPServerTransport and attach it to a server.
+ */
+export async function handleStatelessMcpRequest(webRequest: Request, authInfo: any) {
+  const transport = new WebStandardStreamableHTTPServerTransport({
+    sessionIdGenerator: undefined, // Stateless per-request
+    enableDnsRebindingProtection: false,
+  });
+  const server = createCalflowMcpServer();
+  await server.connect(transport);
+  return transport.handleRequest(webRequest, { authInfo });
 }
 
 // Helper to validate bearer tokens
