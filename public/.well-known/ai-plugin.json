@@ -1,0 +1,18 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "CalFlow",
+  "name_for_model": "calflow",
+  "description_for_human": "Track your nutrition, meals, water, and weight with AI-powered insights.",
+  "description_for_model": "CalFlow is a personal nutrition tracking system. Use it to log meals, track water intake, log weight, view nutrition summaries, check nutrition gaps against targets, and get health insights. When a user describes food they ate, use log_meal to record it with estimated nutrition. Use get_today_summary to see their current intake vs targets. Use get_nutrition_gaps to identify what nutrients they need more of.",
+  "auth": {
+    "type": "user_http",
+    "authorization_type": "bearer"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://calflow.app/openapi.json"
+  },
+  "logo_url": "https://calflow.app/logo.png",
+  "contact_email": "support@calflow.app",
+  "legal_info_url": "https://calflow.app/legal"
+}

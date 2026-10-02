@@ -1,0 +1,54 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "CalFlow API",
+    "description": "API for CalFlow nutrition tracking app",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://calflow.app/api"
+    }
+  ],
+  "paths": {
+    "/meals": {
+      "post": {
+        "operationId": "log_meal",
+        "summary": "Log a meal",
+        "responses": { "200": { "description": "Success" } }
+      },
+      "get": {
+        "operationId": "get_meals",
+        "summary": "Get meals",
+        "responses": { "200": { "description": "Success" } }
+      }
+    },
+    "/nutrition/today": {
+      "get": {
+        "operationId": "get_today_summary",
+        "summary": "Get today's summary",
+        "responses": { "200": { "description": "Success" } }
+      }
+    },
+    "/nutrition/gaps": {
+      "get": {
+        "operationId": "get_nutrition_gaps",
+        "summary": "Get nutrition gaps",
+        "responses": { "200": { "description": "Success" } }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ]
+}
