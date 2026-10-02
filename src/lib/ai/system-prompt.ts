@@ -1,4 +1,4 @@
-export function buildSystemPrompt(profile: Record<string, any> | null, goals: Record<string, any> | null): string {
+export function buildSystemPrompt(profile: Record<string, any> | null, goals: Record<string, any> | null, insights?: Record<string, any> | null): string {
   const nameStr = profile?.name ? `\nUser Name: ${profile.name}` : '';
   const goalStr = profile?.goal ? `\nHealth Goal: ${profile.goal.replace(/_/g, ' ')}` : '';
   const dietStr = profile?.diet ? `\nDietary Preference: ${profile.diet}` : '';
@@ -6,6 +6,8 @@ export function buildSystemPrompt(profile: Record<string, any> | null, goals: Re
   const avoidStr = profile?.foods_to_avoid?.length ? `\nFoods to Avoid: ${profile.foods_to_avoid.join(', ')}` : '';
   const prefsStr = profile?.preferences?.length ? `\nFood Preferences: ${profile.preferences.join(', ')}` : '';
   const activityStr = profile?.activity_level ? `\nActivity Level: ${profile.activity_level.replace(/_/g, ' ')}` : '';
+  const goalWeightStr = profile?.goal_weight_kg ? `\nGoal Weight: ${profile.goal_weight_kg} kg` : '';
+  const currentWeightStr = profile?.current_weight_kg ? `\nCurrent Weight: ${profile.current_weight_kg} kg` : '';
 
   const goalsStr = goals ? `
 Current Nutrition Targets:
@@ -16,9 +18,41 @@ Current Nutrition Targets:
 - Fiber: ${goals.fiber_target || 'Not set'} g
 - Water: ${goals.water_target_ml || 'Not set'} ml` : '';
 
-  return `You are CalFlow, a personal nutrition tracking assistant. You help users track their daily nutrition, meals, water intake, and weight.
+  let progressStr = '';
+  if (insights) {
+    const avgCal = Math.round(insights.averages?.calories || 0);
+    const wtChange = insights.weightTrend?.change || 0;
+    
+    // Estimate maintenance
+    let estimatedMaintenance = 2000;
+    if (profile && profile.current_weight_kg && profile.height_cm && profile.age) {
+      let bmr = 10 * profile.current_weight_kg + 6.25 * profile.height_cm - 5 * profile.age;
+      bmr += (profile.sex === 'male') ? 5 : -161;
+      let multiplier = 1.2;
+      switch(profile.activity_level) {
+        case 'lightly_active': multiplier = 1.375; break;
+        case 'moderately_active': multiplier = 1.55; break;
+        case 'very_active': multiplier = 1.725; break;
+        case 'extremely_active': multiplier = 1.9; break;
+      }
+      estimatedMaintenance = Math.round(bmr * multiplier);
+    }
 
-USER CONTEXT:${nameStr}${goalStr}${activityStr}${dietStr}${allergiesStr}${avoidStr}${prefsStr}${goalsStr}
+    const deficit = estimatedMaintenance - avgCal;
+    const isSurplus = deficit < 0;
+
+    progressStr = `
+Recent Progress (Last 7 Days):
+- Average Intake: ${avgCal} kcal/day
+- Estimated Maintenance: ${estimatedMaintenance} kcal/day
+- Energy Balance: ${Math.abs(deficit)} kcal/day ${isSurplus ? 'Surplus' : 'Deficit'}
+- Weight Trend: ${wtChange > 0 ? '+' : ''}${wtChange.toFixed(2)} kg
+`;
+  }
+
+  return `You are CalFlow, a personal nutrition tracking assistant. You help users track their daily nutrition, meals, water intake, and weight. You give personalized advice based on actual progress, not just generic rules.
+
+USER CONTEXT:${nameStr}${goalStr}${activityStr}${currentWeightStr}${goalWeightStr}${dietStr}${allergiesStr}${avoidStr}${prefsStr}${goalsStr}${progressStr}
 
 CORE BEHAVIOR:
 - When the user describes what they ate, IMMEDIATELY call log_meal to record it.
@@ -39,13 +73,14 @@ SAFETY GUIDELINES:
 - For medical conditions, medication interactions, or severe dietary restrictions, recommend consulting a healthcare professional.
 
 TOOL USAGE:
-- log_meal: When user describes food. Provide date (YYYY-MM-DD format), meal_type (breakfast/lunch/dinner/snack), description, items with nutrition estimates, estimated_total, and full micronutrients dictionary.
-- get_today_summary: To see current intake vs targets.
+- log_meal: When user describes food. Provide date (YYYY-MM-DD format), meal_type, description, items with nutrition estimates, estimated_total, and full micronutrients dictionary.
+- get_today_summary / get_nutrition_summary: To see current intake vs targets.
+- get_goals / update_goals: To read or update user profile goals and nutrition targets.
 - get_nutrition_gaps: To identify what nutrients are lacking.
-- log_water: When user mentions drinking water.
-- log_weight: When user mentions their weight.
-- get_meals: To review past meals.
-- get_insights: For trends and analytics.
+- log_water / get_water_logs: When user mentions drinking water or wants water history.
+- log_weight / get_weight_history: When user mentions their weight or wants weight history.
+- get_meals / update_meal / delete_meal: To manage meal logs.
+- get_insights: For trends, energy balance, and analytics.
 
 Be concise, friendly, and helpful. Focus on actionable nutrition guidance.
 `;

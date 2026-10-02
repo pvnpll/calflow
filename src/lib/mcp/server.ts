@@ -1,6 +1,10 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { getProfile } from "@/lib/services/profile.service";
+import { getProfile, upsertProfile } from "@/lib/services/profile.service";
+import { getActiveGoals, upsertGoals } from "@/lib/services/goals.service";
+import { logWeight, getWeightHistory } from "@/lib/services/weight.service";
+import { logWater, getWaterByDateRange } from "@/lib/services/water.service";
+import { getInsights } from "@/lib/services/insights.service";
 import { createMeal, getMealsByDate, getMealsByDateRange, updateMeal, deleteMeal } from "@/lib/services/meals.service";
 import { getTodaySummary, getNutritionSummary } from "@/lib/services/nutrition.service";
 
@@ -231,6 +235,153 @@ export function createCalflowMcpServer() {
       
       await deleteMeal(userId, args.meal_id);
       return { content: [{ type: "text", text: `Meal deleted successfully. ID: ${args.meal_id}` }] };
+    }
+  );
+
+  // get_goals
+  server.tool(
+    "get_goals",
+    "Retrieve the authenticated user's profile and nutrition goals.",
+    {},
+    async (args, extra) => {
+      const userId = extra.authInfo?.extra?.userId as string;
+      if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
+      
+      const [profile, goals] = await Promise.all([
+        getProfile(userId).catch(() => null),
+        getActiveGoals(userId).catch(() => null)
+      ]);
+      return { content: [{ type: "text", text: JSON.stringify({ profile, goals }, null, 2) }] };
+    }
+  );
+
+  // update_goals
+  server.tool(
+    "update_goals",
+    "Update the authenticated user's profile and/or nutrition goals. You can update goal parameters (like goal_weight_kg, goal, goal_rate) or macronutrient targets.",
+    {
+      goal: z.enum(['lose_weight', 'maintain_weight', 'gain_weight', 'gain_muscle']).optional().describe("Primary health goal"),
+      goal_weight_kg: z.number().optional().describe("Target weight in kg"),
+      goal_rate: z.enum(['slow', 'moderate', 'fast']).optional().describe("Desired rate of progress"),
+      calorie_target: z.number().optional().describe("Daily calorie target"),
+      protein_target: z.number().optional().describe("Daily protein target (g)"),
+      carbohydrate_target: z.number().optional().describe("Daily carb target (g)"),
+      fat_target: z.number().optional().describe("Daily fat target (g)"),
+      fiber_target: z.number().optional().describe("Daily fiber target (g)"),
+      water_target_ml: z.number().optional().describe("Daily water target (ml)")
+    },
+    async (args, extra) => {
+      const userId = extra.authInfo?.extra?.userId as string;
+      if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
+      
+      let profileResult = null;
+      let goalsResult = null;
+      
+      if (args.goal || args.goal_weight_kg !== undefined || args.goal_rate) {
+        const profileUpdates: any = {};
+        if (args.goal) profileUpdates.goal = args.goal;
+        if (args.goal_weight_kg !== undefined) profileUpdates.goalWeightKg = args.goal_weight_kg;
+        if (args.goal_rate) profileUpdates.goalRate = args.goal_rate;
+        profileResult = await upsertProfile(userId, profileUpdates);
+      }
+      
+      if (args.calorie_target !== undefined || args.protein_target !== undefined || args.carbohydrate_target !== undefined || args.fat_target !== undefined || args.fiber_target !== undefined || args.water_target_ml !== undefined) {
+        const goalUpdates: any = {};
+        if (args.calorie_target !== undefined) goalUpdates.calorieTarget = args.calorie_target;
+        if (args.protein_target !== undefined) goalUpdates.proteinTarget = args.protein_target;
+        if (args.carbohydrate_target !== undefined) goalUpdates.carbohydrateTarget = args.carbohydrate_target;
+        if (args.fat_target !== undefined) goalUpdates.fatTarget = args.fat_target;
+        if (args.fiber_target !== undefined) goalUpdates.fiberTarget = args.fiber_target;
+        if (args.water_target_ml !== undefined) goalUpdates.waterTargetMl = args.water_target_ml;
+        goalsResult = await upsertGoals(userId, goalUpdates);
+      }
+      
+      return { content: [{ type: "text", text: `Goals updated successfully.\nProfile updates: ${JSON.stringify(profileResult)}\nNutrition target updates: ${JSON.stringify(goalsResult)}` }] };
+    }
+  );
+
+  // log_weight
+  server.tool(
+    "log_weight",
+    "Record a new weight measurement for the user.",
+    {
+      weight_kg: z.number().describe("Weight in kilograms"),
+      date: z.string().optional().describe("Date in YYYY-MM-DD format (defaults to today)"),
+      note: z.string().optional().describe("Optional note for this weight log")
+    },
+    async (args, extra) => {
+      const userId = extra.authInfo?.extra?.userId as string;
+      if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
+      
+      const log = await logWeight(userId, args.weight_kg, args.date, args.note);
+      return { content: [{ type: "text", text: `Weight logged successfully. ID: ${log?.id}` }] };
+    }
+  );
+
+  // get_weight_history
+  server.tool(
+    "get_weight_history",
+    "Retrieve the user's weight log history for a specific date range.",
+    {
+      start_date: z.string().optional().describe("Start date in YYYY-MM-DD format"),
+      end_date: z.string().optional().describe("End date in YYYY-MM-DD format")
+    },
+    async (args, extra) => {
+      const userId = extra.authInfo?.extra?.userId as string;
+      if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
+      
+      const history = await getWeightHistory(userId, args.start_date, args.end_date);
+      return { content: [{ type: "text", text: JSON.stringify(history, null, 2) }] };
+    }
+  );
+
+  // log_water
+  server.tool(
+    "log_water",
+    "Record a new water consumption log for the user.",
+    {
+      amount_ml: z.number().describe("Amount of water consumed in milliliters (ml)"),
+      date: z.string().optional().describe("Date in YYYY-MM-DD format (defaults to today)")
+    },
+    async (args, extra) => {
+      const userId = extra.authInfo?.extra?.userId as string;
+      if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
+      
+      const log = await logWater(userId, args.amount_ml, args.date);
+      return { content: [{ type: "text", text: `Water logged successfully. Amount: ${log?.amount_ml}ml` }] };
+    }
+  );
+
+  // get_water_logs
+  server.tool(
+    "get_water_logs",
+    "Retrieve the user's water consumption logs for a specific date range.",
+    {
+      start_date: z.string().describe("Start date in YYYY-MM-DD format"),
+      end_date: z.string().describe("End date in YYYY-MM-DD format")
+    },
+    async (args, extra) => {
+      const userId = extra.authInfo?.extra?.userId as string;
+      if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
+      
+      const logs = await getWaterByDateRange(userId, args.start_date, args.end_date);
+      return { content: [{ type: "text", text: JSON.stringify(logs, null, 2) }] };
+    }
+  );
+
+  // get_insights
+  server.tool(
+    "get_insights",
+    "Retrieve the user's aggregated health insights (averages, consistency, weight trend, target achievement) for the past X days.",
+    {
+      days: z.number().optional().describe("Number of past days to aggregate (default: 30)")
+    },
+    async (args, extra) => {
+      const userId = extra.authInfo?.extra?.userId as string;
+      if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
+      
+      const insights = await getInsights(userId, args.days || 30);
+      return { content: [{ type: "text", text: JSON.stringify(insights, null, 2) }] };
     }
   );
 

@@ -53,11 +53,11 @@ export default function ProfileForm() {
       const payload: any = {
         name: formData.name,
         sex: formData.sex,
-        activity_level: formData.activity_level,
+        activityLevel: formData.activity_level,
       };
       if (formData.age) payload.age = parseInt(formData.age, 10);
-      if (formData.height_cm) payload.height_cm = parseFloat(formData.height_cm);
-      if (formData.current_weight_kg) payload.current_weight_kg = parseFloat(formData.current_weight_kg);
+      if (formData.height_cm) payload.heightCm = parseFloat(formData.height_cm);
+      if (formData.current_weight_kg) payload.currentWeightKg = parseFloat(formData.current_weight_kg);
 
       const res = await fetch('/api/profile', {
         method: 'PUT',
