@@ -154,7 +154,7 @@ export function createCalflowMcpServer() {
   // update_meal
   server.tool(
     "update_meal",
-    "Allow the authenticated user to modify their own meal record.",
+    "Update an existing meal record. Use this to update the description, macros, items, and especially the structured 'micronutrients' dictionary with complete vitamins and minerals (e.g. vitamin_a_mcg, vitamin_c_mg, vitamin_d_mcg, vitamin_e_mg, vitamin_k_mcg, b-complex, calcium_mg, iron_mg, magnesium_mg, potassium_mg, zinc_mg, selenium_mcg, etc.). DO NOT append vitamins as text to description; pass them directly into the 'micronutrients' argument as structured key-value pairs.",
     {
       meal_id: z.string().describe("The ID of the meal to update"),
       meal_text: z.string().optional().describe("Updated meal description"),
@@ -173,9 +173,9 @@ export function createCalflowMcpServer() {
         carbs_g: z.number().optional().describe("Carbohydrates in grams for this item"),
         fat_g: z.number().optional().describe("Fat in grams for this item"),
         fiber_g: z.number().optional().describe("Fiber in grams for this item"),
-        micronutrients: z.record(z.string(), z.any()).optional().describe("Key micronutrients")
+        micronutrients: z.record(z.string(), z.any()).optional().describe("Key micronutrients for this item")
       })).optional().describe("Updated constituent items of the meal"),
-      micronutrients: z.record(z.string(), z.any()).optional().describe("Updated micronutrients dictionary")
+      micronutrients: z.record(z.string(), z.any()).optional().describe("Structured dictionary of all vitamins and minerals (e.g. {\"vitamin_a_mcg\": 240, \"vitamin_c_mg\": 15, \"vitamin_d_mcg\": 3.2, \"vitamin_b12_mcg\": 2.3, \"calcium_mg\": 350, \"iron_mg\": 2.8, \"potassium_mg\": 480, \"magnesium_mg\": 55, \"zinc_mg\": 2.7, \"selenium_mcg\": 50, \"iodine_mcg\": 100}). Pass numeric values.")
     },
     async (args, extra) => {
       try {
