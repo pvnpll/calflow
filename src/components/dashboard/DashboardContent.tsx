@@ -184,17 +184,17 @@ export default function DashboardContent() {
             target={water.target} 
           />
           <div className="flex-grow">
-            <BodyAndHealth 
-              weight={weight} 
-              weightHistory={weightHistory} 
-              onWeightLogged={fetchDashboardData} 
-            />
+            <RecentMeals meals={meals} />
           </div>
         </div>
         
         <div className="space-y-4 flex flex-col">
           <div className="flex-grow">
-            <RecentMeals meals={meals} />
+            <BodyAndHealth 
+              weight={weight} 
+              weightHistory={weightHistory} 
+              onWeightLogged={fetchDashboardData} 
+            />
           </div>
         </div>
       </div>
