@@ -2,10 +2,11 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
-export default function WeightChart({ data }: any) {
+export default function WeightChart({ data = [] }: any) {
   // calculate domain to make the line more pronounced
-  const minWeight = Math.min(...data.map((d: any) => d.weight)) - 1;
-  const maxWeight = Math.max(...data.map((d: any) => d.weight)) + 1;
+  const weights = (data || []).map((d: any) => Number(d.weight)).filter((w: number) => !isNaN(w) && w > 0);
+  const minWeight = weights.length > 0 ? Math.floor(Math.min(...weights) - 1) : 40;
+  const maxWeight = weights.length > 0 ? Math.ceil(Math.max(...weights) + 1) : 100;
 
   return (
     <Card>

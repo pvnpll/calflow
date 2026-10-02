@@ -7,7 +7,7 @@ export interface Micronutrients {
   vitaminB12Mcg?: number;
   vitaminDMcg?: number;
   zincMg?: number;
-  [key: string]: number | undefined;
+  [key: string]: any;
 }
 
 export interface UserProfile {
@@ -55,7 +55,7 @@ export interface Meal {
   estimatedFat?: number;
   estimatedFiber?: number;
   micronutrients?: Micronutrients;
-  source?: 'chatgpt' | 'web_app' | 'import';
+  source?: 'chatgpt' | 'claude' | 'mcp' | 'web_app' | 'import';
   confidence?: 'low' | 'medium' | 'high';
   createdAt?: string;
   updatedAt?: string;
@@ -136,7 +136,7 @@ export interface MealInput {
   estimatedFat?: number;
   estimatedFiber?: number;
   micronutrients?: Micronutrients;
-  source?: 'chatgpt' | 'web_app' | 'import';
+  source?: 'chatgpt' | 'claude' | 'mcp' | 'web_app' | 'import';
   confidence?: 'low' | 'medium' | 'high';
   items?: MealItemInput[];
 }

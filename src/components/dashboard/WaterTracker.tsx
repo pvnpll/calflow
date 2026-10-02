@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Droplets, Plus } from 'lucide-react';
@@ -10,16 +10,25 @@ interface WaterTrackerProps {
   target: number; // in ml
 }
 
-export function WaterTracker({ initialConsumed, target }: WaterTrackerProps) {
-  const [consumed, setConsumed] = useState(initialConsumed);
+export function WaterTracker({ initialConsumed = 0, target = 2500 }: WaterTrackerProps) {
+  const [consumed, setConsumed] = useState(initialConsumed || 0);
   const [isAdding, setIsAdding] = useState(false);
 
-  const percentage = Math.min((consumed / (target || 1)) * 100, 100);
+  // Sync state if parent re-fetches
+  useEffect(() => {
+    if (typeof initialConsumed === 'number' && !isNaN(initialConsumed)) {
+      setConsumed(initialConsumed);
+    }
+  }, [initialConsumed]);
+
+  const safeTarget = (typeof target === 'number' && !isNaN(target) && target > 0) ? target : 2500;
+  const safeConsumed = (typeof consumed === 'number' && !isNaN(consumed)) ? consumed : 0;
+  const percentage = Math.min((safeConsumed / safeTarget) * 100, 100);
 
   const handleAddWater = async (amount: number) => {
     setIsAdding(true);
     // Optimistic update
-    setConsumed(prev => prev + amount);
+    setConsumed(prev => (prev || 0) + amount);
     
     try {
       await fetch('/api/water', {
@@ -31,14 +40,14 @@ export function WaterTracker({ initialConsumed, target }: WaterTrackerProps) {
     } catch (err) {
       console.error('Failed to add water', err);
       // Revert on failure
-      setConsumed(prev => prev - amount);
+      setConsumed(prev => Math.max(0, (prev || 0) - amount));
     } finally {
       setIsAdding(false);
     }
   };
 
-  const consumedLiters = (consumed / 1000).toFixed(1);
-  const targetLiters = (target / 1000).toFixed(1);
+  const consumedLiters = ((safeConsumed || 0) / 1000).toFixed(1);
+  const targetLiters = ((safeTarget || 2500) / 1000).toFixed(1);
 
   return (
     <Card className="p-5">

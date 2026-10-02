@@ -3,13 +3,15 @@ import { Utensils, Coffee, Sun, Moon } from 'lucide-react';
 
 interface Meal {
   id: string;
-  meal_type: 'breakfast' | 'lunch' | 'dinner' | 'snack';
-  description: string;
-  calories: number;
+  meal_type: 'breakfast' | 'lunch' | 'dinner' | 'snack' | string;
+  description?: string;
+  calories?: number;
+  estimated_calories?: number;
+  estimatedCalories?: number;
 }
 
 interface RecentMealsProps {
-  meals: Meal[];
+  meals: any[];
 }
 
 export function RecentMeals({ meals }: RecentMealsProps) {
@@ -35,22 +37,25 @@ export function RecentMeals({ meals }: RecentMealsProps) {
           </div>
         ) : (
           <ul className="space-y-4">
-            {meals.map((meal) => (
-              <li key={meal.id} className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5 p-2 bg-muted rounded-full">
-                    {getMealIcon(meal.meal_type)}
+            {meals.map((meal) => {
+              const cal = Number(meal.estimated_calories ?? meal.estimatedCalories ?? meal.calories ?? 0);
+              return (
+                <li key={meal.id} className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 p-2 bg-muted rounded-full">
+                      {getMealIcon(meal.meal_type)}
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm capitalize">{meal.meal_type}</p>
+                      <p className="text-sm text-muted-foreground line-clamp-1">{meal.description || 'Meal'}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-sm capitalize">{meal.meal_type}</p>
-                    <p className="text-sm text-muted-foreground line-clamp-1">{meal.description}</p>
+                  <div className="font-semibold whitespace-nowrap text-orange-500">
+                    ~{Math.round(cal)} kcal
                   </div>
-                </div>
-                <div className="font-semibold whitespace-nowrap">
-                  ~{Math.round(meal.calories)} kcal
-                </div>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

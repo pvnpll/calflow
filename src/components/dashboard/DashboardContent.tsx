@@ -203,6 +203,43 @@ export default function DashboardContent() {
           <RecentMeals meals={meals} />
         </div>
       </div>
+
+      {/* Today's Micronutrients Summary */}
+      {(() => {
+        const aggregatedMicros: Record<string, string | number> = {};
+        for (const m of meals) {
+          if (m.micronutrients && typeof m.micronutrients === 'object') {
+            for (const [k, v] of Object.entries(m.micronutrients)) {
+              if (typeof v === 'number') {
+                aggregatedMicros[k] = ((Number(aggregatedMicros[k]) || 0) + v);
+              } else if (typeof v === 'string') {
+                aggregatedMicros[k] = v;
+              }
+            }
+          }
+        }
+        const microEntries = Object.entries(aggregatedMicros);
+        if (microEntries.length === 0) return null;
+
+        return (
+          <div className="p-4 border rounded-xl bg-card shadow-sm space-y-3">
+            <h3 className="font-semibold text-sm flex items-center justify-between">
+              <span>Today's Micronutrients</span>
+              <span className="text-xs text-muted-foreground font-normal">Logged from meals</span>
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {microEntries.map(([key, val]) => (
+                <div key={key} className="px-3 py-1.5 rounded-lg bg-muted text-xs flex items-center gap-1.5 border">
+                  <span className="text-muted-foreground capitalize">{key.replace(/_/g, ' ')}:</span>
+                  <span className="font-semibold text-foreground">
+                    {typeof val === 'number' ? `~${Math.round(val * 10) / 10}` : String(val)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

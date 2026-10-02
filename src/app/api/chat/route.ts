@@ -88,16 +88,16 @@ export async function POST(req: Request) {
     console.error('Chat error:', error);
     
     // If OpenAI key is not configured, return a helpful message
-    if (String(error).includes('API key') || String(error).includes('OPENAI_API_KEY')) {
+    if (String(error).includes('API key') || String(error).includes('OPENAI_API_KEY') || String(error).includes('OLLAMA_API_KEY')) {
       return NextResponse.json({
         role: 'assistant',
-        content: 'The AI provider is not configured yet. Please set your OPENAI_API_KEY in the environment variables to enable the chat feature.',
+        content: 'The AI provider is not configured yet. Please configure your OLLAMA_API_KEY or OPENAI_API_KEY in environment variables.',
       });
     }
 
     return NextResponse.json({
       role: 'assistant',
-      content: 'Sorry, I encountered an error. Please try again.',
+      content: `Error communicating with AI assistant: ${error instanceof Error ? error.message : String(error)}`,
     });
   }
 }

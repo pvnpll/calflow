@@ -18,14 +18,27 @@ export function createCalflowMcpServer() {
     "Record a meal and its estimated nutrition for the currently authenticated CalFlow user. Use this after the user tells you what they ate and you have estimated the nutrition.",
     {
       meal_text: z.string().describe("Original natural-language description of the meal"),
-      calories: z.number().describe("Estimated calories"),
-      protein_g: z.number().describe("Estimated protein in grams"),
-      carbs_g: z.number().describe("Estimated carbohydrates in grams"),
-      fat_g: z.number().describe("Estimated fat in grams"),
-      fiber_g: z.number().optional().describe("Estimated fiber in grams"),
+      calories: z.number().describe("Estimated total calories"),
+      protein_g: z.number().describe("Estimated total protein in grams"),
+      carbs_g: z.number().describe("Estimated total carbohydrates in grams"),
+      fat_g: z.number().describe("Estimated total fat in grams"),
+      fiber_g: z.number().optional().describe("Estimated total fiber in grams"),
+      meal_type: z.enum(['breakfast', 'lunch', 'dinner', 'snack']).optional().describe("Meal type: breakfast, lunch, dinner, or snack. Infer from time or food if omitted."),
       date: z.string().describe("Date in YYYY-MM-DD format"),
       time: z.string().optional().describe("Time in HH:mm format"),
-      notes: z.string().optional().describe("Any additional notes")
+      notes: z.string().optional().describe("Any additional notes"),
+      items: z.array(z.object({
+        food_name: z.string().describe("Name of the food item"),
+        quantity: z.number().optional().describe("Quantity or portion amount"),
+        unit: z.string().optional().describe("Serving unit (e.g. slice, egg, ml, g, cup)"),
+        calories: z.number().optional().describe("Calories for this item"),
+        protein_g: z.number().optional().describe("Protein in grams for this item"),
+        carbs_g: z.number().optional().describe("Carbohydrates in grams for this item"),
+        fat_g: z.number().optional().describe("Fat in grams for this item"),
+        fiber_g: z.number().optional().describe("Fiber in grams for this item"),
+        micronutrients: z.record(z.string(), z.any()).optional().describe("Key micronutrients like calcium_mg, iron_mg, vitamin_c_mg, etc.")
+      })).optional().describe("Individual constituent items of the meal"),
+      micronutrients: z.record(z.string(), z.any()).optional().describe("Estimated total micronutrients for the entire meal (e.g. calcium_mg, iron_mg, vitamin_c_mg, etc.)")
     },
     async (args, extra) => {
       try {
@@ -33,19 +46,47 @@ export function createCalflowMcpServer() {
         if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
         
         console.log("[MCP log_meal] Executing with args:", JSON.stringify(args), "userId:", userId);
+        
+        // Infer meal type if not explicitly provided
+        let inferredMealType: 'breakfast' | 'lunch' | 'dinner' | 'snack' = args.meal_type || 'snack';
+        if (!args.meal_type && args.meal_text) {
+          const lower = args.meal_text.toLowerCase();
+          if (lower.includes('breakfast') || lower.includes('egg') || lower.includes('omelette') || lower.includes('pancake') || lower.includes('oat') || lower.includes('toast') || lower.includes('cereal') || lower.includes('dosa') || lower.includes('idli')) {
+            inferredMealType = 'breakfast';
+          } else if (lower.includes('lunch')) {
+            inferredMealType = 'lunch';
+          } else if (lower.includes('dinner')) {
+            inferredMealType = 'dinner';
+          }
+        }
+
+        const mealItems = args.items?.map(item => ({
+          foodName: item.food_name,
+          quantity: item.quantity ?? 1,
+          unit: item.unit ?? 'serving',
+          estimatedCalories: item.calories,
+          estimatedProtein: item.protein_g,
+          estimatedCarbs: item.carbs_g,
+          estimatedFat: item.fat_g,
+          estimatedFiber: item.fiber_g,
+          micronutrients: item.micronutrients || {},
+        })) || [];
+
         const meal = await createMeal(userId, {
           date: args.date,
-          mealType: 'snack', // Defaulting, you can enhance to infer meal type if needed
+          mealType: inferredMealType,
           description: args.meal_text,
           estimatedCalories: args.calories,
           estimatedProtein: args.protein_g,
           estimatedCarbs: args.carbs_g,
           estimatedFat: args.fat_g,
           estimatedFiber: args.fiber_g,
-          source: 'import'
+          micronutrients: args.micronutrients || {},
+          items: mealItems,
+          source: 'claude'
         });
         console.log("[MCP log_meal] Success, created meal id:", meal?.id);
-        return { content: [{ type: "text", text: `Meal logged successfully. ID: ${meal?.id}` }] };
+        return { content: [{ type: "text", text: `Meal logged successfully as ${inferredMealType}. ID: ${meal?.id}` }] };
       } catch (err: any) {
         console.error("[MCP log_meal ERROR]:", err?.message || err, err?.stack || "");
         return {

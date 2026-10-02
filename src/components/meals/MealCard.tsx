@@ -29,10 +29,16 @@ export default function MealCard({ meal, onUpdate }: MealCardProps) {
     }
   };
 
-  const totalCalories = meal.items?.reduce((sum: number, item: any) => sum + (item.calories || 0), 0) || 0;
-  const totalProtein = meal.items?.reduce((sum: number, item: any) => sum + (item.protein || 0), 0) || 0;
-  const totalCarbs = meal.items?.reduce((sum: number, item: any) => sum + (item.carbs || 0), 0) || 0;
-  const totalFat = meal.items?.reduce((sum: number, item: any) => sum + (item.fat || 0), 0) || 0;
+  const items = meal.cf_meal_items || meal.items || [];
+  
+  // Total calories and macros: prefer explicit meal columns, fallback to summing items
+  const totalCalories = Number(meal.estimated_calories ?? meal.estimatedCalories ?? (items.length > 0 ? items.reduce((sum: number, item: any) => sum + Number(item.estimated_calories || item.calories || 0), 0) : 0)) || 0;
+  const totalProtein = Number(meal.estimated_protein ?? meal.estimatedProtein ?? (items.length > 0 ? items.reduce((sum: number, item: any) => sum + Number(item.estimated_protein || item.protein || 0), 0) : 0)) || 0;
+  const totalCarbs = Number(meal.estimated_carbs ?? meal.estimatedCarbs ?? (items.length > 0 ? items.reduce((sum: number, item: any) => sum + Number(item.estimated_carbs || item.carbs || 0), 0) : 0)) || 0;
+  const totalFat = Number(meal.estimated_fat ?? meal.estimatedFat ?? (items.length > 0 ? items.reduce((sum: number, item: any) => sum + Number(item.estimated_fat || item.fat || 0), 0) : 0)) || 0;
+  const totalFiber = Number(meal.estimated_fiber ?? meal.estimatedFiber ?? (items.length > 0 ? items.reduce((sum: number, item: any) => sum + Number(item.estimated_fiber || item.fiber || 0), 0) : 0)) || 0;
+
+  const micronutrients = meal.micronutrients && typeof meal.micronutrients === 'object' && Object.keys(meal.micronutrients).length > 0 ? meal.micronutrients : null;
 
   return (
     <>
@@ -57,36 +63,66 @@ export default function MealCard({ meal, onUpdate }: MealCardProps) {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4 text-sm font-medium mb-4">
-            <span className="text-orange-500">~{Math.round(totalCalories)} kcal</span>
+          <div className="flex flex-wrap gap-4 text-sm font-medium mb-3">
+            <span className="text-orange-500 font-semibold">~{Math.round(totalCalories)} kcal</span>
             <span className="text-blue-500">~{Math.round(totalProtein)}g P</span>
-            <span className="text-green-500">~{Math.round(totalCarbs)}g C</span>
-            <span className="text-yellow-600">~{Math.round(totalFat)}g F</span>
+            <span className="text-amber-500">~{Math.round(totalCarbs)}g C</span>
+            <span className="text-purple-500">~{Math.round(totalFat)}g F</span>
+            {totalFiber > 0 && <span className="text-emerald-500">~{Math.round(totalFiber)}g Fiber</span>}
           </div>
+
+          {/* Micronutrients display */}
+          {micronutrients && (
+            <div className="mt-2 mb-3 p-2.5 bg-muted/40 rounded-md border text-xs">
+              <span className="font-semibold text-muted-foreground block mb-1">Micronutrients:</span>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(micronutrients).map(([key, val]) => (
+                  <Badge key={key} variant="secondary" className="font-normal text-xs py-0.5">
+                    {key.replace(/_/g, ' ')}: {String(val)}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
 
           {expanded && (
             <div className="space-y-3 mt-4 border-t pt-4">
-              {meal.items?.map((item: any, i: number) => (
-                <div key={i} className="flex justify-between text-sm">
-                  <div>
-                    <span className="font-medium">{item.food_name}</span>
-                    <span className="text-muted-foreground ml-2">
-                      {item.quantity} {item.unit}
-                    </span>
+              {items.map((item: any, i: number) => {
+                const itemCals = Number(item.estimated_calories ?? item.calories ?? 0);
+                const itemProtein = Number(item.estimated_protein ?? item.protein ?? 0);
+                const itemCarbs = Number(item.estimated_carbs ?? item.carbs ?? 0);
+                const itemFat = Number(item.estimated_fat ?? item.fat ?? 0);
+                return (
+                  <div key={i} className="flex justify-between items-center text-sm py-1 border-b last:border-0 border-muted">
+                    <div>
+                      <span className="font-medium">{item.food_name || item.name}</span>
+                      {(item.quantity || item.unit) && (
+                        <span className="text-muted-foreground ml-2 text-xs">
+                          {item.quantity} {item.unit}
+                        </span>
+                      )}
+                      {(itemProtein > 0 || itemCarbs > 0 || itemFat > 0) && (
+                        <span className="text-xs text-muted-foreground block">
+                          {itemProtein > 0 ? `${itemProtein}g P ` : ''}
+                          {itemCarbs > 0 ? `${itemCarbs}g C ` : ''}
+                          {itemFat > 0 ? `${itemFat}g F` : ''}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-muted-foreground font-medium">
+                      ~{Math.round(itemCals)} kcal
+                    </div>
                   </div>
-                  <div className="text-muted-foreground">
-                    {Math.round(item.calories || 0)} kcal
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>
-        {meal.items && meal.items.length > 0 && (
+        {items.length > 0 && (
           <CardFooter className="pt-0">
-            <Button variant="ghost" size="sm" className="w-full h-8" onClick={() => setExpanded(!expanded)}>
-              {expanded ? <ChevronUp className="h-4 w-4 mr-2" /> : <ChevronDown className="h-4 w-4 mr-2" />}
-              {expanded ? 'Hide Details' : 'Show Details'}
+            <Button variant="ghost" size="sm" className="w-full h-8 text-xs" onClick={() => setExpanded(!expanded)}>
+              {expanded ? <ChevronUp className="h-4 w-4 mr-1" /> : <ChevronDown className="h-4 w-4 mr-1" />}
+              {expanded ? 'Hide Items' : `Show ${items.length} Item${items.length > 1 ? 's' : ''}`}
             </Button>
           </CardFooter>
         )}

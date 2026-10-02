@@ -12,13 +12,16 @@ interface MacroCardProps {
   unit?: string;
 }
 
-export function MacroCard({ name, consumed, target, colorClass, unit = 'g' }: MacroCardProps) {
+export function MacroCard({ name, consumed = 0, target = 100, colorClass, unit = 'g' }: MacroCardProps) {
   const [progress, setProgress] = useState(0);
-  const percentage = Math.min((consumed / (target || 1)) * 100, 100);
+  
+  const safeConsumed = typeof consumed === 'number' && !isNaN(consumed) ? consumed : 0;
+  const safeTarget = typeof target === 'number' && !isNaN(target) && target > 0 ? target : 1;
+  const percentage = Math.min((safeConsumed / safeTarget) * 100, 100);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setProgress(percentage);
+      setProgress(isNaN(percentage) ? 0 : percentage);
     }, 100);
     return () => clearTimeout(timer);
   }, [percentage]);
@@ -27,13 +30,13 @@ export function MacroCard({ name, consumed, target, colorClass, unit = 'g' }: Ma
     <Card className="p-4 flex flex-col justify-between h-full">
       <div className="flex justify-between items-center mb-2">
         <h4 className="text-sm font-medium text-muted-foreground">{name}</h4>
-        <span className="text-xs font-medium">{Math.round(percentage)}%</span>
+        <span className="text-xs font-medium">{Math.round(isNaN(percentage) ? 0 : percentage)}%</span>
       </div>
       
       <div className="mb-3">
         <div className="flex items-baseline gap-1">
-          <span className="text-2xl font-bold">~{Math.round(consumed)}</span>
-          <span className="text-sm text-muted-foreground">/ {Math.round(target)}{unit}</span>
+          <span className="text-2xl font-bold">~{Math.round(safeConsumed)}</span>
+          <span className="text-sm text-muted-foreground">/ {Math.round(safeTarget)}{unit}</span>
         </div>
       </div>
       

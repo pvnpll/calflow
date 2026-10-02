@@ -8,22 +8,98 @@ import WaterChart from '@/components/insights/WaterChart';
 
 export default function InsightsPage() {
   const [period, setPeriod] = useState('7');
-  
-  // Dummy data for charts until api is integrated
-  const chartData = [
-    { date: 'Mon', calories: 2100, protein: 120, carbs: 200, fat: 70, weight: 75.5, water: 2000 },
-    { date: 'Tue', calories: 2300, protein: 140, carbs: 220, fat: 75, weight: 75.4, water: 2500 },
-    { date: 'Wed', calories: 1900, protein: 110, carbs: 180, fat: 65, weight: 75.2, water: 1500 },
-    { date: 'Thu', calories: 2500, protein: 160, carbs: 250, fat: 85, weight: 75.3, water: 2200 },
-    { date: 'Fri', calories: 2200, protein: 130, carbs: 210, fat: 75, weight: 75.1, water: 3000 },
-  ];
+  const [loading, setLoading] = useState(true);
+  const [insights, setInsights] = useState<any>(null);
+  const [chartData, setChartData] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchInsightsData = async () => {
+      setLoading(true);
+      try {
+        const days = parseInt(period, 10) || 7;
+        const endDate = new Date().toISOString().split('T')[0];
+        const startDateObj = new Date();
+        startDateObj.setDate(startDateObj.getDate() - (days - 1));
+        const startDate = startDateObj.toISOString().split('T')[0];
+
+        const [insightsRes, mealsRes, waterRes] = await Promise.allSettled([
+          fetch(`/api/insights?days=${days}`),
+          fetch(`/api/meals?start=${startDate}&end=${endDate}`),
+          fetch(`/api/water?start=${startDate}&end=${endDate}`)
+        ]);
+
+        if (insightsRes.status === 'fulfilled' && insightsRes.value.ok) {
+          const data = await insightsRes.value.json();
+          setInsights(data);
+        }
+
+        // Build continuous chart series for the period
+        const dailyMap: Record<string, any> = {};
+        for (let i = 0; i < days; i++) {
+          const d = new Date(startDateObj);
+          d.setDate(d.getDate() + i);
+          const dateKey = d.toISOString().split('T')[0];
+          const displayLabel = d.toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' });
+          dailyMap[dateKey] = {
+            date: displayLabel,
+            calories: 0,
+            protein: 0,
+            carbs: 0,
+            fat: 0,
+            water: 0
+          };
+        }
+
+        if (mealsRes.status === 'fulfilled' && mealsRes.value.ok) {
+          const mealsData = await mealsRes.value.json();
+          if (Array.isArray(mealsData)) {
+            for (const meal of mealsData) {
+              const d = meal.date;
+              if (dailyMap[d]) {
+                dailyMap[d].calories += Number(meal.estimated_calories || 0);
+                dailyMap[d].protein += Number(meal.estimated_protein || 0);
+                dailyMap[d].carbs += Number(meal.estimated_carbs || 0);
+                dailyMap[d].fat += Number(meal.estimated_fat || 0);
+              }
+            }
+          }
+        }
+
+        if (waterRes.status === 'fulfilled' && waterRes.value.ok) {
+          const waterData = await waterRes.value.json();
+          if (Array.isArray(waterData)) {
+            for (const log of waterData) {
+              const d = log.date;
+              if (dailyMap[d]) {
+                dailyMap[d].water += Number(log.amount_ml || 0);
+              }
+            }
+          }
+        }
+
+        setChartData(Object.values(dailyMap));
+      } catch (err) {
+        console.error('Error fetching insights:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInsightsData();
+  }, [period]);
+
+  const averages = insights?.averages || {};
+  const consistency = insights?.consistency || {};
+  const avgCalories = Number(averages.calories || 0);
+  const avgProtein = Number(averages.protein || 0);
+  const avgWater = Number(averages.water || 0);
 
   return (
     <div className="container mx-auto p-4 max-w-5xl space-y-8 pb-24">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Insights</h1>
         <Select value={period} onValueChange={(v) => setPeriod(v ?? '7')}>
-          <SelectTrigger className="w-[120px]">
+          <SelectTrigger className="w-[130px]">
             <SelectValue placeholder="Period" />
           </SelectTrigger>
           <SelectContent>
@@ -35,10 +111,26 @@ export default function InsightsPage() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <InsightCard title="Avg Calories" value="2,150" subtitle="kcal/day" />
-        <InsightCard title="Avg Protein" value="135g" subtitle="per day" />
-        <InsightCard title="Avg Water" value="2.1L" subtitle="per day" />
-        <InsightCard title="Consistency" value="5/7" subtitle="days logged" />
+        <InsightCard 
+          title="Avg Calories" 
+          value={isNaN(avgCalories) ? '0' : Math.round(avgCalories).toLocaleString()} 
+          subtitle="kcal/day" 
+        />
+        <InsightCard 
+          title="Avg Protein" 
+          value={isNaN(avgProtein) ? '0g' : `${Math.round(avgProtein)}g`} 
+          subtitle="per day" 
+        />
+        <InsightCard 
+          title="Avg Water" 
+          value={isNaN(avgWater) ? '0L' : `${(avgWater / 1000).toFixed(1)}L`} 
+          subtitle="per day" 
+        />
+        <InsightCard 
+          title="Consistency" 
+          value={`${consistency.daysLogged || 0}/${period}`} 
+          subtitle="days logged" 
+        />
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
@@ -58,19 +150,31 @@ export default function InsightsPage() {
           targetValue={150} 
         />
 
-        <WeightChart data={chartData} />
-        
         <WaterChart data={chartData} targetValue={2500} />
-      </div>
 
-      <div className="p-6 bg-card border rounded-lg">
-        <h3 className="text-lg font-semibold mb-4">Weekly Report Card</h3>
-        <ul className="space-y-2 text-sm">
-          <li className="flex justify-between"><span>Average Calories:</span> <span className="font-medium">2150 kcal</span></li>
-          <li className="flex justify-between"><span>Average Protein:</span> <span className="font-medium">135g</span></li>
-          <li className="flex justify-between"><span>Weight Change:</span> <span className="font-medium text-green-500">-0.4 kg</span></li>
-          <li className="flex justify-between"><span>Protein Target Met:</span> <span className="font-medium">3/7 days</span></li>
-        </ul>
+        <div className="p-6 bg-card border rounded-lg flex flex-col justify-between">
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Summary Report</h3>
+            <ul className="space-y-3 text-sm">
+              <li className="flex justify-between border-b pb-2">
+                <span className="text-muted-foreground">Average Daily Intake:</span>
+                <span className="font-semibold">{Math.round(avgCalories)} kcal</span>
+              </li>
+              <li className="flex justify-between border-b pb-2">
+                <span className="text-muted-foreground">Average Daily Protein:</span>
+                <span className="font-semibold">{Math.round(avgProtein)}g</span>
+              </li>
+              <li className="flex justify-between border-b pb-2">
+                <span className="text-muted-foreground">Hydration Average:</span>
+                <span className="font-semibold">{(avgWater / 1000).toFixed(1)} L</span>
+              </li>
+              <li className="flex justify-between">
+                <span className="text-muted-foreground">Logging Consistency:</span>
+                <span className="font-semibold text-primary">{Math.round(consistency.percentage || 0)}%</span>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   );
