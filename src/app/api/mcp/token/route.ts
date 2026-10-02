@@ -2,12 +2,32 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { randomBytes } from 'crypto';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   try {
-    const { code, client_id, client_secret, grant_type } = await req.json();
+    let code = '';
+    let client_id = '';
+    let grant_type = '';
+
+    const contentType = req.headers.get('content-type') || '';
+    if (contentType.includes('application/x-www-form-urlencoded')) {
+      const formData = await req.formData();
+      code = (formData.get('code') as string) || '';
+      client_id = (formData.get('client_id') as string) || '';
+      grant_type = (formData.get('grant_type') as string) || '';
+    } else {
+      const body = await req.json().catch(() => ({}));
+      code = body.code || '';
+      client_id = body.client_id || '';
+      grant_type = body.grant_type || '';
+    }
 
     if (grant_type !== 'authorization_code') {
-      return NextResponse.json({ error: 'unsupported_grant_type' }, { status: 400 });
+      return NextResponse.json({ error: 'unsupported_grant_type' }, {
+        status: 400,
+        headers: { 'Access-Control-Allow-Origin': '*' }
+      });
     }
 
     const admin = createClient(
@@ -18,20 +38,30 @@ export async function POST(req: NextRequest) {
     const { TABLES } = await import('@/lib/db-tables');
 
     // Verify code
-    const { data: codeData, error: codeError } = await admin
+    const query = admin
       .from(TABLES.MCP_AUTH_CODES)
       .select('*')
-      .eq('code', code)
-      .eq('client_id', client_id)
-      .single();
+      .eq('code', code);
+
+    if (client_id) {
+      query.eq('client_id', client_id);
+    }
+
+    const { data: codeData, error: codeError } = await query.single();
 
     if (codeError || !codeData) {
-      return NextResponse.json({ error: 'invalid_grant' }, { status: 400 });
+      return NextResponse.json({ error: 'invalid_grant' }, {
+        status: 400,
+        headers: { 'Access-Control-Allow-Origin': '*' }
+      });
     }
 
     // Check expiration
     if (new Date(codeData.expires_at) < new Date()) {
-      return NextResponse.json({ error: 'invalid_grant', error_description: 'Code expired' }, { status: 400 });
+      return NextResponse.json({ error: 'invalid_grant', error_description: 'Code expired' }, {
+        status: 400,
+        headers: { 'Access-Control-Allow-Origin': '*' }
+      });
     }
 
     // Generate access token
@@ -40,7 +70,7 @@ export async function POST(req: NextRequest) {
     await admin.from(TABLES.MCP_TOKENS).insert({
       access_token,
       user_id: codeData.user_id,
-      client_id,
+      client_id: client_id || codeData.client_id,
     });
 
     // Delete the used code
@@ -50,10 +80,30 @@ export async function POST(req: NextRequest) {
       access_token,
       token_type: 'Bearer',
       expires_in: 30 * 24 * 60 * 60, // 30 days
+    }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': '*',
+      }
     });
 
   } catch (error) {
     console.error('Token exchange error:', error);
-    return NextResponse.json({ error: 'server_error' }, { status: 500 });
+    return NextResponse.json({ error: 'server_error' }, {
+      status: 500,
+      headers: { 'Access-Control-Allow-Origin': '*' }
+    });
   }
+}
+
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': '*',
+    }
+  });
 }
