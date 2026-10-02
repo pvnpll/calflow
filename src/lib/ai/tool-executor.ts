@@ -10,31 +10,54 @@ import type { MealItemInput } from '@/lib/types';
 export async function executeTool(toolName: string, args: Record<string, any>, userId: string): Promise<any> {
   switch (toolName) {
     case 'log_meal': {
+      const today = new Date().toISOString().split('T')[0];
+      const mealDate = args.date || today;
+
+      // Infer meal type if omitted
+      let inferredMealType: 'breakfast' | 'lunch' | 'dinner' | 'snack' = args.meal_type || 'snack';
+      if (!args.meal_type && args.description) {
+        const lower = args.description.toLowerCase();
+        if (lower.includes('breakfast') || lower.includes('egg') || lower.includes('omelette') || lower.includes('toast') || lower.includes('oat') || lower.includes('cereal') || lower.includes('idli') || lower.includes('dosa')) {
+          inferredMealType = 'breakfast';
+        } else if (lower.includes('lunch')) {
+          inferredMealType = 'lunch';
+        } else if (lower.includes('dinner')) {
+          inferredMealType = 'dinner';
+        }
+      }
+
       // Map AI tool item format to MealItemInput
       const items: MealItemInput[] = (args.items || []).map((item: any) => ({
-        foodName: item.food_name,
-        quantity: item.quantity,
-        unit: item.unit,
-        estimatedCalories: item.estimated_calories ?? item.estimated_nutrition?.calories,
-        estimatedProtein: item.estimated_protein ?? item.estimated_nutrition?.protein_g,
-        estimatedCarbs: item.estimated_carbs ?? item.estimated_nutrition?.carbohydrates_g ?? item.estimated_nutrition?.carbs_g,
-        estimatedFat: item.estimated_fat ?? item.estimated_nutrition?.fat_g,
-        estimatedFiber: item.estimated_fiber ?? item.estimated_nutrition?.fiber_g,
+        foodName: item.food_name || item.name || 'Food item',
+        quantity: item.quantity ?? 1,
+        unit: item.unit ?? 'serving',
+        estimatedCalories: item.estimated_calories ?? item.calories ?? item.estimated_nutrition?.calories,
+        estimatedProtein: item.estimated_protein ?? item.protein_g ?? item.protein ?? item.estimated_nutrition?.protein_g,
+        estimatedCarbs: item.estimated_carbs ?? item.carbs_g ?? item.carbs ?? item.estimated_nutrition?.carbohydrates_g ?? item.estimated_nutrition?.carbs_g,
+        estimatedFat: item.estimated_fat ?? item.fat_g ?? item.fat ?? item.estimated_nutrition?.fat_g,
+        estimatedFiber: item.estimated_fiber ?? item.fiber_g ?? item.fiber ?? item.estimated_nutrition?.fiber_g,
         micronutrients: item.micronutrients || {},
       }));
 
+      // Calculate totals if not explicitly given
+      const totalCalories = args.estimated_total?.calories ?? args.calories ?? (items.length > 0 ? items.reduce((s, it) => s + (it.estimatedCalories || 0), 0) : undefined);
+      const totalProtein = args.estimated_total?.protein_g ?? args.protein_g ?? (items.length > 0 ? items.reduce((s, it) => s + (it.estimatedProtein || 0), 0) : undefined);
+      const totalCarbs = args.estimated_total?.carbs_g ?? args.carbs_g ?? (items.length > 0 ? items.reduce((s, it) => s + (it.estimatedCarbs || 0), 0) : undefined);
+      const totalFat = args.estimated_total?.fat_g ?? args.fat_g ?? (items.length > 0 ? items.reduce((s, it) => s + (it.estimatedFat || 0), 0) : undefined);
+      const totalFiber = args.estimated_total?.fiber_g ?? args.fiber_g ?? (items.length > 0 ? items.reduce((s, it) => s + (it.estimatedFiber || 0), 0) : undefined);
+
       return mealsService.createMeal(userId, {
-        date: args.date,
-        mealType: args.meal_type,
-        description: args.description,
+        date: mealDate,
+        mealType: inferredMealType,
+        description: args.description || 'Logged meal',
         items,
-        estimatedCalories: args.estimated_total?.calories,
-        estimatedProtein: args.estimated_total?.protein_g,
-        estimatedCarbs: args.estimated_total?.carbs_g,
-        estimatedFat: args.estimated_total?.fat_g,
-        estimatedFiber: args.estimated_total?.fiber_g,
-        micronutrients: args.micronutrients,
-        confidence: args.confidence,
+        estimatedCalories: totalCalories,
+        estimatedProtein: totalProtein,
+        estimatedCarbs: totalCarbs,
+        estimatedFat: totalFat,
+        estimatedFiber: totalFiber,
+        micronutrients: args.micronutrients || {},
+        confidence: args.confidence || 'medium',
         source: 'chatgpt',
       });
     }

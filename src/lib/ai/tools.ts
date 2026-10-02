@@ -9,9 +9,14 @@ export const calflowTools: AIToolDefinition[] = [
       parameters: {
         type: 'object',
         properties: {
-          date: { type: 'string', description: 'YYYY-MM-DD' },
+          date: { type: 'string', description: 'YYYY-MM-DD (defaults to today)' },
           meal_type: { type: 'string', enum: ['breakfast', 'lunch', 'dinner', 'snack'] },
           description: { type: 'string' },
+          calories: { type: 'number', description: 'Total calories estimated' },
+          protein_g: { type: 'number', description: 'Total protein in grams estimated' },
+          carbs_g: { type: 'number', description: 'Total carbs in grams estimated' },
+          fat_g: { type: 'number', description: 'Total fat in grams estimated' },
+          fiber_g: { type: 'number', description: 'Total fiber in grams estimated' },
           items: {
             type: 'array',
             items: {
@@ -42,7 +47,7 @@ export const calflowTools: AIToolDefinition[] = [
           micronutrients: { type: 'object' },
           confidence: { type: 'string', enum: ['low', 'medium', 'high'] }
         },
-        required: ['date', 'meal_type', 'description', 'items']
+        required: ['description']
       }
     }
   },

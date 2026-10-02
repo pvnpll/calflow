@@ -158,24 +158,63 @@ export function createCalflowMcpServer() {
     {
       meal_id: z.string().describe("The ID of the meal to update"),
       meal_text: z.string().optional().describe("Updated meal description"),
+      meal_type: z.enum(["breakfast", "lunch", "dinner", "snack"]).optional().describe("Updated meal category"),
       calories: z.number().optional().describe("Updated calories"),
       protein_g: z.number().optional().describe("Updated protein in grams"),
       carbs_g: z.number().optional().describe("Updated carbohydrates in grams"),
       fat_g: z.number().optional().describe("Updated fat in grams"),
+      fiber_g: z.number().optional().describe("Updated fiber in grams"),
+      items: z.array(z.object({
+        food_name: z.string().describe("Name of the food item"),
+        quantity: z.number().optional().describe("Quantity or portion amount"),
+        unit: z.string().optional().describe("Serving unit (e.g. slice, egg, ml, g, cup)"),
+        calories: z.number().optional().describe("Calories for this item"),
+        protein_g: z.number().optional().describe("Protein in grams for this item"),
+        carbs_g: z.number().optional().describe("Carbohydrates in grams for this item"),
+        fat_g: z.number().optional().describe("Fat in grams for this item"),
+        fiber_g: z.number().optional().describe("Fiber in grams for this item"),
+        micronutrients: z.record(z.string(), z.any()).optional().describe("Key micronutrients")
+      })).optional().describe("Updated constituent items of the meal"),
+      micronutrients: z.record(z.string(), z.any()).optional().describe("Updated micronutrients dictionary")
     },
     async (args, extra) => {
-      const userId = extra.authInfo?.extra?.userId as string;
-      if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
-      
-      const updates: any = {};
-      if (args.meal_text) updates.description = args.meal_text;
-      if (args.calories !== undefined) updates.estimatedCalories = args.calories;
-      if (args.protein_g !== undefined) updates.estimatedProtein = args.protein_g;
-      if (args.carbs_g !== undefined) updates.estimatedCarbs = args.carbs_g;
-      if (args.fat_g !== undefined) updates.estimatedFat = args.fat_g;
-      
-      const updated = await updateMeal(userId, args.meal_id, updates);
-      return { content: [{ type: "text", text: `Meal updated successfully. ID: ${args.meal_id}` }] };
+      try {
+        const userId = extra.authInfo?.extra?.userId as string;
+        if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
+        
+        const updates: any = {};
+        if (args.meal_text !== undefined) updates.description = args.meal_text;
+        if (args.meal_type !== undefined) updates.mealType = args.meal_type;
+        if (args.calories !== undefined) updates.estimatedCalories = args.calories;
+        if (args.protein_g !== undefined) updates.estimatedProtein = args.protein_g;
+        if (args.carbs_g !== undefined) updates.estimatedCarbs = args.carbs_g;
+        if (args.fat_g !== undefined) updates.estimatedFat = args.fat_g;
+        if (args.fiber_g !== undefined) updates.estimatedFiber = args.fiber_g;
+        if (args.micronutrients !== undefined) updates.micronutrients = args.micronutrients;
+
+        if (args.items) {
+          updates.items = args.items.map(item => ({
+            foodName: item.food_name,
+            quantity: item.quantity ?? 1,
+            unit: item.unit ?? 'serving',
+            estimatedCalories: item.calories,
+            estimatedProtein: item.protein_g,
+            estimatedCarbs: item.carbs_g,
+            estimatedFat: item.fat_g,
+            estimatedFiber: item.fiber_g,
+            micronutrients: item.micronutrients || {},
+          }));
+        }
+        
+        const updated = await updateMeal(userId, args.meal_id, updates);
+        return { content: [{ type: "text", text: `Meal updated successfully. ID: ${args.meal_id}` }] };
+      } catch (err: any) {
+        console.error("[MCP update_meal ERROR]:", err?.message || err);
+        return {
+          content: [{ type: "text", text: `Failed to update meal: ${err?.message || String(err)}` }],
+          isError: true,
+        };
+      }
     }
   );
 
