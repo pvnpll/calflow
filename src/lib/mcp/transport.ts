@@ -46,8 +46,10 @@ export async function authenticateToken(req: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
   
+  const { TABLES } = await import('@/lib/db-tables');
+  
   const { data, error } = await admin
-    .from("mcp_tokens")
+    .from(TABLES.MCP_TOKENS)
     .select("user_id, client_id")
     .eq("access_token", token)
     .single();

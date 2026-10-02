@@ -115,7 +115,8 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      await supabaseForAction.from('ai_interactions').insert({
+      const { TABLES } = await import('@/lib/db-tables');
+      await supabaseForAction.from(TABLES.AI_INTERACTIONS).insert({
         user_id: userId,
         action,
         metadata: { params, status: 'success' },

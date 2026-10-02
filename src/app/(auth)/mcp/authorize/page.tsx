@@ -50,7 +50,8 @@ export default async function AuthorizePage(props: { searchParams: Promise<Recor
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    await admin.from('mcp_auth_codes').insert({
+    const { TABLES } = await import('@/lib/db-tables');
+    await admin.from(TABLES.MCP_AUTH_CODES).insert({
       code,
       user_id: user.id,
       client_id,

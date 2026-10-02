@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import type { NutritionGoals } from '@/lib/types'
+import { TABLES } from '@/lib/db-tables'
 
 function toDbGoals(data: Partial<NutritionGoals>) {
   const dbData: Record<string, any> = {}
@@ -17,7 +18,7 @@ function toDbGoals(data: Partial<NutritionGoals>) {
 export async function getActiveGoals(userId: string) {
   const supabase = await createClient()
   const { data, error } = await supabase
-    .from('nutrition_goals')
+    .from(TABLES.NUTRITION_GOALS)
     .select('*')
     .eq('user_id', userId)
     .eq('is_active', true)
@@ -35,14 +36,14 @@ export async function upsertGoals(userId: string, data: Partial<NutritionGoals>)
   
   // Deactivate current active goals
   await supabase
-    .from('nutrition_goals')
+    .from(TABLES.NUTRITION_GOALS)
     .update({ is_active: false })
     .eq('user_id', userId)
     .eq('is_active', true)
     
   // Insert new active goal
   const { data: newGoal, error } = await supabase
-    .from('nutrition_goals')
+    .from(TABLES.NUTRITION_GOALS)
     .insert({ user_id: userId, ...toDbGoals(data), is_active: true })
     .select()
     .single()
@@ -54,7 +55,7 @@ export async function upsertGoals(userId: string, data: Partial<NutritionGoals>)
 export async function getGoalsHistory(userId: string) {
   const supabase = await createClient()
   const { data, error } = await supabase
-    .from('nutrition_goals')
+    .from(TABLES.NUTRITION_GOALS)
     .select('*')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })

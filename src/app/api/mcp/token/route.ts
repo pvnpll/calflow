@@ -15,9 +15,11 @@ export async function POST(req: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
+    const { TABLES } = await import('@/lib/db-tables');
+
     // Verify code
     const { data: codeData, error: codeError } = await admin
-      .from('mcp_auth_codes')
+      .from(TABLES.MCP_AUTH_CODES)
       .select('*')
       .eq('code', code)
       .eq('client_id', client_id)
@@ -35,14 +37,14 @@ export async function POST(req: NextRequest) {
     // Generate access token
     const access_token = randomBytes(32).toString('hex');
     
-    await admin.from('mcp_tokens').insert({
+    await admin.from(TABLES.MCP_TOKENS).insert({
       access_token,
       user_id: codeData.user_id,
       client_id,
     });
 
     // Delete the used code
-    await admin.from('mcp_auth_codes').delete().eq('code', code);
+    await admin.from(TABLES.MCP_AUTH_CODES).delete().eq('code', code);
 
     return NextResponse.json({
       access_token,

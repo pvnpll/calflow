@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import type { Meal, MealItem, MealInput } from '@/lib/types'
+import { TABLES } from '@/lib/db-tables'
 
 function toDbMeal(data: Partial<MealInput>) {
   const dbData: Record<string, any> = {}
@@ -36,7 +37,7 @@ export async function createMeal(userId: string, data: MealInput) {
   }
   
   const { data: meal, error: mealError } = await supabase
-    .from('meals')
+    .from(TABLES.MEALS)
     .insert(mealRecord)
     .select()
     .single()
@@ -57,7 +58,7 @@ export async function createMeal(userId: string, data: MealInput) {
       micronutrients: item.micronutrients || {},
     }))
     const { error: itemsError } = await supabase
-      .from('meal_items')
+      .from(TABLES.MEAL_ITEMS)
       .insert(itemsData)
       
     if (itemsError) throw itemsError
@@ -69,8 +70,8 @@ export async function createMeal(userId: string, data: MealInput) {
 export async function getMealsByDate(userId: string, date: string) {
   const supabase = await createClient()
   const { data, error } = await supabase
-    .from('meals')
-    .select('*, meal_items(*)')
+    .from(TABLES.MEALS)
+    .select(`*, ${TABLES.MEAL_ITEMS}(*)`)
     .eq('user_id', userId)
     .eq('date', date)
     .order('created_at', { ascending: true })
@@ -82,8 +83,8 @@ export async function getMealsByDate(userId: string, date: string) {
 export async function getMealsByDateRange(userId: string, startDate: string, endDate: string) {
   const supabase = await createClient()
   const { data, error } = await supabase
-    .from('meals')
-    .select('*, meal_items(*)')
+    .from(TABLES.MEALS)
+    .select(`*, ${TABLES.MEAL_ITEMS}(*)`)
     .eq('user_id', userId)
     .gte('date', startDate)
     .lte('date', endDate)
@@ -96,8 +97,8 @@ export async function getMealsByDateRange(userId: string, startDate: string, end
 export async function getMealById(userId: string, mealId: string) {
   const supabase = await createClient()
   const { data, error } = await supabase
-    .from('meals')
-    .select('*, meal_items(*)')
+    .from(TABLES.MEALS)
+    .select(`*, ${TABLES.MEAL_ITEMS}(*)`)
     .eq('user_id', userId)
     .eq('id', mealId)
     .single()
@@ -113,7 +114,7 @@ export async function updateMeal(userId: string, mealId: string, data: Partial<M
   
   if (Object.keys(mealData).length > 0) {
     const { error: updateError } = await supabase
-      .from('meals')
+      .from(TABLES.MEALS)
       .update(mealData)
       .eq('user_id', userId)
       .eq('id', mealId)
@@ -122,7 +123,7 @@ export async function updateMeal(userId: string, mealId: string, data: Partial<M
   }
   
   if (data.items) {
-    await supabase.from('meal_items').delete().eq('meal_id', mealId)
+    await supabase.from(TABLES.MEAL_ITEMS).delete().eq('meal_id', mealId)
     if (data.items.length > 0) {
       const itemsData = data.items.map(item => ({
         meal_id: mealId,
@@ -136,7 +137,7 @@ export async function updateMeal(userId: string, mealId: string, data: Partial<M
         estimated_fiber: item.estimatedFiber,
         micronutrients: item.micronutrients || {},
       }))
-      await supabase.from('meal_items').insert(itemsData)
+      await supabase.from(TABLES.MEAL_ITEMS).insert(itemsData)
     }
   }
   
@@ -146,7 +147,7 @@ export async function updateMeal(userId: string, mealId: string, data: Partial<M
 export async function deleteMeal(userId: string, mealId: string) {
   const supabase = await createClient()
   const { error } = await supabase
-    .from('meals')
+    .from(TABLES.MEALS)
     .delete()
     .eq('user_id', userId)
     .eq('id', mealId)
