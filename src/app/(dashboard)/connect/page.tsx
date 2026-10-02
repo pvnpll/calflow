@@ -10,7 +10,6 @@ import { Label } from '@/components/ui/label';
 
 export default function ConnectPage() {
   const [token, setToken] = useState<string>('');
-  const [loading, setLoading] = useState(true);
   const [copiedToken, setCopiedToken] = useState(false);
   const [copiedJson, setCopiedJson] = useState(false);
   const [copiedCli, setCopiedCli] = useState(false);
@@ -20,14 +19,21 @@ export default function ConnectPage() {
     ? window.location.origin 
     : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     
-  const sseUrl = `${baseUrl}/api/mcp?token=${token}`;
+  const sseUrl = `${baseUrl}/api/mcp?token=${token || '<YOUR_TOKEN>'}`;
 
-  useEffect(() => {
-    getOrCreateMcpToken().then((t) => {
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleRevealToken = async () => {
+    setIsGenerating(true);
+    try {
+      const t = await getOrCreateMcpToken();
       setToken(t);
-      setLoading(false);
-    }).catch(console.error);
-  }, []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const copyToClipboard = (text: string, setter: (val: boolean) => void) => {
     navigator.clipboard.writeText(text);
@@ -44,22 +50,15 @@ export default function ConnectPage() {
         "@modelcontextprotocol/mcp-remote",
         "${baseUrl}/api/mcp",
         "--header",
-        "Authorization: Bearer ${token}"
+        "Authorization: Bearer ${token || '<YOUR_TOKEN>'}"
       ]
     }
   }
 }`;
 
-  const claudeCodeCommand = `claude mcp add calflow --transport sse "${sseUrl}"`;
+  const claudeCodeCommand = `claude mcp add calflow --transport sse "${baseUrl}/api/mcp?token=${token || '<YOUR_TOKEN>'}"`;
 
-  if (loading) {
-    return (
-      <div className="space-y-6 animate-pulse">
-        <div className="h-8 w-64 bg-muted rounded"></div>
-        <div className="h-[400px] w-full bg-muted rounded-xl"></div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="space-y-8">
@@ -79,13 +78,21 @@ export default function ConnectPage() {
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4">
-            <code className="flex-1 bg-muted px-4 py-2 rounded-md font-mono text-sm break-all">
-              {token}
-            </code>
-            <Button variant="outline" onClick={() => copyToClipboard(token, setCopiedToken)}>
-              {copiedToken ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
-              {copiedToken ? 'Copied' : 'Copy'}
-            </Button>
+            {token ? (
+              <>
+                <code className="flex-1 bg-muted px-4 py-2 rounded-md font-mono text-sm break-all">
+                  {token}
+                </code>
+                <Button variant="outline" onClick={() => copyToClipboard(token, setCopiedToken)}>
+                  {copiedToken ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
+                  {copiedToken ? 'Copied' : 'Copy'}
+                </Button>
+              </>
+            ) : (
+              <Button onClick={handleRevealToken} disabled={isGenerating}>
+                {isGenerating ? 'Generating...' : 'Reveal Personal Access Token'}
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
