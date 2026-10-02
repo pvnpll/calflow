@@ -28,21 +28,31 @@ export function createCalflowMcpServer() {
       notes: z.string().optional().describe("Any additional notes")
     },
     async (args, extra) => {
-      const userId = extra.authInfo?.extra?.userId as string;
-      if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
-      
-      const meal = await createMeal(userId, {
-        date: args.date,
-        mealType: 'snack', // Defaulting, you can enhance to infer meal type if needed
-        description: args.meal_text,
-        estimatedCalories: args.calories,
-        estimatedProtein: args.protein_g,
-        estimatedCarbs: args.carbs_g,
-        estimatedFat: args.fat_g,
-        estimatedFiber: args.fiber_g,
-        source: 'import'
-      });
-      return { content: [{ type: "text", text: `Meal logged successfully. ID: ${meal.id}` }] };
+      try {
+        const userId = extra.authInfo?.extra?.userId as string;
+        if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
+        
+        console.log("[MCP log_meal] Executing with args:", JSON.stringify(args), "userId:", userId);
+        const meal = await createMeal(userId, {
+          date: args.date,
+          mealType: 'snack', // Defaulting, you can enhance to infer meal type if needed
+          description: args.meal_text,
+          estimatedCalories: args.calories,
+          estimatedProtein: args.protein_g,
+          estimatedCarbs: args.carbs_g,
+          estimatedFat: args.fat_g,
+          estimatedFiber: args.fiber_g,
+          source: 'import'
+        });
+        console.log("[MCP log_meal] Success, created meal id:", meal?.id);
+        return { content: [{ type: "text", text: `Meal logged successfully. ID: ${meal?.id}` }] };
+      } catch (err: any) {
+        console.error("[MCP log_meal ERROR]:", err?.message || err, err?.stack || "");
+        return {
+          content: [{ type: "text", text: `Failed to log meal: ${err?.message || String(err)}` }],
+          isError: true
+        };
+      }
     }
   );
 

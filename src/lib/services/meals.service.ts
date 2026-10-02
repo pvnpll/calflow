@@ -64,7 +64,14 @@ export async function createMeal(userId: string, data: MealInput) {
     if (itemsError) throw itemsError
   }
   
-  return getMealById(userId, meal.id)
+  try {
+    const fetched = await getMealById(userId, meal.id)
+    if (fetched) return fetched
+  } catch (err) {
+    console.warn("getMealById fallback after insert:", err)
+  }
+  
+  return { ...meal, [TABLES.MEAL_ITEMS]: data.items || [] }
 }
 
 export async function getMealsByDate(userId: string, date: string) {
