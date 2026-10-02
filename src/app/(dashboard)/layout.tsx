@@ -16,6 +16,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
+import { ThemeToggle } from '@/components/shared/ThemeToggle';
+
 const navItems = [
   { name: 'Home', href: '/dashboard', icon: Home },
   { name: 'Meals', href: '/meals', icon: UtensilsCrossed },
@@ -56,8 +58,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="flex h-screen overflow-hidden bg-muted/20">
       {/* Desktop Sidebar */}
       <aside className="hidden w-64 flex-col border-r bg-background md:flex">
-        <div className="flex h-16 items-center border-b px-6">
+        <div className="flex h-16 items-center justify-between border-b px-6">
           <span className="text-xl font-bold tracking-tight">CalFlow</span>
+          <ThemeToggle />
         </div>
         
         <div className="flex-1 overflow-y-auto py-4">
@@ -104,9 +107,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
-        <div className="mx-auto max-w-5xl p-4 md:p-6 lg:p-8">
-          {children}
+      <main className="flex-1 flex flex-col overflow-hidden pb-16 md:pb-0">
+        {/* Mobile Top Header */}
+        <div className="flex h-14 items-center justify-between border-b bg-background px-4 md:hidden">
+          <span className="text-lg font-bold tracking-tight">CalFlow</span>
+          <ThemeToggle />
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          <div className="mx-auto max-w-5xl p-4 md:p-6 lg:p-8">
+            {children}
+          </div>
         </div>
       </main>
 

@@ -206,108 +206,142 @@ export default function DashboardContent() {
 
       {/* Today's Micronutrients & Daily Requirements Summary */}
       {(() => {
-        const aggregatedMicros: Record<string, number> = {};
+        // Collect consumed amounts for today
+        const consumedMicros: Record<string, number> = {};
         for (const m of meals) {
           if (m.micronutrients && typeof m.micronutrients === 'object') {
             for (const [k, v] of Object.entries(m.micronutrients)) {
               const num = typeof v === 'number' ? v : parseFloat(String(v).replace(/[^0-9.]/g, ''));
               if (!isNaN(num) && num > 0) {
-                aggregatedMicros[k] = ((aggregatedMicros[k] || 0) + num);
+                const norm = k.toLowerCase().replace(/[^a-z0-9]/g, '');
+                consumedMicros[norm] = (consumedMicros[norm] || 0) + num;
               }
             }
           }
         }
-        const microEntries = Object.entries(aggregatedMicros);
-        if (microEntries.length === 0) return null;
 
-        // Import helper dynamically inline
-        const findRef = (key: string) => {
-          const norm = key.toLowerCase().replace(/[^a-z0-9]/g, '');
-          const FDA_REFS: Record<string, { name: string; dv: number; unit: string }> = {
-            vitamina: { name: 'Vitamin A', dv: 900, unit: 'mcg' },
-            vitaminc: { name: 'Vitamin C', dv: 90, unit: 'mg' },
-            vitamind: { name: 'Vitamin D', dv: 20, unit: 'mcg' },
-            vitamine: { name: 'Vitamin E', dv: 15, unit: 'mg' },
-            vitamink: { name: 'Vitamin K', dv: 120, unit: 'mcg' },
-            vitaminb1: { name: 'Thiamin (B1)', dv: 1.2, unit: 'mg' },
-            thiamin: { name: 'Thiamin (B1)', dv: 1.2, unit: 'mg' },
-            vitaminb2: { name: 'Riboflavin (B2)', dv: 1.3, unit: 'mg' },
-            riboflavin: { name: 'Riboflavin (B2)', dv: 1.3, unit: 'mg' },
-            vitaminb3: { name: 'Niacin (B3)', dv: 16, unit: 'mg' },
-            niacin: { name: 'Niacin (B3)', dv: 16, unit: 'mg' },
-            vitaminb6: { name: 'Vitamin B6', dv: 1.7, unit: 'mg' },
-            folate: { name: 'Folate (B9)', dv: 400, unit: 'mcg' },
-            vitaminb9: { name: 'Folate (B9)', dv: 400, unit: 'mcg' },
-            vitaminb12: { name: 'Vitamin B12', dv: 2.4, unit: 'mcg' },
-            choline: { name: 'Choline', dv: 550, unit: 'mg' },
-            biotin: { name: 'Biotin (B7)', dv: 30, unit: 'mcg' },
-            pantothenicacid: { name: 'Pantothenic Acid (B5)', dv: 5, unit: 'mg' },
-            calcium: { name: 'Calcium', dv: 1300, unit: 'mg' },
-            iron: { name: 'Iron', dv: 18, unit: 'mg' },
-            magnesium: { name: 'Magnesium', dv: 420, unit: 'mg' },
-            potassium: { name: 'Potassium', dv: 4700, unit: 'mg' },
-            sodium: { name: 'Sodium', dv: 2300, unit: 'mg' },
-            zinc: { name: 'Zinc', dv: 11, unit: 'mg' },
-            selenium: { name: 'Selenium', dv: 55, unit: 'mcg' },
-            phosphorus: { name: 'Phosphorus', dv: 1250, unit: 'mg' },
-            copper: { name: 'Copper', dv: 0.9, unit: 'mg' },
-            manganese: { name: 'Manganese', dv: 2.3, unit: 'mg' },
-            iodine: { name: 'Iodine', dv: 150, unit: 'mcg' },
-            chromium: { name: 'Chromium', dv: 35, unit: 'mcg' },
-            fiber: { name: 'Dietary Fiber', dv: 28, unit: 'g' },
-          };
-          for (const [k, ref] of Object.entries(FDA_REFS)) {
-            if (norm.includes(k) || k.includes(norm)) return ref;
+        // Definitive 27 Essential Micronutrients (FDA / NIH standards)
+        const ESSENTIAL_MICRONUTRIENTS = [
+          // 14 Vitamins
+          { id: 'vitamina', name: 'Vitamin A', category: 'Vitamin', target: 900, unit: 'mcg', aliases: ['vitamina', 'vita'] },
+          { id: 'vitaminc', name: 'Vitamin C', category: 'Vitamin', target: 90, unit: 'mg', aliases: ['vitaminc', 'vitc', 'ascorbicacid'] },
+          { id: 'vitamind', name: 'Vitamin D', category: 'Vitamin', target: 20, unit: 'mcg', aliases: ['vitamind', 'vitd'] },
+          { id: 'vitamine', name: 'Vitamin E', category: 'Vitamin', target: 15, unit: 'mg', aliases: ['vitamine', 'vite'] },
+          { id: 'vitamink', name: 'Vitamin K', category: 'Vitamin', target: 120, unit: 'mcg', aliases: ['vitamink', 'vitk'] },
+          { id: 'thiamin', name: 'Thiamin (B1)', category: 'Vitamin', target: 1.2, unit: 'mg', aliases: ['thiamin', 'vitaminb1', 'b1'] },
+          { id: 'riboflavin', name: 'Riboflavin (B2)', category: 'Vitamin', target: 1.3, unit: 'mg', aliases: ['riboflavin', 'vitaminb2', 'b2'] },
+          { id: 'niacin', name: 'Niacin (B3)', category: 'Vitamin', target: 16, unit: 'mg', aliases: ['niacin', 'vitaminb3', 'b3'] },
+          { id: 'pantothenicacid', name: 'Pantothenic Acid (B5)', category: 'Vitamin', target: 5, unit: 'mg', aliases: ['pantothenicacid', 'vitaminb5', 'b5'] },
+          { id: 'vitaminb6', name: 'Vitamin B6', category: 'Vitamin', target: 1.7, unit: 'mg', aliases: ['vitaminb6', 'b6'] },
+          { id: 'biotin', name: 'Biotin (B7)', category: 'Vitamin', target: 30, unit: 'mcg', aliases: ['biotin', 'vitaminb7', 'b7'] },
+          { id: 'folate', name: 'Folate (B9)', category: 'Vitamin', target: 400, unit: 'mcg', aliases: ['folate', 'vitaminb9', 'b9', 'folicacid'] },
+          { id: 'vitaminb12', name: 'Vitamin B12', category: 'Vitamin', target: 2.4, unit: 'mcg', aliases: ['vitaminb12', 'b12', 'cobalamin'] },
+          { id: 'choline', name: 'Choline', category: 'Vitamin', target: 550, unit: 'mg', aliases: ['choline'] },
+          
+          // 13 Minerals & Trace Elements
+          { id: 'calcium', name: 'Calcium', category: 'Mineral', target: 1300, unit: 'mg', aliases: ['calcium'] },
+          { id: 'iron', name: 'Iron', category: 'Mineral', target: 18, unit: 'mg', aliases: ['iron'] },
+          { id: 'magnesium', name: 'Magnesium', category: 'Mineral', target: 420, unit: 'mg', aliases: ['magnesium'] },
+          { id: 'potassium', name: 'Potassium', category: 'Mineral', target: 4700, unit: 'mg', aliases: ['potassium'] },
+          { id: 'sodium', name: 'Sodium', category: 'Mineral', target: 2300, unit: 'mg', aliases: ['sodium'] },
+          { id: 'zinc', name: 'Zinc', category: 'Mineral', target: 11, unit: 'mg', aliases: ['zinc'] },
+          { id: 'selenium', name: 'Selenium', category: 'Mineral', target: 55, unit: 'mcg', aliases: ['selenium'] },
+          { id: 'phosphorus', name: 'Phosphorus', category: 'Mineral', target: 1250, unit: 'mg', aliases: ['phosphorus'] },
+          { id: 'copper', name: 'Copper', category: 'Mineral', target: 0.9, unit: 'mg', aliases: ['copper'] },
+          { id: 'manganese', name: 'Manganese', category: 'Mineral', target: 2.3, unit: 'mg', aliases: ['manganese'] },
+          { id: 'iodine', name: 'Iodine', category: 'Mineral', target: 150, unit: 'mcg', aliases: ['iodine'] },
+          { id: 'chromium', name: 'Chromium', category: 'Mineral', target: 35, unit: 'mcg', aliases: ['chromium'] },
+          { id: 'molybdenum', name: 'Molybdenum', category: 'Mineral', target: 45, unit: 'mcg', aliases: ['molybdenum'] },
+        ];
+
+        const getConsumedFor = (item: typeof ESSENTIAL_MICRONUTRIENTS[0]) => {
+          for (const alias of item.aliases) {
+            for (const [key, val] of Object.entries(consumedMicros)) {
+              if (key === alias || key.includes(alias) || alias.includes(key)) {
+                return val;
+              }
+            }
           }
-          return null;
+          return 0;
         };
 
+        const totalActive = ESSENTIAL_MICRONUTRIENTS.filter(item => getConsumedFor(item) > 0).length;
+
         return (
-          <div className="p-5 border rounded-2xl bg-card shadow-sm space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+          <div className="p-5 border rounded-2xl bg-card shadow-sm space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-4">
               <div>
-                <h3 className="font-semibold text-base">Vitamins & Micronutrients</h3>
-                <p className="text-xs text-muted-foreground">
-                  Today's intake compared against trusted FDA / NIH Daily Values (DV)
+                <h3 className="font-semibold text-base flex items-center gap-2">
+                  <span>Essential Vitamins & Micronutrients</span>
+                  <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full font-normal">
+                    {totalActive} of 27 tracked today
+                  </span>
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Real-time progress compared against official US FDA & NIH Daily Values (DV)
                 </p>
               </div>
-              <span className="text-[11px] bg-primary/10 text-primary px-2.5 py-0.5 rounded-full font-medium self-start sm:self-auto">
-                Official FDA/NIH Standards
+              <span className="text-[11px] bg-primary/10 text-primary px-2.5 py-1 rounded-full font-medium self-start sm:self-auto border border-primary/20">
+                27 Essential FDA/NIH Standards
               </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {microEntries.map(([key, val]) => {
-                const ref = findRef(key);
-                const percent = ref ? Math.min(100, Math.round((val / ref.dv) * 100)) : null;
-                const formattedVal = Math.round(val * 10) / 10;
+              {ESSENTIAL_MICRONUTRIENTS.map((nutrient) => {
+                const consumed = getConsumedFor(nutrient);
+                const percent = Math.min(100, Math.round((consumed / nutrient.target) * 100));
+                const formattedConsumed = Math.round(consumed * 10) / 10;
+                const isMet = percent >= 100;
+                const isGood = percent >= 50;
 
                 return (
-                  <div key={key} className="p-3 rounded-xl border bg-background/50 space-y-2">
-                    <div className="flex justify-between items-start text-xs">
-                      <span className="font-medium text-foreground">
-                        {ref?.name || key.replace(/_/g, ' ')}
-                      </span>
-                      {percent !== null && (
-                        <span className={`text-[11px] font-bold ${percent >= 100 ? 'text-emerald-500' : percent >= 50 ? 'text-blue-500' : 'text-amber-500'}`}>
-                          {percent}% DV
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>~{formattedVal} {ref?.unit || ''}</span>
-                      {ref && <span>Target: {ref.dv} {ref.unit}</span>}
-                    </div>
-
-                    {percent !== null && (
-                      <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all duration-500 ${percent >= 100 ? 'bg-emerald-500' : percent >= 50 ? 'bg-blue-500' : 'bg-amber-500'}`}
-                          style={{ width: `${percent}%` }}
-                        />
+                  <div
+                    key={nutrient.id}
+                    className={`p-3 rounded-xl border transition-colors ${
+                      consumed > 0 ? 'bg-background' : 'bg-muted/20 opacity-70 hover:opacity-100'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start text-xs mb-1.5">
+                      <div>
+                        <span className="font-semibold text-foreground block">{nutrient.name}</span>
+                        <span className="text-[10px] text-muted-foreground">{nutrient.category}</span>
                       </div>
-                    )}
+                      <span
+                        className={`text-[11px] font-bold px-1.5 py-0.5 rounded ${
+                          consumed === 0
+                            ? 'bg-muted text-muted-foreground'
+                            : isMet
+                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                            : isGood
+                            ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                            : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                        }`}
+                      >
+                        {percent}% DV
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between text-xs text-muted-foreground mb-2">
+                      <span className={consumed > 0 ? 'font-medium text-foreground' : ''}>
+                        {consumed > 0 ? `~${formattedConsumed}` : '0'} {nutrient.unit}
+                      </span>
+                      <span>Target: {nutrient.target} {nutrient.unit}</span>
+                    </div>
+
+                    <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${
+                          consumed === 0
+                            ? 'w-0'
+                            : isMet
+                            ? 'bg-emerald-500'
+                            : isGood
+                            ? 'bg-blue-500'
+                            : 'bg-amber-500'
+                        }`}
+                        style={{ width: `${percent}%` }}
+                      />
+                    </div>
                   </div>
                 );
               })}
