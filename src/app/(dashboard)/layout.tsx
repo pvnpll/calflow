@@ -12,6 +12,7 @@ import {
   MessageSquare,
   User as UserIcon,
   LogOut,
+  Plug,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -23,6 +24,7 @@ const navItems = [
   { name: 'Meals', href: '/meals', icon: UtensilsCrossed },
   { name: 'Insights', href: '/insights', icon: BarChart3 },
   { name: 'Chat', href: '/chat', icon: MessageSquare },
+  { name: 'Connect', href: '/connect', icon: Plug },
   { name: 'Profile', href: '/profile', icon: UserIcon },
 ];
 

@@ -8,7 +8,7 @@ async function handleMcpRequest(req: NextRequest) {
     // Validate token
     const authInfo = await authenticateToken(req);
     if (!authInfo) {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cal-flow.vercel.app';
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
       return new Response(JSON.stringify({ error: "Unauthorized" }), { 
         status: 401, 
         headers: { 
