@@ -15,7 +15,7 @@ export function createCalflowMcpServer() {
   // log_meal
   server.tool(
     "log_meal",
-    "Record a meal and its estimated nutrition for the currently authenticated CalFlow user. Use this after the user tells you what they ate and you have estimated the nutrition.",
+    "Record a meal and its complete estimated nutrition for the user. IMPORTANT: Provide comprehensive nutritional data including all vitamins (vitamin_a_mcg, vitamin_c_mg, vitamin_d_mcg, vitamin_e_mg, vitamin_k_mcg, b-complex) and minerals (calcium_mg, iron_mg, magnesium_mg, potassium_mg, zinc_mg, etc.) from the foods based on USDA/FDA reference standards, not just basic calories and macros.",
     {
       meal_text: z.string().describe("Original natural-language description of the meal"),
       calories: z.number().describe("Estimated total calories"),
@@ -36,9 +36,9 @@ export function createCalflowMcpServer() {
         carbs_g: z.number().optional().describe("Carbohydrates in grams for this item"),
         fat_g: z.number().optional().describe("Fat in grams for this item"),
         fiber_g: z.number().optional().describe("Fiber in grams for this item"),
-        micronutrients: z.record(z.string(), z.any()).optional().describe("Key micronutrients like calcium_mg, iron_mg, vitamin_c_mg, etc.")
+        micronutrients: z.record(z.string(), z.any()).optional().describe("Vitamins and minerals for this specific food item (e.g. vitamin_a_mcg, calcium_mg, iron_mg, potassium_mg, vitamin_c_mg, etc.)")
       })).optional().describe("Individual constituent items of the meal"),
-      micronutrients: z.record(z.string(), z.any()).optional().describe("Estimated total micronutrients for the entire meal (e.g. calcium_mg, iron_mg, vitamin_c_mg, etc.)")
+      micronutrients: z.record(z.string(), z.any()).optional().describe("Complete vitamins and minerals breakdown for the entire meal (e.g. calcium_mg, iron_mg, potassium_mg, magnesium_mg, zinc_mg, vitamin_a_mcg, vitamin_c_mg, vitamin_d_mcg, vitamin_b12_mcg, etc.)")
     },
     async (args, extra) => {
       try {
