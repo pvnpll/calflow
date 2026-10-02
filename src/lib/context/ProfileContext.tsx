@@ -23,12 +23,12 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [profileRes, goalsRes] = await Promise.all([
-        fetch('/api/profile'),
-        fetch('/api/goals'),
-      ]);
-      if (profileRes.ok) setProfile(await profileRes.json());
-      if (goalsRes.ok) setGoals(await goalsRes.json());
+      const res = await fetch('/api/profile/full');
+      if (res.ok) {
+        const data = await res.json();
+        setProfile(data.profile);
+        setGoals(data.goals);
+      }
     } catch (err) {
       console.error('ProfileContext fetch failed:', err);
     } finally {
