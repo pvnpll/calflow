@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import type { Meal, MealItem, MealInput } from '@/lib/types'
 import { TABLES } from '@/lib/db-tables'
 
@@ -19,7 +19,7 @@ function toDbMeal(data: Partial<MealInput>) {
 }
 
 export async function createMeal(userId: string, data: MealInput) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   
   const mealRecord = {
     user_id: userId,
@@ -75,7 +75,7 @@ export async function createMeal(userId: string, data: MealInput) {
 }
 
 export async function getMealsByDate(userId: string, date: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from(TABLES.MEALS)
     .select(`*, ${TABLES.MEAL_ITEMS}(*)`)
@@ -88,7 +88,7 @@ export async function getMealsByDate(userId: string, date: string) {
 }
 
 export async function getMealsByDateRange(userId: string, startDate: string, endDate: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from(TABLES.MEALS)
     .select(`*, ${TABLES.MEAL_ITEMS}(*)`)
@@ -102,7 +102,7 @@ export async function getMealsByDateRange(userId: string, startDate: string, end
 }
 
 export async function getMealById(userId: string, mealId: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from(TABLES.MEALS)
     .select(`*, ${TABLES.MEAL_ITEMS}(*)`)
@@ -115,7 +115,7 @@ export async function getMealById(userId: string, mealId: string) {
 }
 
 export async function updateMeal(userId: string, mealId: string, data: Partial<MealInput>) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   
   const mealData = toDbMeal(data)
   
@@ -152,7 +152,7 @@ export async function updateMeal(userId: string, mealId: string, data: Partial<M
 }
 
 export async function deleteMeal(userId: string, mealId: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error } = await supabase
     .from(TABLES.MEALS)
     .delete()

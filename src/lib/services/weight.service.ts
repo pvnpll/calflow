@@ -1,8 +1,8 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { TABLES } from '@/lib/db-tables'
 
 export async function logWeight(userId: string, weightKg: number, date?: string, note?: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const logDate = date || new Date().toISOString().split('T')[0]
   
   const { data, error } = await supabase
@@ -16,7 +16,7 @@ export async function logWeight(userId: string, weightKg: number, date?: string,
 }
 
 export async function getWeightHistory(userId: string, startDate?: string, endDate?: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   let query = supabase
     .from(TABLES.WEIGHT_LOGS)
     .select('*')
@@ -32,7 +32,7 @@ export async function getWeightHistory(userId: string, startDate?: string, endDa
 }
 
 export async function getLatestWeight(userId: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from(TABLES.WEIGHT_LOGS)
     .select('*')

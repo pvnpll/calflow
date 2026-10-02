@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import type { UserProfile } from '@/lib/types'
 import { TABLES } from '@/lib/db-tables'
 
@@ -20,7 +20,7 @@ function toDbProfile(data: Partial<UserProfile>) {
 }
 
 export async function getProfile(userId: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from(TABLES.USER_PROFILES)
     .select('*')
@@ -35,7 +35,7 @@ export async function getProfile(userId: string) {
 }
 
 export async function upsertProfile(userId: string, data: Partial<UserProfile>) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data: profile, error } = await supabase
     .from(TABLES.USER_PROFILES)
     .upsert({ user_id: userId, ...toDbProfile(data) })
@@ -47,7 +47,7 @@ export async function upsertProfile(userId: string, data: Partial<UserProfile>) 
 }
 
 export async function updateProfile(userId: string, data: Partial<UserProfile>) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data: profile, error } = await supabase
     .from(TABLES.USER_PROFILES)
     .update(toDbProfile(data))

@@ -1,8 +1,8 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { TABLES } from '@/lib/db-tables'
 
 export async function logWater(userId: string, amountMl: number, date?: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const logDate = date || new Date().toISOString().split('T')[0]
   
   const { data, error } = await supabase
@@ -16,7 +16,7 @@ export async function logWater(userId: string, amountMl: number, date?: string) 
 }
 
 export async function getWaterByDate(userId: string, date: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from(TABLES.WATER_LOGS)
     .select('amount_ml')
@@ -28,7 +28,7 @@ export async function getWaterByDate(userId: string, date: string) {
 }
 
 export async function getWaterByDateRange(userId: string, startDate: string, endDate: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from(TABLES.WATER_LOGS)
     .select('*')

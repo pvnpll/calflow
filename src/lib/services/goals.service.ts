@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import type { NutritionGoals } from '@/lib/types'
 import { TABLES } from '@/lib/db-tables'
 
@@ -16,7 +16,7 @@ function toDbGoals(data: Partial<NutritionGoals>) {
 }
 
 export async function getActiveGoals(userId: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from(TABLES.NUTRITION_GOALS)
     .select('*')
@@ -32,7 +32,7 @@ export async function getActiveGoals(userId: string) {
 }
 
 export async function upsertGoals(userId: string, data: Partial<NutritionGoals>) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   
   // Deactivate current active goals
   await supabase
@@ -53,7 +53,7 @@ export async function upsertGoals(userId: string, data: Partial<NutritionGoals>)
 }
 
 export async function getGoalsHistory(userId: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from(TABLES.NUTRITION_GOALS)
     .select('*')
