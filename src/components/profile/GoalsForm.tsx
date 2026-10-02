@@ -9,7 +9,8 @@ export default function GoalsForm() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
-  
+  const [recalcFlash, setRecalcFlash] = useState(false);
+
   // Profile data needed for calculation
   const [profileData, setProfileData] = useState<any>(null);
 
@@ -33,7 +34,7 @@ export default function GoalsForm() {
           fetch('/api/goals'),
           fetch('/api/profile')
         ]);
-        
+
         let goalUpdates: any = {};
         let profileUpdates: any = {};
 
@@ -50,7 +51,7 @@ export default function GoalsForm() {
             };
           }
         }
-        
+
         if (profileRes.ok) {
           const profile = await profileRes.json();
           setProfileData(profile);
@@ -62,7 +63,7 @@ export default function GoalsForm() {
             };
           }
         }
-        
+
         setFormData(prev => ({ ...prev, ...goalUpdates, ...profileUpdates }));
       } catch (err) {
         console.error('Failed to load data:', err);
@@ -73,24 +74,38 @@ export default function GoalsForm() {
     fetchData();
   }, []);
 
-  const calculateTargets = (goal = formData.primaryGoal, rate = formData.goalRate) => {
-    if (!profileData || !profileData.current_weight_kg || !profileData.height_cm || !profileData.age) {
+  // Returns which profile fields are missing for BMR calculation
+  const getMissingFields = (profile: any): string[] => {
+    if (!profile) return ['age', 'sex', 'height', 'weight'];
+    const missing: string[] = [];
+    if (!profile.age) missing.push('age');
+    if (!profile.sex) missing.push('sex');
+    if (!profile.height_cm) missing.push('height');
+    if (!profile.current_weight_kg) missing.push('current weight');
+    return missing;
+  };
+
+  const missingFields = getMissingFields(profileData);
+  const canCalculate = missingFields.length === 0;
+
+  const calculateTargets = (goal: string, rate: string, profile: any) => {
+    if (!profile?.current_weight_kg || !profile?.height_cm || !profile?.age || !profile?.sex) {
       return null;
     }
-    
-    let bmr = 10 * profileData.current_weight_kg + 6.25 * profileData.height_cm - 5 * profileData.age;
-    bmr += (profileData.sex === 'male') ? 5 : -161;
-    
+
+    let bmr = 10 * profile.current_weight_kg + 6.25 * profile.height_cm - 5 * profile.age;
+    bmr += (profile.sex === 'male') ? 5 : -161;
+
     let multiplier = 1.2;
-    switch(profileData.activity_level) {
+    switch (profile.activity_level) {
       case 'lightly_active': multiplier = 1.375; break;
       case 'moderately_active': multiplier = 1.55; break;
       case 'very_active': multiplier = 1.725; break;
       case 'extremely_active': multiplier = 1.9; break;
     }
-    
+
     let tdee = bmr * multiplier;
-    
+
     if (goal === 'lose_weight') {
       const deficit = rate === 'slow' ? 250 : rate === 'fast' ? 750 : 500;
       tdee -= deficit;
@@ -98,37 +113,40 @@ export default function GoalsForm() {
       const surplus = rate === 'slow' ? 250 : rate === 'fast' ? 750 : 500;
       tdee += surplus;
     }
-    
+
     const calories = Math.round(tdee);
-    const protein = Math.round((calories * 0.3) / 4);
-    const fat = Math.round((calories * 0.3) / 9);
-    const carbs = Math.round((calories * 0.4) / 4);
-    const fiber = Math.round((calories / 1000) * 14); // 14g per 1000 kcal
-    
-    // Water: 35ml per kg of current weight
-    const waterL = ((profileData.current_weight_kg * 35) / 1000).toFixed(1);
-    
     return {
       calorieTarget: String(calories),
-      proteinTarget: String(protein),
-      carbohydrateTarget: String(carbs),
-      fatTarget: String(fat),
-      fiberTarget: String(fiber),
-      waterTargetL: String(waterL)
+      proteinTarget: String(Math.round((calories * 0.3) / 4)),
+      carbohydrateTarget: String(Math.round((calories * 0.4) / 4)),
+      fatTarget: String(Math.round((calories * 0.3) / 9)),
+      fiberTarget: String(Math.round((calories / 1000) * 14)),
+      waterTargetL: ((profile.current_weight_kg * 35) / 1000).toFixed(1)
     };
   };
 
+  const applyCalculation = (goal?: string, rate?: string) => {
+    const g = goal ?? formData.primaryGoal;
+    const r = rate ?? formData.goalRate;
+    const targets = calculateTargets(g, r, profileData);
+    if (targets) {
+      setFormData(prev => ({ ...prev, ...targets }));
+      setRecalcFlash(true);
+      setTimeout(() => setRecalcFlash(false), 2500);
+    }
+  };
 
   const updateGoal = (goal: string | null) => {
     const validGoal = goal ?? 'maintain_weight';
-    const targets = calculateTargets(validGoal, formData.goalRate) || {};
-    setFormData(prev => ({ ...prev, primaryGoal: validGoal, ...targets }));
+    setFormData(prev => ({ ...prev, primaryGoal: validGoal }));
+    // Use latest profileData from closure; goal is passed explicitly
+    applyCalculation(validGoal, formData.goalRate);
   };
 
   const updateRate = (rate: string | null) => {
     const validRate = rate ?? 'moderate';
-    const targets = calculateTargets(formData.primaryGoal, validRate) || {};
-    setFormData(prev => ({ ...prev, goalRate: validRate, ...targets }));
+    setFormData(prev => ({ ...prev, goalRate: validRate }));
+    applyCalculation(formData.primaryGoal, validRate);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -136,7 +154,7 @@ export default function GoalsForm() {
     setSaving(true);
     setSuccess(false);
     try {
-      const goalsPayload: any = {
+      const goalsPayload = {
         calorieTarget: parseFloat(formData.calorieTarget) || 2000,
         proteinTarget: parseFloat(formData.proteinTarget) || 150,
         carbohydrateTarget: parseFloat(formData.carbohydrateTarget) || 200,
@@ -145,7 +163,7 @@ export default function GoalsForm() {
         waterTargetMl: (parseFloat(formData.waterTargetL) || 2.5) * 1000,
       };
 
-      const profilePayload: any = {
+      const profilePayload = {
         goal: formData.primaryGoal,
         goalWeightKg: formData.goalWeightKg ? parseFloat(formData.goalWeightKg) : null,
         goalRate: formData.goalRate
@@ -175,9 +193,18 @@ export default function GoalsForm() {
     }
   };
 
+  const activityLabel: Record<string, string> = {
+    sedentary: 'Sedentary',
+    lightly_active: 'Lightly Active',
+    moderately_active: 'Moderately Active',
+    very_active: 'Very Active',
+    extremely_active: 'Extremely Active',
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6 p-4 border rounded-lg bg-card">
       <div className="space-y-6">
+        {/* Goal & Rate selectors */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>What is your primary goal?</Label>
@@ -192,17 +219,17 @@ export default function GoalsForm() {
               </SelectContent>
             </Select>
           </div>
-          
+
           {(formData.primaryGoal === 'lose_weight' || formData.primaryGoal === 'gain_weight' || formData.primaryGoal === 'gain_muscle') && (
             <>
               <div className="space-y-2">
                 <Label>Goal Weight (kg)</Label>
-                <Input 
-                  type="number" 
+                <Input
+                  type="number"
                   step="0.1"
-                  placeholder="e.g. 68" 
-                  value={formData.goalWeightKg} 
-                  onChange={(e) => setFormData({ ...formData, goalWeightKg: e.target.value })} 
+                  placeholder="e.g. 68"
+                  value={formData.goalWeightKg}
+                  onChange={(e) => setFormData({ ...formData, goalWeightKg: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
@@ -210,9 +237,9 @@ export default function GoalsForm() {
                 <Select value={formData.goalRate} onValueChange={updateRate}>
                   <SelectTrigger><SelectValue placeholder="Select rate" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="slow">Slow</SelectItem>
-                    <SelectItem value="moderate">Moderate</SelectItem>
-                    <SelectItem value="fast">Fast</SelectItem>
+                    <SelectItem value="slow">Slow (~0.25 kg/week)</SelectItem>
+                    <SelectItem value="moderate">Moderate (~0.5 kg/week)</SelectItem>
+                    <SelectItem value="fast">Fast (~0.75 kg/week)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -220,70 +247,107 @@ export default function GoalsForm() {
           )}
         </div>
 
-        <div className="pt-4 border-t space-y-4">
+        {/* Recalculate banner */}
+        <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
+          {canCalculate ? (
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">Based on: </span>
+                {profileData.current_weight_kg} kg &middot; {profileData.height_cm} cm &middot; {profileData.age} yrs &middot;{' '}
+                {activityLabel[profileData.activity_level] ?? profileData.activity_level ?? 'Sedentary'}
+              </div>
+              <div className="flex items-center gap-3">
+                {recalcFlash && (
+                  <span className="text-xs text-emerald-500 font-medium">
+                    ✓ Targets updated
+                  </span>
+                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => applyCalculation()}
+                >
+                  ↻ Recalculate from profile
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-amber-600 dark:text-amber-400">
+              <span className="font-semibold">Profile incomplete — targets cannot be auto-calculated.</span>{' '}
+              Go to the <span className="underline">Personal Info</span> tab and fill in:{' '}
+              <span className="font-medium">{missingFields.join(', ')}</span>.
+              You can still set targets manually below.
+            </p>
+          )}
+        </div>
+
+        {/* Manual target inputs */}
+        <div className="pt-2 border-t space-y-4">
           <div className="flex justify-between items-center">
             <Label className="text-lg font-semibold">Daily Nutrition Targets</Label>
+            <span className="text-xs text-muted-foreground">Edit manually or recalculate above</span>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Calories (kcal)</Label>
-              <Input 
-                type="number" 
-                placeholder="2000" 
-                value={formData.calorieTarget} 
-                onChange={(e) => setFormData({ ...formData, calorieTarget: e.target.value })} 
+              <Input
+                type="number"
+                placeholder="2000"
+                value={formData.calorieTarget}
+                onChange={(e) => setFormData({ ...formData, calorieTarget: e.target.value })}
               />
             </div>
             <div className="space-y-2">
               <Label>Protein (g)</Label>
-              <Input 
-                type="number" 
-                placeholder="150" 
-                value={formData.proteinTarget} 
-                onChange={(e) => setFormData({ ...formData, proteinTarget: e.target.value })} 
+              <Input
+                type="number"
+                placeholder="150"
+                value={formData.proteinTarget}
+                onChange={(e) => setFormData({ ...formData, proteinTarget: e.target.value })}
               />
             </div>
             <div className="space-y-2">
               <Label>Carbs (g)</Label>
-              <Input 
-                type="number" 
-                placeholder="200" 
-                value={formData.carbohydrateTarget} 
-                onChange={(e) => setFormData({ ...formData, carbohydrateTarget: e.target.value })} 
+              <Input
+                type="number"
+                placeholder="200"
+                value={formData.carbohydrateTarget}
+                onChange={(e) => setFormData({ ...formData, carbohydrateTarget: e.target.value })}
               />
             </div>
             <div className="space-y-2">
               <Label>Fat (g)</Label>
-              <Input 
-                type="number" 
-                placeholder="65" 
-                value={formData.fatTarget} 
-                onChange={(e) => setFormData({ ...formData, fatTarget: e.target.value })} 
+              <Input
+                type="number"
+                placeholder="65"
+                value={formData.fatTarget}
+                onChange={(e) => setFormData({ ...formData, fatTarget: e.target.value })}
               />
             </div>
             <div className="space-y-2">
               <Label>Fiber (g)</Label>
-              <Input 
-                type="number" 
-                placeholder="30" 
-                value={formData.fiberTarget} 
-                onChange={(e) => setFormData({ ...formData, fiberTarget: e.target.value })} 
+              <Input
+                type="number"
+                placeholder="30"
+                value={formData.fiberTarget}
+                onChange={(e) => setFormData({ ...formData, fiberTarget: e.target.value })}
               />
             </div>
             <div className="space-y-2">
               <Label>Water (L)</Label>
-              <Input 
-                type="number" 
-                step="0.1" 
-                placeholder="2.5" 
-                value={formData.waterTargetL} 
-                onChange={(e) => setFormData({ ...formData, waterTargetL: e.target.value })} 
+              <Input
+                type="number"
+                step="0.1"
+                placeholder="2.5"
+                value={formData.waterTargetL}
+                onChange={(e) => setFormData({ ...formData, waterTargetL: e.target.value })}
               />
             </div>
           </div>
         </div>
       </div>
-      
+
       <div className="flex items-center gap-4 pt-4 border-t">
         <Button type="submit" disabled={saving || loading}>
           {saving ? 'Saving...' : 'Save Goals & Targets'}
