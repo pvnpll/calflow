@@ -8,31 +8,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [0.7.2] — 2026-10-02 · `15a3d89`
-
-**Performance Optimization: Unified API Endpoints**
-
-### Changed
-- **Dashboard**: Replaced 5 parallel client-side requests (`/api/nutrition/today`, `/api/water`, `/api/meals`, `/api/weight`, `/api/profile`) with a single, highly optimized server-side parallel fetch via a new `/api/dashboard` endpoint.
-- **Insights Page**: Updated the backend `getInsights` service to resolve and bundle all required nested data (`rawMeals`, `rawWaterLogs`, `rawWeightHistory`, `profile`). The frontend now makes exactly one call to `/api/insights` instead of 5 separate ones.
-- **Profile Page**: Created a global `ProfileContext` that fetches `/api/profile` and `/api/goals` exactly once. The `ProfileForm`, `GoalsForm`, and `PreferencesForm` all now subscribe to this context instead of making duplicate fetch requests upon rendering.
-- **Removed redundant Auth calls**: `DashboardContent` no longer manually invokes `supabase.auth.getUser()`, as all necessary user information is efficiently returned in the unified `profile` payload.
-- Configured `private, max-age=0, must-revalidate` caching on the new dashboard endpoint to enforce correct SWR behaviors.
-
----
-
-## [0.7.1] — 2026-10-02 · `b71e056`
-
-**Fix: GoalsForm Recalculate Bug**
-
-### Fixed
-- Added a visible "↻ Recalculate from profile" button to the Goals tab.
-- Added an amber warning banner when the user's profile is missing required fields (age, sex, height, weight) for BMR calculation.
-- Fixed a bug where `calculateTargets()` silently failed without updating the UI.
-- Fixed a stale closure bug in `updateGoal` that used outdated state values.
-
----
-
 ## [0.7.0] — 2026-10-02 · `76bb022`
 
 **Merge: Goal-Based Tracking**

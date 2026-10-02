@@ -73,6 +73,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <Link
                   key={item.name}
                   href={item.href}
+                  prefetch={false}
                   className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                     isActive
                       ? 'bg-primary/10 text-primary'
@@ -131,6 +132,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Link
               key={item.name}
               href={item.href}
+              prefetch={false}
               className={`flex flex-col items-center justify-center space-y-1 rounded-md px-2 py-1 ${
                 isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
               }`}
