@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,14 +7,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 
-export default function AddMealDialog({ open, onOpenChange, date, onSuccess }: any) {
+export default function AddMealDialog({ open, onOpenChange, date, onSuccess, initialMealType }: any) {
   const [loading, setLoading] = useState(false);
-  const [mealType, setMealType] = useState('lunch');
+  const [mealType, setMealType] = useState(initialMealType || 'lunch');
   const [description, setDescription] = useState('');
   
   // Minimal manual item entry
   const [foodName, setFoodName] = useState('');
   const [calories, setCalories] = useState('');
+
+  useEffect(() => {
+    if (open && initialMealType) setMealType(initialMealType);
+  }, [open, initialMealType]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

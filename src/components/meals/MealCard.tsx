@@ -1,18 +1,25 @@
 'use client';
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Edit2, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Pencil, Trash2, ChevronDown, ChevronUp, Flame, Beef, Wheat, Droplet, Leaf, Sparkles } from 'lucide-react';
 import EditMealDialog from './EditMealDialog';
+import { formatMicroKey, formatMicroValue } from '@/lib/format-micros';
 
 interface MealCardProps {
   meal: any;
   onUpdate: () => void;
 }
 
+function safeNum(v: unknown): number {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
 export default function MealCard({ meal, onUpdate }: MealCardProps) {
-  const [expanded, setExpanded] = useState(false);
+  const [itemsExpanded, setItemsExpanded] = useState(false);
+  const [microsExpanded, setMicrosExpanded] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -30,99 +37,153 @@ export default function MealCard({ meal, onUpdate }: MealCardProps) {
   };
 
   const items = meal.cf_meal_items || meal.items || [];
-  
-  // Total calories and macros: prefer explicit meal columns, fallback to summing items
-  const totalCalories = Number(meal.estimated_calories ?? meal.estimatedCalories ?? (items.length > 0 ? items.reduce((sum: number, item: any) => sum + Number(item.estimated_calories || item.calories || 0), 0) : 0)) || 0;
-  const totalProtein = Number(meal.estimated_protein ?? meal.estimatedProtein ?? (items.length > 0 ? items.reduce((sum: number, item: any) => sum + Number(item.estimated_protein || item.protein || 0), 0) : 0)) || 0;
-  const totalCarbs = Number(meal.estimated_carbs ?? meal.estimatedCarbs ?? (items.length > 0 ? items.reduce((sum: number, item: any) => sum + Number(item.estimated_carbs || item.carbs || 0), 0) : 0)) || 0;
-  const totalFat = Number(meal.estimated_fat ?? meal.estimatedFat ?? (items.length > 0 ? items.reduce((sum: number, item: any) => sum + Number(item.estimated_fat || item.fat || 0), 0) : 0)) || 0;
-  const totalFiber = Number(meal.estimated_fiber ?? meal.estimatedFiber ?? (items.length > 0 ? items.reduce((sum: number, item: any) => sum + Number(item.estimated_fiber || item.fiber || 0), 0) : 0)) || 0;
 
-  const micronutrients = meal.micronutrients && typeof meal.micronutrients === 'object' && Object.keys(meal.micronutrients).length > 0 ? meal.micronutrients : null;
+  const sumItems = (pick: (item: any) => unknown) =>
+    items.length > 0
+      ? items.reduce((sum: number, item: any) => sum + safeNum(pick(item)), 0)
+      : 0;
+
+  const totalCalories =
+    safeNum(meal.estimated_calories ?? meal.estimatedCalories) ||
+    sumItems((i) => i.estimated_calories ?? i.calories);
+  const totalProtein =
+    safeNum(meal.estimated_protein ?? meal.estimatedProtein) ||
+    sumItems((i) => i.estimated_protein ?? i.protein);
+  const totalCarbs =
+    safeNum(meal.estimated_carbs ?? meal.estimatedCarbs) ||
+    sumItems((i) => i.estimated_carbs ?? i.carbs);
+  const totalFat =
+    safeNum(meal.estimated_fat ?? meal.estimatedFat) ||
+    sumItems((i) => i.estimated_fat ?? i.fat);
+  const totalFiber =
+    safeNum(meal.estimated_fiber ?? meal.estimatedFiber) ||
+    sumItems((i) => i.estimated_fiber ?? i.fiber);
+
+  const microEntries =
+    meal.micronutrients && typeof meal.micronutrients === 'object'
+      ? Object.entries(meal.micronutrients).filter(
+          ([, v]) => v !== null && v !== undefined && String(v).trim() !== ''
+        )
+      : [];
+  const microCount = microEntries.length;
+  const visibleMicros = microsExpanded ? microEntries : microEntries.slice(0, 6);
+
+  const macros = [
+    { label: 'Calories', value: `${Math.round(totalCalories)}`, unit: 'kcal', icon: Flame, color: 'text-orange-500' },
+    { label: 'Protein', value: `${Math.round(totalProtein)}`, unit: 'g', icon: Beef, color: 'text-sky-500' },
+    { label: 'Carbs', value: `${Math.round(totalCarbs)}`, unit: 'g', icon: Wheat, color: 'text-amber-500' },
+    { label: 'Fat', value: `${Math.round(totalFat)}`, unit: 'g', icon: Droplet, color: 'text-violet-500' },
+    { label: 'Fiber', value: `${Math.round(totalFiber)}`, unit: 'g', icon: Leaf, color: 'text-emerald-500' },
+  ];
 
   return (
     <>
-      <Card>
-        <CardHeader className="pb-2">
-          <div className="flex justify-between items-start">
-            <div>
-              <CardTitle className="text-lg">{meal.description || `${meal.meal_type} Meal`}</CardTitle>
-              <div className="flex gap-2 mt-2">
-                <Badge variant="secondary">{meal.meal_type}</Badge>
-                {meal.source && <Badge variant="outline">{meal.source}</Badge>}
+      <Card className="overflow-hidden transition-shadow hover:shadow-md">
+        <div className="flex items-start justify-between gap-3 px-4 pt-4 sm:px-5">
+          <div className="min-w-0 flex-1">
+            <p className="text-[15px] font-semibold leading-snug text-balance">
+              {meal.description || `${meal.meal_type ?? 'Meal'} Meal`}
+            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              {meal.meal_type && (
+                <Badge variant="secondary" className="capitalize">{meal.meal_type}</Badge>
+              )}
+              {meal.source && (
+                <Badge variant="outline" className="font-normal">
+                  <Sparkles className="h-3 w-3 opacity-60" />{meal.source}
+                </Badge>
+              )}
+            </div>
+          </div>
+          <div className="-mr-1 -mt-1 flex shrink-0 items-center">
+            <Button variant="ghost" size="icon-sm" onClick={() => setIsEditOpen(true)} aria-label="Edit meal" className="text-muted-foreground hover:text-foreground">
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon-sm" onClick={handleDelete} disabled={isDeleting} aria-label="Delete meal" className="text-muted-foreground hover:text-destructive">
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        <CardContent className="px-4 pb-4 pt-3 sm:px-5">
+          <dl className="grid grid-cols-5 gap-1.5 sm:gap-2">
+            {macros.map((m) => (
+              <div key={m.label} className="flex min-w-0 flex-col items-center rounded-lg bg-muted/50 px-1 py-2 text-center">
+                <m.icon className={`mb-1 h-3.5 w-3.5 ${m.color}`} aria-hidden />
+                <dd className="text-sm font-bold tabular-nums leading-tight">
+                  {m.value}<span className="ml-0.5 text-[10px] font-medium text-muted-foreground">{m.unit}</span>
+                </dd>
+                <dt className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{m.label}</dt>
               </div>
-            </div>
-            <div className="flex gap-1">
-              <Button variant="ghost" size="icon" onClick={() => setIsEditOpen(true)}>
-                <Edit2 className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={handleDelete} disabled={isDeleting}>
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-4 text-sm font-medium mb-3">
-            <span className="text-orange-500 font-semibold">~{Math.round(totalCalories)} kcal</span>
-            <span className="text-blue-500">~{Math.round(totalProtein)}g P</span>
-            <span className="text-amber-500">~{Math.round(totalCarbs)}g C</span>
-            <span className="text-purple-500">~{Math.round(totalFat)}g F</span>
-            {totalFiber > 0 && <span className="text-emerald-500">~{Math.round(totalFiber)}g Fiber</span>}
-          </div>
+            ))}
+          </dl>
 
-          {/* Micronutrients display */}
-          {micronutrients && (
-            <div className="mt-2 mb-3 p-2.5 bg-muted/40 rounded-md border text-xs">
-              <span className="font-semibold text-muted-foreground block mb-1">Micronutrients:</span>
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(micronutrients).map(([key, val]) => (
-                  <Badge key={key} variant="secondary" className="font-normal text-xs py-0.5">
-                    {key.replace(/_/g, ' ')}: {String(val)}
-                  </Badge>
-                ))}
+          {microCount > 0 && (
+            <div className="mt-3 rounded-lg border bg-muted/30">
+              <button type="button" onClick={() => setMicrosExpanded((v) => !v)}
+                aria-expanded={microsExpanded}
+                className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:text-foreground">
+                <span>Micronutrients
+                  <span className="ml-1.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold tabular-nums">{microCount}</span>
+                </span>
+                {microsExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+              </button>
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1 px-3 pb-3 sm:grid-cols-3">
+                {visibleMicros.map(([key, val]) => {
+                  const { label, unit } = formatMicroKey(key);
+                  return (
+                    <div key={key} className="flex items-baseline justify-between gap-1 border-b border-muted py-1 text-xs">
+                      <span className="truncate text-muted-foreground" title={label}>{label}</span>
+                      <span className="shrink-0 font-medium tabular-nums">{formatMicroValue(val)}
+                        {unit && <span className="ml-0.5 font-normal text-muted-foreground">{unit}</span>}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
+              {microCount > 6 && (
+                <button type="button" onClick={() => setMicrosExpanded((v) => !v)}
+                  className="w-full border-t px-3 py-1.5 text-center text-[11px] font-medium text-muted-foreground hover:text-foreground">
+                  {microsExpanded ? 'Show less' : `Show all ${microCount}`}
+                </button>
+              )}
             </div>
           )}
 
-          {expanded && (
-            <div className="space-y-3 mt-4 border-t pt-4">
+          {itemsExpanded && items.length > 0 && (
+            <ul className="mt-3 divide-y divide-muted rounded-lg border">
               {items.map((item: any, i: number) => {
-                const itemCals = Number(item.estimated_calories ?? item.calories ?? 0);
-                const itemProtein = Number(item.estimated_protein ?? item.protein ?? 0);
-                const itemCarbs = Number(item.estimated_carbs ?? item.carbs ?? 0);
-                const itemFat = Number(item.estimated_fat ?? item.fat ?? 0);
+                const itemCals = safeNum(item.estimated_calories ?? item.calories);
+                const itemProtein = safeNum(item.estimated_protein ?? item.protein);
+                const itemCarbs = safeNum(item.estimated_carbs ?? item.carbs);
+                const itemFat = safeNum(item.estimated_fat ?? item.fat);
+                const bits = [
+                  itemProtein > 0 ? `${itemProtein}g P` : '',
+                  itemCarbs > 0 ? `${itemCarbs}g C` : '',
+                  itemFat > 0 ? `${itemFat}g F` : '',
+                ].filter(Boolean).join(' · ');
                 return (
-                  <div key={i} className="flex justify-between items-center text-sm py-1 border-b last:border-0 border-muted">
-                    <div>
-                      <span className="font-medium">{item.food_name || item.name}</span>
-                      {(item.quantity || item.unit) && (
-                        <span className="text-muted-foreground ml-2 text-xs">
-                          {item.quantity} {item.unit}
-                        </span>
-                      )}
-                      {(itemProtein > 0 || itemCarbs > 0 || itemFat > 0) && (
-                        <span className="text-xs text-muted-foreground block">
-                          {itemProtein > 0 ? `${itemProtein}g P ` : ''}
-                          {itemCarbs > 0 ? `${itemCarbs}g C ` : ''}
-                          {itemFat > 0 ? `${itemFat}g F` : ''}
-                        </span>
-                      )}
+                  <li key={item.id ?? i} className="flex items-start justify-between gap-3 px-3 py-2.5 text-sm">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{item.food_name || item.name || `Item ${i + 1}`}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {[item.quantity, item.unit].filter(Boolean).join(' ') || '1 serving'}
+                        {bits ? ` · ${bits}` : ''}
+                      </p>
                     </div>
-                    <div className="text-muted-foreground font-medium">
+                    <span className="shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
                       ~{Math.round(itemCals)} kcal
-                    </div>
-                  </div>
+                    </span>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           )}
         </CardContent>
         {items.length > 0 && (
-          <CardFooter className="pt-0">
-            <Button variant="ghost" size="sm" className="w-full h-8 text-xs" onClick={() => setExpanded(!expanded)}>
-              {expanded ? <ChevronUp className="h-4 w-4 mr-1" /> : <ChevronDown className="h-4 w-4 mr-1" />}
-              {expanded ? 'Hide Items' : `Show ${items.length} Item${items.length > 1 ? 's' : ''}`}
+          <CardFooter className="p-0">
+            <Button variant="ghost" size="sm" className="h-9 w-full rounded-none text-xs font-medium text-muted-foreground" onClick={() => setItemsExpanded((v) => !v)} aria-expanded={itemsExpanded}>
+              {itemsExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+              {itemsExpanded ? 'Hide items' : `Show ${items.length} item${items.length > 1 ? 's' : ''}`}
             </Button>
           </CardFooter>
         )}
