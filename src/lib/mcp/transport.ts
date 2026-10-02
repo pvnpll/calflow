@@ -2,26 +2,24 @@ import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/
 import { createCalflowMcpServer } from "./server";
 import { createClient } from "@supabase/supabase-js";
 
-// Global instances to persist across API route reloads in dev, 
-// and to maintain state across GET (SSE) and POST (Message) requests.
+// Global instances across invocations
 declare global {
   var _mcpTransport: WebStandardStreamableHTTPServerTransport | undefined;
-  var _mcpServerInitialized: boolean | undefined;
+  var _mcpServer: any | undefined;
 }
 
-const transport = global._mcpTransport || new WebStandardStreamableHTTPServerTransport();
-if (process.env.NODE_ENV !== 'production') {
-  global._mcpTransport = transport;
+export function getMcpTransport() {
+  if (!global._mcpTransport) {
+    global._mcpTransport = new WebStandardStreamableHTTPServerTransport({
+      sessionIdGenerator: undefined, // Stateless mode for serverless lambdas
+      enableDnsRebindingProtection: false,
+    });
+    const server = createCalflowMcpServer();
+    global._mcpServer = server;
+    server.connect(global._mcpTransport).catch(console.error);
+  }
+  return global._mcpTransport;
 }
-
-const mcpServer = createCalflowMcpServer();
-
-if (!global._mcpServerInitialized) {
-  mcpServer.connect(transport).catch(console.error);
-  global._mcpServerInitialized = true;
-}
-
-export { transport, mcpServer };
 
 // Helper to validate bearer tokens
 export async function authenticateToken(req: Request) {
@@ -32,10 +30,14 @@ export async function authenticateToken(req: Request) {
     token = authHeader.split(" ")[1];
   } else {
     // Fallback to query parameter for SSE (GET)
-    const url = new URL(req.url);
-    const queryToken = url.searchParams.get("token");
-    if (queryToken) {
-      token = queryToken;
+    try {
+      const url = new URL(req.url);
+      const queryToken = url.searchParams.get("token");
+      if (queryToken) {
+        token = queryToken;
+      }
+    } catch {
+      // ignore URL parsing error
     }
   }
   
