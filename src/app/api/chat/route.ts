@@ -9,6 +9,8 @@ import { getActiveGoals } from '@/lib/services/goals.service';
 import { getInsights } from '@/lib/services/insights.service';
 import type { AIMessage } from '@/lib/ai/provider';
 
+export const runtime = 'edge';
+
 export async function POST(req: Request) {
   try {
     const supabase = await createClient();

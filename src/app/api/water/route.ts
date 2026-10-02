@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getWaterByDate, getWaterSummary, logWater } from '@/lib/services/water.service';
 
+export const runtime = 'edge';
+
 export async function GET(req: NextRequest) {
   try {
     const supabase = await createClient();

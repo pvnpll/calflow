@@ -59,6 +59,8 @@ async function handleMcpRequest(req: NextRequest) {
   }
 }
 
+export const runtime = 'edge';
+
 export async function GET(req: NextRequest) {
   return handleMcpRequest(req);
 }

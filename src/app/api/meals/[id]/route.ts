@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getMealById, updateMeal, deleteMeal } from '@/lib/services/meals.service';
 
+export const runtime = 'edge';
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }

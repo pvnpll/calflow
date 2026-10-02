@@ -9,6 +9,8 @@ import { getWeightHistory, logWeight } from '@/lib/services/weight.service';
 import { getInsights } from '@/lib/services/insights.service';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
+export const runtime = 'edge';
+
 export async function POST(req: NextRequest) {
   try {
     const authHeader = req.headers.get('authorization');
