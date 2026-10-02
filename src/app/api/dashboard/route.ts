@@ -6,6 +6,8 @@ import { getWaterByDate } from '@/lib/services/water.service';
 import { getWeightHistory } from '@/lib/services/weight.service';
 import { getProfile } from '@/lib/services/profile.service';
 
+export const runtime = 'edge';
+
 export async function GET(req: NextRequest) {
   try {
     const supabase = await createClient();

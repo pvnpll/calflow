@@ -70,11 +70,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {navItems.map((item) => {
               const isActive = pathname === item.href;
               return (
-                <Link
+                <button
                   key={item.name}
-                  href={item.href}
-                  prefetch={false}
-                  className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                  onClick={() => router.push(item.href)}
+                  className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors w-full ${
                     isActive
                       ? 'bg-primary/10 text-primary'
                       : 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -82,7 +81,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 >
                   <item.icon className="h-5 w-5" />
                   {item.name}
-                </Link>
+                </button>
               );
             })}
           </nav>
@@ -129,17 +128,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
-            <Link
+            <button
               key={item.name}
-              href={item.href}
-              prefetch={false}
+              onClick={() => router.push(item.href)}
               className={`flex flex-col items-center justify-center space-y-1 rounded-md px-2 py-1 ${
                 isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <item.icon className={`h-6 w-6 ${isActive ? 'fill-primary/20' : ''}`} />
               <span className="text-[10px] font-medium">{item.name}</span>
-            </Link>
+            </button>
           );
         })}
       </nav>
