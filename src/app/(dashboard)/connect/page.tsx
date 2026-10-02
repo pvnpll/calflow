@@ -14,6 +14,7 @@ export default function ConnectPage() {
   const [copiedToken, setCopiedToken] = useState(false);
   const [copiedJson, setCopiedJson] = useState(false);
   const [copiedCli, setCopiedCli] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState(false);
   
   const baseUrl = typeof window !== 'undefined' 
     ? window.location.origin 
@@ -97,14 +98,38 @@ export default function ConnectPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="desktop" className="w-full">
-            <TabsList className="mb-4">
+          <Tabs defaultValue="generic" className="w-full">
+            <TabsList className="mb-4 flex-wrap h-auto">
+              <TabsTrigger value="generic">Any Client (URL)</TabsTrigger>
               <TabsTrigger value="desktop">Claude Desktop</TabsTrigger>
               <TabsTrigger value="code">Claude Code (CLI)</TabsTrigger>
               <TabsTrigger value="web">Claude Web (OAuth)</TabsTrigger>
               <TabsTrigger value="cursor">Cursor</TabsTrigger>
             </TabsList>
             
+            <TabsContent value="generic" className="space-y-4">
+              <div className="space-y-2">
+                <Label>Generic MCP SSE Endpoint:</Label>
+                <p className="text-sm text-muted-foreground">
+                  Use this direct URL if your AI client supports adding remote MCP servers via Server-Sent Events (SSE). 
+                  It includes your personal access token automatically.
+                </p>
+                <div className="relative mt-2">
+                  <pre className="bg-muted p-4 rounded-md text-sm overflow-x-auto">
+                    <code>{sseUrl}</code>
+                  </pre>
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    className="absolute top-2 right-2 bg-background/50 hover:bg-background"
+                    onClick={() => copyToClipboard(sseUrl, setCopiedUrl)}
+                  >
+                    {copiedUrl ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+
             <TabsContent value="desktop" className="space-y-4">
               <div className="space-y-2">
                 <Label>1. Open your Claude Desktop config file:</Label>

@@ -10,11 +10,11 @@ export default function ProfilePage() {
       <h1 className="text-2xl font-bold">Profile & Settings</h1>
       
       <Tabs defaultValue="personal" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 h-auto">
-          <TabsTrigger value="personal" className="py-2">Personal</TabsTrigger>
-          <TabsTrigger value="goals" className="py-2">Goals</TabsTrigger>
-          <TabsTrigger value="preferences" className="py-2">Preferences</TabsTrigger>
-          <TabsTrigger value="account" className="py-2">Account</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="personal">Personal</TabsTrigger>
+          <TabsTrigger value="goals">Goals</TabsTrigger>
+          <TabsTrigger value="preferences">Preferences</TabsTrigger>
+          <TabsTrigger value="account">Account</TabsTrigger>
         </TabsList>
         
         <TabsContent value="personal" className="mt-6">
