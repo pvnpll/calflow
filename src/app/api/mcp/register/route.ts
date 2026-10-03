@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
 
     const array1 = new Uint8Array(16);
     crypto.getRandomValues(array1);
-    const clientId = `claude_${Array.from(array1).map(b => b.toString(16).padStart(2, '0')).join('')}`;
+    const clientId = `mcp_${Array.from(array1).map(b => b.toString(16).padStart(2, '0')).join('')}`;
 
     const array2 = new Uint8Array(32);
     crypto.getRandomValues(array2);
@@ -26,11 +26,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       client_id: clientId,
       client_secret: clientSecret,
-      client_name: body.client_name || 'Claude Custom Connector',
+      client_secret_expires_at: 0,
+      client_name: body.client_name || 'CalFlow Custom Connector',
       redirect_uris: redirectUris,
       grant_types: ['authorization_code'],
       response_types: ['code'],
-      token_endpoint_auth_method: 'none',
+      token_endpoint_auth_method: 'client_secret_post',
     }, {
       status: 201,
       headers: {
