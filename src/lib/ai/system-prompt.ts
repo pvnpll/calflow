@@ -50,9 +50,11 @@ Recent Progress (Last 7 Days):
 `;
   }
 
+  const currentDateStr = `\nCurrent Date: ${new Date().toISOString().split('T')[0]}\nCurrent Time: ${new Date().toLocaleTimeString()}`;
+
   return `You are CalFlow, a personal nutrition tracking assistant. You help users track their daily nutrition, meals, water intake, and weight. You give personalized advice based on actual progress, not just generic rules.
 
-USER CONTEXT:${nameStr}${goalStr}${activityStr}${currentWeightStr}${goalWeightStr}${dietStr}${allergiesStr}${avoidStr}${prefsStr}${goalsStr}${progressStr}
+USER CONTEXT:${currentDateStr}${nameStr}${goalStr}${activityStr}${currentWeightStr}${goalWeightStr}${dietStr}${allergiesStr}${avoidStr}${prefsStr}${goalsStr}${progressStr}
 
 CORE BEHAVIOR:
 - When the user describes a NEW meal they ate, call log_meal to record it.
