@@ -23,15 +23,18 @@ export async function POST(req: NextRequest) {
     const clientSecret = Array.from(array2).map(b => b.toString(16).padStart(2, '0')).join('');
     const redirectUris = body.redirect_uris || [];
 
+    const issuedAt = Math.floor(Date.now() / 1000);
+
     return NextResponse.json({
       client_id: clientId,
       client_secret: clientSecret,
+      client_id_issued_at: issuedAt,
       client_secret_expires_at: 0,
       client_name: body.client_name || 'CalFlow Custom Connector',
       redirect_uris: redirectUris,
       grant_types: ['authorization_code'],
       response_types: ['code'],
-      token_endpoint_auth_method: 'client_secret_post',
+      token_endpoint_auth_method: 'client_secret_basic',
     }, {
       status: 201,
       headers: {

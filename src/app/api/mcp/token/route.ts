@@ -32,6 +32,16 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    const authHeader = req.headers.get('authorization') || '';
+    if (authHeader.startsWith('Basic ')) {
+      const b64 = authHeader.split(' ')[1];
+      const decoded = Buffer.from(b64, 'base64').toString();
+      const [basicId] = decoded.split(':');
+      if (basicId) {
+        client_id = basicId;
+      }
+    }
+
     const admin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!

@@ -21,6 +21,7 @@ export async function GET(req: NextRequest) {
           "Access-Control-Allow-Origin": "*",
           "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
           "Access-Control-Allow-Headers": "*",
+          "Access-Control-Expose-Headers": "WWW-Authenticate"
         } 
       });
     }
@@ -93,6 +94,7 @@ export async function POST(req: NextRequest) {
           "Access-Control-Allow-Origin": "*",
           "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
           "Access-Control-Allow-Headers": "*",
+          "Access-Control-Expose-Headers": "WWW-Authenticate"
         } 
       });
     }
