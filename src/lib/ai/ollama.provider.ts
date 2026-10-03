@@ -13,7 +13,7 @@ export class OllamaProvider implements AIProvider {
       apiKey,
       baseURL,
     });
-    this.model = process.env.OLLAMA_MODEL || process.env.AI_MODEL || 'nemotron-3-ultra';
+    this.model = process.env.NEXT_PUBLIC_AI_MODEL || process.env.OLLAMA_MODEL || process.env.AI_MODEL || 'nemotron-3-ultra';
   }
 
   async chat(messages: AIMessage[], tools?: AIToolDefinition[]): Promise<AIResponse> {
