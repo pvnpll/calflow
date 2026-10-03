@@ -34,7 +34,6 @@ async function runTests() {
   if (testUser) {
     userId = testUser.id;
   } else {
-    // Fallback to the first user if the specific test account doesn't exist yet
     console.warn(`Warning: Test account '${testEmail}' not found. Falling back to the first available user.`);
     userId = users.users[0].id;
   }
@@ -47,9 +46,6 @@ async function runTests() {
     console.log("\n1. Testing createMeal...");
     const meal = await createMeal(userId, {
       date: today,
-      mealType: 'snack',
-      description: 'Test Meal',
-      estimatedCalories: 400,
       mealType: 'lunch',
       description: 'Grilled Chicken Salad with Quinoa',
       estimatedCalories: 650,
@@ -110,14 +106,12 @@ async function runTests() {
       ]
     });
     console.log("✅ Created meal:", meal.id);
-    console.log("Items in created meal:", JSON.stringify(meal.items));
     console.log(`Summary: ${meal.description} (${meal.estimated_calories} kcal, ${meal.items.length} items)`);
 
     console.log("\n2. Testing getMealsByDate...");
     const meals = await getMealsByDate(userId, today);
     const fetchedMeal = meals.find((m: any) => m.id === meal.id);
     console.log("✅ Fetched meal found:", !!fetchedMeal);
-    console.log("Items in fetched meal:", JSON.stringify(fetchedMeal?.items));
     console.log(`Fetched Items Count: ${fetchedMeal?.items?.length}`);
 
     console.log("\n3. Testing updateMeal...");
@@ -136,11 +130,9 @@ async function runTests() {
     }));
 
     const updated = await updateMeal(userId, meal.id, {
-      description: 'Updated Test Meal',
       description: 'Spicy Grilled Chicken Salad with Quinoa',
       estimatedCalories: 680,
       items: [
-        { foodName: 'Updated Item', estimatedCalories: 500, quantity: 2 }
         ...mappedExistingItems,
         { 
           foodName: 'Jalapeno Slices', 
@@ -155,8 +147,6 @@ async function runTests() {
         }
       ]
     });
-    console.log("✅ Updated meal:", updated.description);
-    console.log("Items in updated meal:", JSON.stringify(updated.items));
     console.log("✅ Updated meal description:", updated.description);
     console.log(`Updated Items Count: ${updated.items?.length}`);
 
@@ -171,4 +161,3 @@ async function runTests() {
 }
 
 runTests().catch(console.error);
-
