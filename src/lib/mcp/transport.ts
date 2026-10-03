@@ -11,7 +11,7 @@ export async function handleStatelessMcpRequest(webRequest: Request, authInfo: a
     sessionIdGenerator: undefined, // Stateless per-request
     enableDnsRebindingProtection: false,
   });
-  const server = createCalflowMcpServer();
+  const server = createCalflowMcpServer(authInfo);
   await server.connect(transport);
   return transport.handleRequest(webRequest, { authInfo });
 }

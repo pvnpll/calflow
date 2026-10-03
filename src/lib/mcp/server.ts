@@ -8,7 +8,7 @@ import { getInsights } from "@/lib/services/insights.service";
 import { createMeal, getMealsByDate, getMealsByDateRange, updateMeal, deleteMeal } from "@/lib/services/meals.service";
 import { getTodaySummary, getNutritionSummary } from "@/lib/services/nutrition.service";
 
-export function createCalflowMcpServer() {
+export function createCalflowMcpServer(authInfo?: any) {
   const server = new McpServer({
     name: "CalFlow MCP",
     version: "1.0.0",
@@ -46,7 +46,7 @@ export function createCalflowMcpServer() {
     },
     async (args, extra) => {
       try {
-        const userId = extra.authInfo?.extra?.userId as string;
+        const userId = authInfo?.extra?.userId as string;
         if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
         
         console.log("[MCP log_meal] Executing with args:", JSON.stringify(args), "userId:", userId);
@@ -110,7 +110,7 @@ export function createCalflowMcpServer() {
       end_date: z.string().optional().describe("End date in YYYY-MM-DD format")
     },
     async (args, extra) => {
-      const userId = extra.authInfo?.extra?.userId as string;
+      const userId = authInfo?.extra?.userId as string;
       if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
       
       let meals;
@@ -130,7 +130,7 @@ export function createCalflowMcpServer() {
     "Retrieve the authenticated user's total nutrition for a specific day. If no date is provided, returns today's summary.",
     {},
     async (args, extra) => {
-      const userId = extra.authInfo?.extra?.userId as string;
+      const userId = authInfo?.extra?.userId as string;
       if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
       
       const summary = await getTodaySummary(userId);
@@ -147,7 +147,7 @@ export function createCalflowMcpServer() {
       end_date: z.string().describe("End date in YYYY-MM-DD format")
     },
     async (args, extra) => {
-      const userId = extra.authInfo?.extra?.userId as string;
+      const userId = authInfo?.extra?.userId as string;
       if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
       
       const summary = await getNutritionSummary(userId, args.start_date, args.end_date);
@@ -183,7 +183,7 @@ export function createCalflowMcpServer() {
     },
     async (args, extra) => {
       try {
-        const userId = extra.authInfo?.extra?.userId as string;
+        const userId = authInfo?.extra?.userId as string;
         if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
         
         const updates: any = {};
@@ -230,7 +230,7 @@ export function createCalflowMcpServer() {
       meal_id: z.string().describe("The ID of the meal to delete"),
     },
     async (args, extra) => {
-      const userId = extra.authInfo?.extra?.userId as string;
+      const userId = authInfo?.extra?.userId as string;
       if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
       
       await deleteMeal(userId, args.meal_id);
@@ -244,7 +244,7 @@ export function createCalflowMcpServer() {
     "Retrieve the authenticated user's profile and nutrition goals.",
     {},
     async (args, extra) => {
-      const userId = extra.authInfo?.extra?.userId as string;
+      const userId = authInfo?.extra?.userId as string;
       if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
       
       const [profile, goals] = await Promise.all([
@@ -271,7 +271,7 @@ export function createCalflowMcpServer() {
       water_target_ml: z.number().optional().describe("Daily water target (ml)")
     },
     async (args, extra) => {
-      const userId = extra.authInfo?.extra?.userId as string;
+      const userId = authInfo?.extra?.userId as string;
       if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
       
       let profileResult = null;
@@ -310,7 +310,7 @@ export function createCalflowMcpServer() {
       note: z.string().optional().describe("Optional note for this weight log")
     },
     async (args, extra) => {
-      const userId = extra.authInfo?.extra?.userId as string;
+      const userId = authInfo?.extra?.userId as string;
       if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
       
       const log = await logWeight(userId, args.weight_kg, args.date, args.note);
@@ -327,7 +327,7 @@ export function createCalflowMcpServer() {
       end_date: z.string().optional().describe("End date in YYYY-MM-DD format")
     },
     async (args, extra) => {
-      const userId = extra.authInfo?.extra?.userId as string;
+      const userId = authInfo?.extra?.userId as string;
       if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
       
       const history = await getWeightHistory(userId, args.start_date, args.end_date);
@@ -344,7 +344,7 @@ export function createCalflowMcpServer() {
       date: z.string().optional().describe("Date in YYYY-MM-DD format (defaults to today)")
     },
     async (args, extra) => {
-      const userId = extra.authInfo?.extra?.userId as string;
+      const userId = authInfo?.extra?.userId as string;
       if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
       
       const log = await logWater(userId, args.amount_ml, args.date);
@@ -361,7 +361,7 @@ export function createCalflowMcpServer() {
       end_date: z.string().describe("End date in YYYY-MM-DD format")
     },
     async (args, extra) => {
-      const userId = extra.authInfo?.extra?.userId as string;
+      const userId = authInfo?.extra?.userId as string;
       if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
       
       const logs = await getWaterByDateRange(userId, args.start_date, args.end_date);
@@ -377,7 +377,7 @@ export function createCalflowMcpServer() {
       days: z.number().optional().describe("Number of past days to aggregate (default: 30)")
     },
     async (args, extra) => {
-      const userId = extra.authInfo?.extra?.userId as string;
+      const userId = authInfo?.extra?.userId as string;
       if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
       
       const insights = await getInsights(userId, args.days || 30);
