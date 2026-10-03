@@ -10,7 +10,7 @@ import { getTodaySummary, getNutritionSummary } from "@/lib/services/nutrition.s
 
 export function createCalflowMcpServer(authInfo?: any) {
   const server = new McpServer({
-    name: "CalFlow MCP",
+    name: "calflow",
     version: "1.0.0",
   });
 
