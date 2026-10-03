@@ -6,6 +6,11 @@ export function createClient() {
 
   return createBrowserClient(
     url,
-    anonKey
+    anonKey,
+    {
+      cookieOptions: {
+        maxAge: 30 * 24 * 60 * 60, // 30 days of inactivity
+      },
+    }
   )
 }

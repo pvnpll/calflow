@@ -15,6 +15,9 @@ export async function createClient() {
       url,
       anonKey,
       {
+        cookieOptions: {
+          maxAge: 30 * 24 * 60 * 60, // 30 days of inactivity
+        },
         cookies: {
           getAll() {
             return cookieStore.getAll()

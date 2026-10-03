@@ -42,13 +42,32 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, []);
 
   useEffect(() => {
+    const supabase = getSupabase();
+
     const fetchUser = async () => {
-      const supabase = getSupabase();
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error || !user) {
+        router.push('/login');
+      } else {
+        setUser(user);
+      }
     };
     fetchUser();
-  }, [getSupabase]);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !session)) {
+          router.push('/login');
+        } else if (session?.user) {
+          setUser(session.user);
+        }
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [getSupabase, router]);
 
   const handleLogout = async () => {
     const supabase = getSupabase();
