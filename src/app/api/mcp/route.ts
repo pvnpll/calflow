@@ -82,12 +82,25 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const authInfo = await authenticateToken(req as unknown as Request);
+    if (!authInfo) {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { 
+        status: 401, 
+        headers: { 
+          "Content-Type": "application/json",
+          "WWW-Authenticate": `Bearer resource_metadata="${baseUrl}/.well-known/oauth-protected-resource"`,
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+          "Access-Control-Allow-Headers": "*",
+        } 
+      });
+    }
+
     const url = new URL(req.url);
     const sessionId = url.searchParams.get("sessionId");
     
     if (!sessionId) {
-      // Try to handle as a stateless POST (some clients might attempt this if they ignore the endpoint event)
-      // But standard MCP clients always include sessionId.
       return new Response("Missing sessionId", { status: 400 });
     }
 
