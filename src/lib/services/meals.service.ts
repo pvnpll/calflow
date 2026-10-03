@@ -84,7 +84,10 @@ export async function getMealsByDate(userId: string, date: string) {
     .order('created_at', { ascending: true })
     
   if (error) throw error
-  return data
+  return data.map((meal: any) => {
+    const { cf_meal_items, ...rest } = meal
+    return { ...rest, items: cf_meal_items || [] }
+  })
 }
 
 export async function getMealsByDateRange(userId: string, startDate: string, endDate: string) {
@@ -98,7 +101,10 @@ export async function getMealsByDateRange(userId: string, startDate: string, end
     .order('date', { ascending: true })
     
   if (error) throw error
-  return data
+  return data.map((meal: any) => {
+    const { cf_meal_items, ...rest } = meal
+    return { ...rest, items: cf_meal_items || [] }
+  })
 }
 
 export async function getMealById(userId: string, mealId: string) {
@@ -111,7 +117,8 @@ export async function getMealById(userId: string, mealId: string) {
     .single()
     
   if (error) throw error
-  return data
+  const { cf_meal_items, ...rest } = data
+  return { ...rest, items: cf_meal_items || [] }
 }
 
 export async function updateMeal(userId: string, mealId: string, data: Partial<MealInput>) {
@@ -144,7 +151,8 @@ export async function updateMeal(userId: string, mealId: string, data: Partial<M
         estimated_fiber: item.estimatedFiber,
         micronutrients: item.micronutrients || {},
       }))
-      await supabase.from(TABLES.MEAL_ITEMS).insert(itemsData)
+      const { error: itemsError } = await supabase.from(TABLES.MEAL_ITEMS).insert(itemsData)
+      if (itemsError) throw itemsError
     }
   }
   

@@ -78,12 +78,43 @@ export const calflowTools: AIToolDefinition[] = [
     type: 'function',
     function: {
       name: 'update_meal',
-      description: 'Update an existing meal',
+      description: 'Update an existing meal entry. Use this instead of log_meal when modifying a previously logged meal. First call get_meals to find the meal_id.',
       parameters: {
         type: 'object',
         properties: {
-          meal_id: { type: 'string' },
-          updates: { type: 'object' }
+          meal_id: { type: 'string', description: 'The ID of the meal to update (get this from get_meals response)' },
+          updates: {
+            type: 'object',
+            description: 'Fields to update on the meal',
+            properties: {
+              description: { type: 'string', description: 'Updated meal description' },
+              meal_type: { type: 'string', enum: ['breakfast', 'lunch', 'dinner', 'snack'] },
+              estimated_calories: { type: 'number' },
+              estimated_protein: { type: 'number' },
+              estimated_carbs: { type: 'number' },
+              estimated_fat: { type: 'number' },
+              estimated_fiber: { type: 'number' },
+              micronutrients: { type: 'object' },
+              items: {
+                type: 'array',
+                description: 'Replaces all items on the meal',
+                items: {
+                  type: 'object',
+                  properties: {
+                    food_name: { type: 'string' },
+                    quantity: { type: 'number' },
+                    unit: { type: 'string' },
+                    estimated_calories: { type: 'number' },
+                    estimated_protein: { type: 'number' },
+                    estimated_carbs: { type: 'number' },
+                    estimated_fat: { type: 'number' },
+                    estimated_fiber: { type: 'number' },
+                    micronutrients: { type: 'object' }
+                  }
+                }
+              }
+            }
+          }
         },
         required: ['meal_id', 'updates']
       }

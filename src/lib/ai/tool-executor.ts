@@ -77,8 +77,40 @@ export async function executeTool(toolName: string, args: Record<string, any>, u
       return mealsService.getMealsByDate(userId, today);
     }
 
-    case 'update_meal':
-      return mealsService.updateMeal(userId, args.meal_id, args.updates);
+    case 'update_meal': {
+      // Normalize snake_case keys from AI to camelCase expected by the service
+      const raw = args.updates || {};
+      const updates: Record<string, any> = {};
+      if (raw.description !== undefined) updates.description = raw.description;
+      if (raw.meal_type !== undefined || raw.mealType !== undefined) updates.mealType = raw.meal_type ?? raw.mealType;
+      if (raw.date !== undefined) updates.date = raw.date;
+      if (raw.estimated_calories !== undefined || raw.estimatedCalories !== undefined)
+        updates.estimatedCalories = raw.estimated_calories ?? raw.estimatedCalories;
+      if (raw.estimated_protein !== undefined || raw.estimatedProtein !== undefined)
+        updates.estimatedProtein = raw.estimated_protein ?? raw.estimatedProtein;
+      if (raw.estimated_carbs !== undefined || raw.estimatedCarbs !== undefined)
+        updates.estimatedCarbs = raw.estimated_carbs ?? raw.estimatedCarbs;
+      if (raw.estimated_fat !== undefined || raw.estimatedFat !== undefined)
+        updates.estimatedFat = raw.estimated_fat ?? raw.estimatedFat;
+      if (raw.estimated_fiber !== undefined || raw.estimatedFiber !== undefined)
+        updates.estimatedFiber = raw.estimated_fiber ?? raw.estimatedFiber;
+      if (raw.micronutrients !== undefined) updates.micronutrients = raw.micronutrients;
+      if (raw.confidence !== undefined) updates.confidence = raw.confidence;
+      if (raw.items !== undefined) {
+        updates.items = raw.items.map((item: any) => ({
+          foodName: item.food_name || item.foodName || 'Food item',
+          quantity: item.quantity ?? 1,
+          unit: item.unit ?? 'serving',
+          estimatedCalories: item.estimated_calories ?? item.estimatedCalories,
+          estimatedProtein: item.estimated_protein ?? item.estimatedProtein,
+          estimatedCarbs: item.estimated_carbs ?? item.estimatedCarbs,
+          estimatedFat: item.estimated_fat ?? item.estimatedFat,
+          estimatedFiber: item.estimated_fiber ?? item.estimatedFiber,
+          micronutrients: item.micronutrients || {},
+        }));
+      }
+      return mealsService.updateMeal(userId, args.meal_id, updates);
+    }
 
     case 'delete_meal':
       return mealsService.deleteMeal(userId, args.meal_id);
