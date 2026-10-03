@@ -81,7 +81,7 @@ export default function ChatPage() {
       <div className="p-3 border-b flex justify-between items-center bg-card/50">
         <div>
           <h2 className="text-sm font-semibold">Nutrition Assistant</h2>
-          <p className="text-xs text-muted-foreground">Powered by Ollama Cloud</p>
+          <p className="text-xs text-muted-foreground">Powered by {process.env.NEXT_PUBLIC_AI_MODEL || 'nemotron-3-ultra'}</p>
         </div>
         <button
           onClick={clearChat}
