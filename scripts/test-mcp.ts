@@ -65,7 +65,6 @@ async function runTests() {
         potassium_mg: 850
       },
       items: [
-        { foodName: 'Test Item', estimatedCalories: 400, quantity: 1 }
         { 
           foodName: 'Grilled Chicken Breast', 
           quantity: 150, 
