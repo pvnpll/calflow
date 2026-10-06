@@ -112,7 +112,33 @@ export async function POST(req: NextRequest) {
     
     if (!sessionId) {
       const { handleStatelessMcpRequest } = await import('@/lib/mcp/transport');
-      return await handleStatelessMcpRequest(req as unknown as Request, authInfo);
+      
+      // Inject required headers to satisfy SDK if Gemini omitted them
+      const newReq = new Request(req.url, {
+        method: req.method,
+        headers: new Headers(req.headers),
+        body: req.body,
+        duplex: 'half'
+      } as any);
+      
+      if (!newReq.headers.get('accept')?.includes('text/event-stream')) {
+        const currentAccept = newReq.headers.get('accept') || '*/*';
+        newReq.headers.set('accept', `${currentAccept}, text/event-stream, application/json`);
+      }
+
+      const response = await handleStatelessMcpRequest(newReq, authInfo);
+      
+      const newHeaders = new Headers(response.headers);
+      newHeaders.set("Access-Control-Allow-Origin", "*");
+      newHeaders.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+      newHeaders.set("Access-Control-Allow-Headers", "*");
+      newHeaders.set("Access-Control-Expose-Headers", "WWW-Authenticate");
+      
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: newHeaders
+      });
     }
 
     let message;
