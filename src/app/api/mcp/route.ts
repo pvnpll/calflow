@@ -111,7 +111,8 @@ export async function POST(req: NextRequest) {
     const sessionId = url.searchParams.get("sessionId");
     
     if (!sessionId) {
-      return new Response("Missing sessionId", { status: 400 });
+      const { handleStatelessMcpRequest } = await import('@/lib/mcp/transport');
+      return await handleStatelessMcpRequest(req as unknown as Request, authInfo);
     }
 
     let message;
