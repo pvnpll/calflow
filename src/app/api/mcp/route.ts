@@ -1,12 +1,17 @@
 import { NextRequest } from "next/server";
 import { authenticateToken } from "@/lib/mcp/transport";
 import { createCalflowMcpServer } from "@/lib/mcp/server";
+import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
-export const runtime = 'nodejs';
+export const runtime = 'edge';
 
-// In-memory session store for standard MCP SSE
-const sessions = new Map<string, { push: (msg: any) => void; server: any }>();
+function getRealtimeClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -32,6 +37,9 @@ export async function GET(req: NextRequest) {
     let streamController: ReadableStreamDefaultController;
     const encoder = new TextEncoder();
     
+    const supabase = getRealtimeClient();
+    const channel = supabase.channel(`mcp_${sessionId}`);
+    
     const stream = new ReadableStream({
         start(controller) {
             streamController = controller;
@@ -39,15 +47,22 @@ export async function GET(req: NextRequest) {
             endpointUrl.searchParams.set("sessionId", sessionId);
             // Send standard MCP endpoint event
             controller.enqueue(encoder.encode(`event: endpoint\ndata: ${endpointUrl.pathname}${endpointUrl.search}\n\n`));
+            
+            // Subscribe to channel for incoming POST messages
+            channel.on('broadcast', { event: 'mcp-message' }, (payload) => {
+                if (transport.onmessage) {
+                    transport.onmessage(payload.payload);
+                }
+            }).subscribe();
         },
         cancel() {
-            sessions.delete(sessionId);
+            channel.unsubscribe();
         }
     });
 
     const transport = {
         start: async () => {},
-        close: async () => { sessions.delete(sessionId); },
+        close: async () => { await channel.unsubscribe(); },
         send: async (message: any) => {
             streamController.enqueue(encoder.encode(`event: message\ndata: ${JSON.stringify(message)}\n\n`));
         },
@@ -55,13 +70,6 @@ export async function GET(req: NextRequest) {
         onclose: undefined,
         onerror: undefined,
     };
-
-    sessions.set(sessionId, { 
-      push: (msg: any) => {
-        if (transport.onmessage) transport.onmessage(msg);
-      }, 
-      server 
-    });
     
     await server.connect(transport as any);
     
@@ -106,18 +114,6 @@ export async function POST(req: NextRequest) {
       return new Response("Missing sessionId", { status: 400 });
     }
 
-    const session = sessions.get(sessionId);
-    if (!session) {
-      return new Response("Session not found", { 
-        status: 404,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-          "Access-Control-Allow-Headers": "*",
-        }
-      });
-    }
-
     let message;
     try {
       message = await req.json();
@@ -125,8 +121,25 @@ export async function POST(req: NextRequest) {
       return new Response("Invalid JSON", { status: 400 });
     }
 
-    // Push the message to the MCP server via the transport
-    session.push(message);
+    const supabase = getRealtimeClient();
+    const channel = supabase.channel(`mcp_${sessionId}`);
+    
+    // We must ensure the channel is subscribed before broadcasting
+    await new Promise((resolve) => {
+      channel.subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          resolve(true);
+        }
+      });
+    });
+
+    await channel.send({
+      type: 'broadcast',
+      event: 'mcp-message',
+      payload: message
+    });
+
+    await channel.unsubscribe();
 
     // Standard MCP requires 202 Accepted for POST messages
     return new Response("Accepted", { 
