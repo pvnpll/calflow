@@ -45,7 +45,7 @@ export async function updateSession(request: NextRequest) {
     const pathname = request.nextUrl.pathname
     
     // Auth routes where logged-in users shouldn't go (optional, handled in page.tsx already, but good practice)
-    const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/signup') || pathname === '/'
+    const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/signup') || pathname.startsWith('/forgot-password') || pathname.startsWith('/reset-password') || pathname === '/'
     
     // API or static routes to ignore
     const isPublicPath = pathname.startsWith('/api') || pathname.startsWith('/_next') || pathname.startsWith('/static') || pathname.startsWith('/.well-known')
