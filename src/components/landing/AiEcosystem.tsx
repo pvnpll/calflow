@@ -2,12 +2,12 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { MessageSquare, Zap, Sparkles, BrainCircuit, RefreshCw, Trash2, Target } from "lucide-react";
+import { MessageSquare, Zap, Sparkles, BrainCircuit, RefreshCw, Trash2, Target, Bot } from "lucide-react";
 
 export function AiEcosystem() {
   return (
     <section id="ai" className="py-24">
-      <div className="container mx-auto px-4 max-w-6xl">
+      <div className="container mx-auto px-4 max-w-7xl">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">
             Talk to your nutrition data.
@@ -17,8 +17,8 @@ export function AiEcosystem() {
           </p>
         </div>
 
-        {/* 3 AI Entry Points */}
-        <div className="grid md:grid-cols-3 gap-6 mb-24">
+        {/* 4 AI Entry Points */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-24">
           {/* ChatGPT */}
           <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-6 dark:border-neutral-800 dark:bg-neutral-900/50">
             <h3 className="font-semibold mb-6 flex items-center gap-2">
@@ -61,6 +61,27 @@ export function AiEcosystem() {
             </p>
           </div>
 
+          {/* Gemini */}
+          <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-6 dark:border-neutral-800 dark:bg-neutral-900/50">
+            <h3 className="font-semibold mb-6 flex items-center gap-2">
+              <Bot size={18} /> Gemini
+            </h3>
+            <div className="space-y-4 mb-6 text-sm">
+              <div className="bg-white dark:bg-neutral-950 p-3 rounded-lg border border-neutral-100 dark:border-neutral-800 self-end ml-4">
+                "Log 1 glass of water."
+              </div>
+              <div className="bg-cyan-50 dark:bg-cyan-900/20 p-3 rounded-lg border border-cyan-100 dark:border-cyan-900/50 mr-4 text-cyan-900 dark:text-cyan-100">
+                "Done. I've logged 1 glass of water for you."
+              </div>
+              <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400 font-medium mt-2">
+                <CheckIcon /> Tool used: log_water
+              </div>
+            </div>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+              Connect CalFlow directly from Gemini via MCP integration.
+            </p>
+          </div>
+
           {/* CalFlow AI */}
           <div className="rounded-2xl border border-neutral-200 bg-white shadow-lg p-6 dark:border-neutral-700 dark:bg-neutral-900">
             <h3 className="font-semibold mb-6 flex items-center gap-2 text-purple-600 dark:text-purple-400">
@@ -71,7 +92,7 @@ export function AiEcosystem() {
                 "What am I missing today?"
               </div>
               <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg border border-purple-100 dark:border-purple-900/50 mr-4 text-purple-900 dark:text-purple-100">
-                "You're currently short on protein and fiber. You have enough calories remaining for a protein-rich meal."
+                "You're currently short on protein and fiber."
               </div>
               <div className="bg-neutral-50 dark:bg-neutral-800 p-3 rounded-lg self-end ml-4">
                 "What should I eat?"
