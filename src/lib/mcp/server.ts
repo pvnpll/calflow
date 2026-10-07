@@ -141,16 +141,19 @@ export function createCalflowMcpServer(authInfo?: any, defaultSource: 'chatgpt' 
   // get_nutrition_summary
   server.tool(
     "get_nutrition_summary",
-    "Retrieve the authenticated user's nutrition summary for a date range.",
+    "Retrieve the authenticated user's nutrition summary for a date range. ALWAYS OMIT dates to get today's summary.",
     {
-      start_date: z.string().describe("Start date in YYYY-MM-DD format"),
-      end_date: z.string().describe("End date in YYYY-MM-DD format")
+      start_date: z.string().optional().describe(`Start date in YYYY-MM-DD format. ALWAYS OMIT to use today. Current server date: ${new Date().toISOString().split('T')[0]}`),
+      end_date: z.string().optional().describe("End date in YYYY-MM-DD format")
     },
     async (args, extra) => {
       const userId = authInfo?.extra?.userId as string;
       if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
       
-      const summary = await getNutritionSummary(userId, args.start_date, args.end_date);
+      const targetStartDate = args.start_date || new Date().toISOString().split('T')[0];
+      const targetEndDate = args.end_date || targetStartDate;
+      
+      const summary = await getNutritionSummary(userId, targetStartDate, targetEndDate);
       return { content: [{ type: "text", text: JSON.stringify(summary, null, 2) }] };
     }
   );
@@ -321,16 +324,19 @@ export function createCalflowMcpServer(authInfo?: any, defaultSource: 'chatgpt' 
   // get_weight_history
   server.tool(
     "get_weight_history",
-    "Retrieve the user's weight log history for a specific date range.",
+    "Retrieve the user's weight log history for a specific date range. ALWAYS OMIT dates to get today's logs.",
     {
-      start_date: z.string().optional().describe("Start date in YYYY-MM-DD format"),
+      start_date: z.string().optional().describe(`Start date (YYYY-MM-DD). ALWAYS OMIT to use today. Current server date: ${new Date().toISOString().split('T')[0]}`),
       end_date: z.string().optional().describe("End date in YYYY-MM-DD format")
     },
     async (args, extra) => {
       const userId = authInfo?.extra?.userId as string;
       if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
       
-      const history = await getWeightHistory(userId, args.start_date, args.end_date);
+      const targetStartDate = args.start_date || new Date().toISOString().split('T')[0];
+      const targetEndDate = args.end_date || targetStartDate;
+      
+      const history = await getWeightHistory(userId, targetStartDate, targetEndDate);
       return { content: [{ type: "text", text: JSON.stringify(history, null, 2) }] };
     }
   );
@@ -355,16 +361,19 @@ export function createCalflowMcpServer(authInfo?: any, defaultSource: 'chatgpt' 
   // get_water_logs
   server.tool(
     "get_water_logs",
-    "Retrieve the user's water consumption logs for a specific date range.",
+    "Retrieve the user's water consumption logs for a specific date range. ALWAYS OMIT dates to get today's logs.",
     {
-      start_date: z.string().describe("Start date in YYYY-MM-DD format"),
-      end_date: z.string().describe("End date in YYYY-MM-DD format")
+      start_date: z.string().optional().describe(`Start date in YYYY-MM-DD format. ALWAYS OMIT to use today. Current server date: ${new Date().toISOString().split('T')[0]}`),
+      end_date: z.string().optional().describe("End date in YYYY-MM-DD format")
     },
     async (args, extra) => {
       const userId = authInfo?.extra?.userId as string;
       if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
       
-      const logs = await getWaterByDateRange(userId, args.start_date, args.end_date);
+      const targetStartDate = args.start_date || new Date().toISOString().split('T')[0];
+      const targetEndDate = args.end_date || targetStartDate;
+      
+      const logs = await getWaterByDateRange(userId, targetStartDate, targetEndDate);
       return { content: [{ type: "text", text: JSON.stringify(logs, null, 2) }] };
     }
   );
