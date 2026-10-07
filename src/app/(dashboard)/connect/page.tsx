@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { getOrCreateMcpToken } from './actions';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,29 +8,13 @@ import { Copy, Check, Info } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 
 export default function ConnectPage() {
-  const [token, setToken] = useState<string>('');
-  const [copiedToken, setCopiedToken] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-
-  const handleRevealToken = async () => {
-    setIsGenerating(true);
-    try {
-      const t = await getOrCreateMcpToken();
-      setToken(t);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
 
   const copyToClipboard = (text: string, setter: (val: boolean) => void) => {
     navigator.clipboard.writeText(text);
     setter(true);
     setTimeout(() => setter(false), 2000);
   };
-
 
   return (
     <div className="space-y-8">
@@ -41,34 +24,6 @@ export default function ConnectPage() {
           Add CalFlow as an MCP (Model Context Protocol) tool to your favorite AI assistant to log meals and track nutrition directly from chat.
         </p>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Personal Access Token</CardTitle>
-          <CardDescription>
-            This token gives the AI agent access to your CalFlow account. Do not share it with others.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-4">
-            {token ? (
-              <>
-                <code className="flex-1 bg-muted px-4 py-2 rounded-md font-mono text-sm break-all">
-                  {token}
-                </code>
-                <Button variant="outline" onClick={() => copyToClipboard(token, setCopiedToken)}>
-                  {copiedToken ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
-                  {copiedToken ? 'Copied' : 'Copy'}
-                </Button>
-              </>
-            ) : (
-              <Button onClick={handleRevealToken} disabled={isGenerating}>
-                {isGenerating ? 'Generating...' : 'Reveal Personal Access Token'}
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
 
       <Card>
         <CardHeader>
@@ -87,8 +42,8 @@ export default function ConnectPage() {
             <TabsContent value="chatgpt" className="space-y-4">
               <div className="space-y-4 text-sm">
                 <ol className="list-decimal list-inside space-y-2 ml-2">
-                  <li>Go to <strong>Plugins</strong> on the ChatGPT desktop app.</li>
-                  <li>Click on <strong>Add</strong> on the top left.</li>
+                  <li>Go to <strong>Plugins</strong> on the ChatGPT desktop website.</li>
+                  <li>Click on <strong>Add</strong> on the top right.</li>
                   <li>Select <strong>Add custom MCP server</strong>.</li>
                   <li>Give it the name <code>calflow</code> and set the URL to:</li>
                 </ol>
@@ -108,6 +63,7 @@ export default function ConnectPage() {
                 <ol className="list-decimal list-inside space-y-2 ml-2" start={5}>
                   <li>Click <strong>Create as plugin</strong>.</li>
                   <li>This will open the CalFlow authorization page. Just click <strong>Authorize</strong>.</li>
+                  <li>You can now ask Claude to log/fetch your meals and analyze trends!</li>
                 </ol>
               </div>
             </TabsContent>
