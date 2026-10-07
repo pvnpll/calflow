@@ -107,16 +107,16 @@ export function BodyAndHealth({ weight, weightHistory, onWeightLogged }: BodyAnd
               <XAxis dataKey="date" hide />
               <YAxis domain={[Math.floor(minWeight - 2), Math.ceil(maxWeight + 2)]} hide />
               <Tooltip 
-                contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', backgroundColor: 'hsl(var(--card))' }}
-                itemStyle={{ color: 'hsl(var(--foreground))' }}
-                labelStyle={{ color: 'hsl(var(--muted-foreground))', marginBottom: '4px' }}
+                contentStyle={{ borderRadius: '8px', border: '1px solid var(--border)', backgroundColor: 'var(--card)' }}
+                itemStyle={{ color: 'var(--foreground)' }}
+                labelStyle={{ color: 'var(--muted-foreground)', marginBottom: '4px' }}
               />
               <Line 
                 type="monotone" 
                 dataKey="weight" 
-                stroke="hsl(var(--primary))" 
+                stroke="var(--primary)" 
                 strokeWidth={3}
-                dot={{ r: 3, fill: "hsl(var(--primary))" }} 
+                dot={{ r: 3, fill: "var(--primary)" }} 
                 activeDot={{ r: 6 }} 
               />
             </LineChart>
