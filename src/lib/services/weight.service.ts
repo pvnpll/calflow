@@ -3,9 +3,7 @@ import { TABLES } from '@/lib/db-tables'
 
 export async function logWeight(userId: string, weightKg: number, date?: string, note?: string) {
   const supabase = createAdminClient()
-  let logDate = date || new Date().toISOString().split('T')[0]
-  const today = new Date().toISOString().split('T')[0];
-  if (logDate > today) logDate = today;
+  const logDate = date || new Date().toISOString().split('T')[0]
   
   const { data, error } = await supabase
     .from(TABLES.WEIGHT_LOGS)
@@ -19,10 +17,6 @@ export async function logWeight(userId: string, weightKg: number, date?: string,
 
 export async function getWeightHistory(userId: string, startDate?: string, endDate?: string) {
   const supabase = createAdminClient()
-  const today = new Date().toISOString().split('T')[0];
-  if (startDate && startDate > today) startDate = today;
-  if (endDate && endDate > today) endDate = today;
-
   let query = supabase
     .from(TABLES.WEIGHT_LOGS)
     .select('*')

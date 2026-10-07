@@ -21,15 +21,9 @@ function toDbMeal(data: Partial<MealInput>) {
 export async function createMeal(userId: string, data: MealInput) {
   const supabase = createAdminClient()
   
-  let mealDate = data.date || new Date().toISOString().split('T')[0];
-  const today = new Date().toISOString().split('T')[0];
-  if (mealDate > today) {
-    mealDate = today;
-  }
-  
   const mealRecord = {
     user_id: userId,
-    date: mealDate,
+    date: data.date,
     meal_type: data.mealType,
     description: data.description,
     estimated_calories: data.estimatedCalories,
@@ -82,8 +76,6 @@ export async function createMeal(userId: string, data: MealInput) {
 
 export async function getMealsByDate(userId: string, date: string) {
   const supabase = createAdminClient()
-  const today = new Date().toISOString().split('T')[0];
-  if (date > today) date = today;
   
   const { data, error } = await supabase
     .from(TABLES.MEALS)
@@ -101,9 +93,6 @@ export async function getMealsByDate(userId: string, date: string) {
 
 export async function getMealsByDateRange(userId: string, startDate: string, endDate: string) {
   const supabase = createAdminClient()
-  const today = new Date().toISOString().split('T')[0];
-  if (startDate > today) startDate = today;
-  if (endDate > today) endDate = today;
   
   const { data, error } = await supabase
     .from(TABLES.MEALS)
@@ -137,12 +126,6 @@ export async function getMealById(userId: string, mealId: string) {
 export async function updateMeal(userId: string, mealId: string, data: Partial<MealInput>) {
   const supabase = createAdminClient()
   
-  if (data.date) {
-    const today = new Date().toISOString().split('T')[0];
-    if (data.date > today) {
-      data.date = today;
-    }
-  }
   const mealData = toDbMeal(data)
   
   if (Object.keys(mealData).length > 0) {

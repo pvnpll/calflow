@@ -15,11 +15,34 @@
       "post": {
         "operationId": "log_meal",
         "summary": "Log a meal",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "date": { "type": "string", "description": "YYYY-MM-DD. ALWAYS OMIT this field to use today. NEVER SEND THIS FIELD unless a specific date like 'yesterday' is requested." },
+                  "mealType": { "type": "string" },
+                  "description": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
         "responses": { "200": { "description": "Success" } }
       },
       "get": {
         "operationId": "get_meals",
         "summary": "Get meals",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "YYYY-MM-DD. ALWAYS OMIT this field to use today."
+          }
+        ],
         "responses": { "200": { "description": "Success" } }
       }
     },
