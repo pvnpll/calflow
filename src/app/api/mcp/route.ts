@@ -103,6 +103,21 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    // LOGGING HACK - super early log
+    try {
+      const admin = getRealtimeClient();
+      await admin.from('cf_ai_interactions').insert({
+        user_id: null,
+        action: 'mcp_post_super_early',
+        metadata: {
+          url: req.url,
+          headers: Object.fromEntries(req.headers.entries())
+        }
+      });
+    } catch (e) {
+      console.error("Log error", e);
+    }
+    
     const authInfo = await authenticateToken(req as unknown as Request);
     if (!authInfo) {
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
@@ -172,6 +187,23 @@ export async function POST(req: NextRequest) {
       message = await req.json();
     } catch {
       return new Response("Invalid JSON", { status: 400 });
+    }
+    
+    // LOGGING HACK
+    try {
+      const admin = getRealtimeClient();
+      await admin.from('cf_ai_interactions').insert({
+        user_id: authInfo?.extra?.userId || null,
+        action: 'mcp_post_request',
+        metadata: {
+          url: req.url,
+          sessionId,
+          message,
+          headers: Object.fromEntries(req.headers.entries())
+        }
+      });
+    } catch (e) {
+      console.error("Log error", e);
     }
 
     const supabase = getRealtimeClient();
