@@ -148,8 +148,8 @@ export default function ConnectPage() {
                   Gemini supports adding remote MCP servers using OAuth.
                 </p>
                 <ol className="list-decimal list-inside space-y-2 ml-2">
-                  <li>Go to your Gemini <strong>Extensions</strong> or <strong>Tools</strong> settings.</li>
-                  <li>Click <strong>Add MCP Server</strong> or <strong>Connect App</strong>.</li>
+                  <li>Go to your Gemini <strong>Extensions</strong> or <strong>Connected Apps</strong> settings.</li>
+                  <li>Click <strong>Add MCP Server</strong> or <strong>+ Custom</strong>.</li>
                   <li>Set the MCP Server URL to:</li>
                 </ol>
                 <div className="relative mt-2 mb-4">
@@ -167,7 +167,15 @@ export default function ConnectPage() {
                 </div>
                 <div className="flex items-start gap-2 text-sm text-muted-foreground bg-primary/5 p-3 rounded-md mt-4">
                   <Info className="w-5 h-5 text-primary shrink-0" />
-                  <p>Do not include the <code>?token=</code> query parameter. Gemini manages the OAuth token automatically.</p>
+                  <div className="space-y-2">
+                    <p>If Gemini shows <strong>"Account linking is required to use this custom app"</strong>, click <strong>Show more</strong> under Additional settings and configure it manually:</p>
+                    <ul className="list-disc list-inside ml-2">
+                      <li><strong>Client ID:</strong> <code>calflow</code></li>
+                      <li><strong>Client Secret:</strong> <code>calflow</code></li>
+                      <li><strong>Authorization URL:</strong> <code>https://cal-flow.vercel.app/mcp/authorize</code></li>
+                      <li><strong>Token URL:</strong> <code>https://cal-flow.vercel.app/api/mcp/token</code></li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </TabsContent>
