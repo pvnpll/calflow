@@ -6,7 +6,22 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useProfile } from '@/lib/context/ProfileContext';
+import { ACTIVITY_LABELS, SEX_LABELS, coerceEnum } from '@/lib/utils';
 import { Loader2, CheckCircle2, UserRound } from 'lucide-react';
+
+const SEX_VALUES = ['male', 'female'];
+const SEX_ITEMS = [
+  { value: 'male', label: 'Male' },
+  { value: 'female', label: 'Female' },
+];
+const ACTIVITY_VALUES = ['sedentary', 'lightly_active', 'moderately_active', 'very_active', 'extremely_active'];
+const ACTIVITY_ITEMS = [
+  { value: 'sedentary', label: 'Sedentary (desk job)' },
+  { value: 'lightly_active', label: 'Lightly Active (1–2 days/wk)' },
+  { value: 'moderately_active', label: 'Moderately Active (3–4 days/wk)' },
+  { value: 'very_active', label: 'Very Active (5+ days/wk)' },
+  { value: 'extremely_active', label: 'Athlete / Physical job' },
+];
 
 export default function ProfileForm() {
   const { profile, loading, refresh } = useProfile();
@@ -28,10 +43,10 @@ export default function ProfileForm() {
       setFormData({
         name: profile.name || '',
         age: profile.age ? String(profile.age) : '',
-        sex: profile.sex || 'male',
+        sex: coerceEnum(profile.sex, SEX_VALUES, 'male'),
         height_cm: profile.height_cm ? String(profile.height_cm) : '',
         current_weight_kg: profile.current_weight_kg ? String(profile.current_weight_kg) : '',
-        activity_level: profile.activity_level || 'moderately_active'
+        activity_level: coerceEnum(profile.activity_level, ACTIVITY_VALUES, 'moderately_active')
       });
     }
   }, [profile]);
@@ -111,11 +126,14 @@ export default function ProfileForm() {
 
             <div className="space-y-2">
               <Label>Sex</Label>
-              <Select value={formData.sex} onValueChange={(v) => setFormData({ ...formData, sex: v ?? 'male' })}>
-                <SelectTrigger className="w-full"><SelectValue placeholder="Select" /></SelectTrigger>
+              <Select value={formData.sex} onValueChange={(v) => setFormData({ ...formData, sex: coerceEnum(v, SEX_VALUES, 'male') })}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select" />
+                </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="male">Male</SelectItem>
-                  <SelectItem value="female">Female</SelectItem>
+                  {SEX_ITEMS.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -146,15 +164,15 @@ export default function ProfileForm() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Activity Level</Label>
-              <Select value={formData.activity_level} onValueChange={(v) => setFormData({ ...formData, activity_level: v ?? 'moderately_active' })}>
-                <SelectTrigger className="w-full"><SelectValue placeholder="Select" /></SelectTrigger>
+              <Label>Activity level</Label>
+              <Select value={formData.activity_level} onValueChange={(v) => setFormData({ ...formData, activity_level: coerceEnum(v, ACTIVITY_VALUES, 'moderately_active') })}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select" />
+                </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="sedentary">Sedentary (desk job)</SelectItem>
-                  <SelectItem value="lightly_active">Lightly Active (1–2 days/wk)</SelectItem>
-                  <SelectItem value="moderately_active">Moderately Active (3–4 days/wk)</SelectItem>
-                  <SelectItem value="very_active">Very Active (5+ days/wk)</SelectItem>
-                  <SelectItem value="extremely_active">Athlete / Physical job</SelectItem>
+                  {ACTIVITY_ITEMS.map((a) => (
+                    <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

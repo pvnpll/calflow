@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useProfile } from '@/lib/context/ProfileContext';
+import { coerceEnum } from '@/lib/utils';
 import { SlidersHorizontal, Loader2, CheckCircle2, Leaf, UtensilsCrossed } from 'lucide-react';
 
 export default function PreferencesForm() {
@@ -27,7 +28,7 @@ export default function PreferencesForm() {
   useEffect(() => {
     if (profile) {
       setFormData({
-        diet: profile.diet || 'omnivore',
+        diet: coerceEnum(profile.diet, ['omnivore', 'pescatarian', 'vegetarian', 'vegan', 'keto', 'paleo'], 'omnivore'),
         preferred_meal_count: profile.preferred_meal_count ? String(profile.preferred_meal_count) : '3',
         allergies: Array.isArray(profile.allergies) ? profile.allergies.join(', ') : '',
         preferences: Array.isArray(profile.preferences) ? profile.preferences.join(', ') : '',

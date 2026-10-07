@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useProfile } from '@/lib/context/ProfileContext';
+import { ACTIVITY_LABELS, coerceEnum, enumLabel } from '@/lib/utils';
 import { Target, RefreshCw, CheckCircle2, Loader2, AlertTriangle, Flame, Beef, Wheat, Droplet, Nut } from 'lucide-react';
 
 export default function GoalsForm() {
@@ -15,6 +16,22 @@ export default function GoalsForm() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [recalcFlash, setRecalcFlash] = useState(false);
+
+  const GOAL_VALUES = ['lose_weight', 'maintain_weight', 'gain_weight', 'gain_muscle', 'general_health'];
+  const RATE_VALUES = ['slow', 'moderate', 'fast'];
+
+  const GOAL_ITEMS = [
+    { value: 'lose_weight', label: 'Lose Weight' },
+    { value: 'maintain_weight', label: 'Maintain Weight' },
+    { value: 'gain_weight', label: 'Gain Weight' },
+    { value: 'gain_muscle', label: 'Gain Muscle' },
+    { value: 'general_health', label: 'General Health' },
+  ];
+  const RATE_ITEMS = [
+    { value: 'slow', label: 'Slow (~0.25 kg/week)' },
+    { value: 'moderate', label: 'Moderate (~0.5 kg/week)' },
+    { value: 'fast', label: 'Fast (~0.75 kg/week)' },
+  ];
 
   const [formData, setFormData] = useState({
     primaryGoal: 'maintain_weight',
@@ -40,9 +57,9 @@ export default function GoalsForm() {
     } : {};
 
     const profileUpdates: any = profileData ? {
-      primaryGoal: profileData.goal || 'maintain_weight',
+      primaryGoal: coerceEnum(profileData.goal, GOAL_VALUES, 'maintain_weight'),
       goalWeightKg: profileData.goal_weight_kg ? String(profileData.goal_weight_kg) : '',
-      goalRate: profileData.goal_rate || 'moderate',
+      goalRate: coerceEnum(profileData.goal_rate, RATE_VALUES, 'moderate'),
     } : {};
 
     if (goals || profileData) {
@@ -52,12 +69,12 @@ export default function GoalsForm() {
 
   // Returns which profile fields are missing for BMR calculation
   const getMissingFields = (profile: any): string[] => {
-    if (!profile) return ['age', 'sex', 'height', 'weight'];
+    if (!profile) return ['Age', 'Sex', 'Height', 'Weight'];
     const missing: string[] = [];
-    if (!profile.age) missing.push('age');
-    if (!profile.sex) missing.push('sex');
-    if (!profile.height_cm) missing.push('height');
-    if (!profile.current_weight_kg) missing.push('current weight');
+    if (!profile.age) missing.push('Age');
+    if (!profile.sex) missing.push('Sex');
+    if (!profile.height_cm) missing.push('Height');
+    if (!profile.current_weight_kg) missing.push('Weight');
     return missing;
   };
 
@@ -173,13 +190,7 @@ export default function GoalsForm() {
     }
   };
 
-  const activityLabel: Record<string, string> = {
-    sedentary: 'Sedentary',
-    lightly_active: 'Lightly Active',
-    moderately_active: 'Moderately Active',
-    very_active: 'Very Active',
-    extremely_active: 'Extremely Active',
-  };
+  const activityDisplay = enumLabel(ACTIVITY_LABELS, profileData?.activity_level, 'Not set');
 
   return (
     <Card className="shadow-sm">
@@ -199,17 +210,17 @@ export default function GoalsForm() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2 sm:col-span-2">
               <Label>Primary goal</Label>
-              <Select value={formData.primaryGoal} onValueChange={updateGoal}>
-                <SelectTrigger className="w-full"><SelectValue placeholder="Select goal" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="lose_weight">Lose Weight</SelectItem>
-                <SelectItem value="maintain_weight">Maintain Weight</SelectItem>
-                <SelectItem value="gain_weight">Gain Weight</SelectItem>
-                <SelectItem value="gain_muscle">Gain Muscle</SelectItem>
-                <SelectItem value="general_health">General Health</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+              <Select value={formData.primaryGoal} onValueChange={(v) => updateGoal(coerceEnum(v, GOAL_VALUES, 'maintain_weight'))}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select goal" />
+                </SelectTrigger>
+                <SelectContent>
+                  {GOAL_ITEMS.map((g) => (
+                    <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
           {(formData.primaryGoal === 'lose_weight' || formData.primaryGoal === 'gain_weight' || formData.primaryGoal === 'gain_muscle') && (
             <>
@@ -224,13 +235,15 @@ export default function GoalsForm() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Desired Rate</Label>
-                <Select value={formData.goalRate} onValueChange={updateRate}>
-                  <SelectTrigger className="w-full"><SelectValue placeholder="Select rate" /></SelectTrigger>
+                <Label>Desired rate</Label>
+                <Select value={formData.goalRate} onValueChange={(v) => updateRate(coerceEnum(v, RATE_VALUES, 'moderate'))}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select rate" />
+                  </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="slow">Slow (~0.25 kg/week)</SelectItem>
-                    <SelectItem value="moderate">Moderate (~0.5 kg/week)</SelectItem>
-                    <SelectItem value="fast">Fast (~0.75 kg/week)</SelectItem>
+                    {RATE_ITEMS.map((r) => (
+                      <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -247,7 +260,7 @@ export default function GoalsForm() {
                 <Badge variant="secondary" className="tabular-nums">{profileData.current_weight_kg} kg</Badge>
                 <Badge variant="secondary" className="tabular-nums">{profileData.height_cm} cm</Badge>
                 <Badge variant="secondary" className="tabular-nums">{profileData.age} yrs</Badge>
-                <Badge variant="secondary">{activityLabel[profileData.activity_level] ?? 'Sedentary'}</Badge>
+                <Badge variant="secondary">{activityDisplay}</Badge>
               </div>
               <div className="flex items-center gap-3">
                 {recalcFlash && (
