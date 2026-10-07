@@ -4,12 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { useProfile } from '@/lib/context/ProfileContext';
+import { Target, RefreshCw, CheckCircle2, Loader2, AlertTriangle, Flame, Beef, Wheat, Droplet, Nut } from 'lucide-react';
 
 export default function GoalsForm() {
   const { profile: profileData, goals, loading, refresh } = useProfile();
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [recalcFlash, setRecalcFlash] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -124,6 +128,7 @@ export default function GoalsForm() {
     e.preventDefault();
     setSaving(true);
     setSuccess(false);
+    setError(null);
     try {
       const goalsPayload = {
         calorieTarget: parseFloat(formData.calorieTarget) || 2000,
@@ -157,9 +162,12 @@ export default function GoalsForm() {
         setSuccess(true);
         refresh();
         setTimeout(() => setSuccess(false), 3000);
+      } else {
+        setError('Could not save goals. Please try again.');
       }
     } catch (err) {
       console.error('Failed to save goals:', err);
+      setError('Could not save goals. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -174,14 +182,25 @@ export default function GoalsForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 p-4 border rounded-lg bg-card">
-      <div className="space-y-6">
-        {/* Goal & Rate selectors */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>What is your primary goal?</Label>
-            <Select value={formData.primaryGoal} onValueChange={updateGoal}>
-              <SelectTrigger><SelectValue placeholder="Select goal" /></SelectTrigger>
+    <Card className="shadow-sm">
+      <CardHeader className="pb-4">
+        <div className="flex items-center gap-3">
+          <span className="rounded-full bg-primary/10 p-2">
+            <Target className="h-4 w-4 text-primary" />
+          </span>
+          <div>
+            <CardTitle>Goals &amp; Targets</CardTitle>
+            <CardDescription>Set your goal and daily nutrition numbers.</CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Primary goal</Label>
+              <Select value={formData.primaryGoal} onValueChange={updateGoal}>
+                <SelectTrigger className="w-full"><SelectValue placeholder="Select goal" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="lose_weight">Lose Weight</SelectItem>
                 <SelectItem value="maintain_weight">Maintain Weight</SelectItem>
@@ -207,7 +226,7 @@ export default function GoalsForm() {
               <div className="space-y-2">
                 <Label>Desired Rate</Label>
                 <Select value={formData.goalRate} onValueChange={updateRate}>
-                  <SelectTrigger><SelectValue placeholder="Select rate" /></SelectTrigger>
+                  <SelectTrigger className="w-full"><SelectValue placeholder="Select rate" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="slow">Slow (~0.25 kg/week)</SelectItem>
                     <SelectItem value="moderate">Moderate (~0.5 kg/week)</SelectItem>
@@ -220,110 +239,86 @@ export default function GoalsForm() {
         </div>
 
         {/* Recalculate banner */}
-        <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
+        <div className="rounded-xl border bg-muted/30 p-4">
           {canCalculate ? (
-            <div className="flex items-center justify-between flex-wrap gap-3">
-              <div className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">Based on: </span>
-                {profileData.current_weight_kg} kg &middot; {profileData.height_cm} cm &middot; {profileData.age} yrs &middot;{' '}
-                {activityLabel[profileData.activity_level] ?? profileData.activity_level ?? 'Sedentary'}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">Based on:</span>
+                <Badge variant="secondary" className="tabular-nums">{profileData.current_weight_kg} kg</Badge>
+                <Badge variant="secondary" className="tabular-nums">{profileData.height_cm} cm</Badge>
+                <Badge variant="secondary" className="tabular-nums">{profileData.age} yrs</Badge>
+                <Badge variant="secondary">{activityLabel[profileData.activity_level] ?? 'Sedentary'}</Badge>
               </div>
               <div className="flex items-center gap-3">
                 {recalcFlash && (
-                  <span className="text-xs text-emerald-500 font-medium">✓ Targets updated</span>
+                  <span className="flex items-center gap-1 text-xs font-medium text-emerald-600">
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Updated
+                  </span>
                 )}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => applyCalculation()}
-                >
-                  ↻ Recalculate from profile
+                <Button type="button" variant="outline" size="sm" onClick={() => applyCalculation()} className="w-full sm:w-auto">
+                  <RefreshCw className="h-3.5 w-3.5" /> Recalculate
                 </Button>
               </div>
             </div>
           ) : (
-            <p className="text-sm text-amber-600 dark:text-amber-400">
-              <span className="font-semibold">Profile incomplete — targets cannot be auto-calculated.</span>{' '}
-              Go to the <span className="underline">Personal Info</span> tab and fill in:{' '}
-              <span className="font-medium">{missingFields.join(', ')}</span>.
-              You can still set targets manually below.
-            </p>
+            <div className="flex gap-2.5">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+              <p className="text-sm leading-relaxed text-amber-700 dark:text-amber-300">
+                <span className="font-semibold">Profile incomplete — auto-calc is off.</span>{' '}
+                Fill in <span className="font-medium">{missingFields.join(', ')}</span> under Personal Info.
+              </p>
+            </div>
           )}
         </div>
 
         {/* Manual target inputs */}
-        <div className="pt-2 border-t space-y-4">
-          <div className="flex justify-between items-center">
-            <Label className="text-lg font-semibold">Daily Nutrition Targets</Label>
+        <div className="space-y-4 border-t pt-4">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <h3 className="text-base font-semibold">Daily Nutrition Targets</h3>
             <span className="text-xs text-muted-foreground">Edit manually or recalculate above</span>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
             <div className="space-y-2">
-              <Label>Calories (kcal)</Label>
-              <Input
-                type="number"
-                placeholder="2000"
-                value={formData.calorieTarget}
-                onChange={(e) => setFormData({ ...formData, calorieTarget: e.target.value })}
-              />
+              <Label className="flex items-center gap-1.5"><Flame className="h-3.5 w-3.5 text-orange-500" /> Calories</Label>
+              <Input type="number" min={800} max={10000} placeholder="2000" value={formData.calorieTarget} onChange={(e) => setFormData({ ...formData, calorieTarget: e.target.value })} className="tabular-nums" />
             </div>
             <div className="space-y-2">
-              <Label>Protein (g)</Label>
-              <Input
-                type="number"
-                placeholder="150"
-                value={formData.proteinTarget}
-                onChange={(e) => setFormData({ ...formData, proteinTarget: e.target.value })}
-              />
+              <Label className="flex items-center gap-1.5"><Beef className="h-3.5 w-3.5 text-rose-500" /> Protein (g)</Label>
+              <Input type="number" min={0} max={600} placeholder="150" value={formData.proteinTarget} onChange={(e) => setFormData({ ...formData, proteinTarget: e.target.value })} className="tabular-nums" />
             </div>
             <div className="space-y-2">
-              <Label>Carbs (g)</Label>
-              <Input
-                type="number"
-                placeholder="200"
-                value={formData.carbohydrateTarget}
-                onChange={(e) => setFormData({ ...formData, carbohydrateTarget: e.target.value })}
-              />
+              <Label className="flex items-center gap-1.5"><Wheat className="h-3.5 w-3.5 text-amber-500" /> Carbs (g)</Label>
+              <Input type="number" min={0} max={1000} placeholder="200" value={formData.carbohydrateTarget} onChange={(e) => setFormData({ ...formData, carbohydrateTarget: e.target.value })} className="tabular-nums" />
             </div>
             <div className="space-y-2">
-              <Label>Fat (g)</Label>
-              <Input
-                type="number"
-                placeholder="65"
-                value={formData.fatTarget}
-                onChange={(e) => setFormData({ ...formData, fatTarget: e.target.value })}
-              />
+              <Label className="flex items-center gap-1.5"><Nut className="h-3.5 w-3.5 text-violet-500" /> Fat (g)</Label>
+              <Input type="number" min={0} max={500} placeholder="65" value={formData.fatTarget} onChange={(e) => setFormData({ ...formData, fatTarget: e.target.value })} className="tabular-nums" />
             </div>
             <div className="space-y-2">
               <Label>Fiber (g)</Label>
-              <Input
-                type="number"
-                placeholder="30"
-                value={formData.fiberTarget}
-                onChange={(e) => setFormData({ ...formData, fiberTarget: e.target.value })}
-              />
+              <Input type="number" min={0} max={150} placeholder="30" value={formData.fiberTarget} onChange={(e) => setFormData({ ...formData, fiberTarget: e.target.value })} className="tabular-nums" />
             </div>
             <div className="space-y-2">
-              <Label>Water (L)</Label>
-              <Input
-                type="number"
-                step="0.1"
-                placeholder="2.5"
-                value={formData.waterTargetL}
-                onChange={(e) => setFormData({ ...formData, waterTargetL: e.target.value })}
-              />
+              <Label className="flex items-center gap-1.5"><Droplet className="h-3.5 w-3.5 text-sky-500" /> Water (L)</Label>
+              <Input type="number" step="0.1" min={0} max={12} placeholder="2.5" value={formData.waterTargetL} onChange={(e) => setFormData({ ...formData, waterTargetL: e.target.value })} className="tabular-nums" />
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="flex items-center gap-4 pt-4 border-t">
-        <Button type="submit" disabled={saving || loading}>
-          {saving ? 'Saving...' : 'Save Goals & Targets'}
-        </Button>
-        {success && <span className="text-sm text-green-500 font-medium">Goals saved successfully!</span>}
-      </div>
-    </form>
+        <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center">
+          <Button type="submit" disabled={saving || loading} className="w-full sm:w-auto">
+            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+            {saving ? 'Saving…' : 'Save Goals & Targets'}
+          </Button>
+          {success && (
+            <span className="flex items-center gap-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+              <CheckCircle2 className="h-4 w-4" /> Goals saved
+            </span>
+          )}
+          {error && <span className="text-sm font-medium text-destructive">{error}</span>}
+        </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

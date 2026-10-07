@@ -3,13 +3,18 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { useProfile } from '@/lib/context/ProfileContext';
+import { SlidersHorizontal, Loader2, CheckCircle2, Leaf, UtensilsCrossed } from 'lucide-react';
 
 export default function PreferencesForm() {
   const { profile, loading, refresh } = useProfile();
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     diet: 'omnivore',
     preferred_meal_count: '3',
@@ -35,6 +40,7 @@ export default function PreferencesForm() {
     e.preventDefault();
     setSaving(true);
     setSuccess(false);
+    setError(null);
     try {
       const splitAndTrim = (str: string) => str.split(',').map(s => s.trim()).filter(Boolean);
 
@@ -55,76 +61,115 @@ export default function PreferencesForm() {
         setSuccess(true);
         refresh();
         setTimeout(() => setSuccess(false), 3000);
+      } else {
+        setError('Could not save. Please try again.');
       }
     } catch (err) {
       console.error('Failed to save preferences:', err);
+      setError('Could not save. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
+  const dietOptions = [
+    { value: 'omnivore', label: 'Omnivore' },
+    { value: 'pescatarian', label: 'Pescatarian' },
+    { value: 'vegetarian', label: 'Vegetarian' },
+    { value: 'vegan', label: 'Vegan' },
+    { value: 'keto', label: 'Keto' },
+    { value: 'paleo', label: 'Paleo' },
+  ];
+  const allergyCount = formData.allergies.split(',').map(s => s.trim()).filter(Boolean).length;
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 p-4 border rounded-lg bg-card">
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label>Diet Type</Label>
-          <Select value={formData.diet} onValueChange={(v) => setFormData({ ...formData, diet: v ?? 'omnivore' })}>
-            <SelectTrigger><SelectValue placeholder="Select diet" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="omnivore">Omnivore</SelectItem>
-              <SelectItem value="pescatarian">Pescatarian</SelectItem>
-              <SelectItem value="vegetarian">Vegetarian</SelectItem>
-              <SelectItem value="vegan">Vegan</SelectItem>
-              <SelectItem value="keto">Keto</SelectItem>
-              <SelectItem value="paleo">Paleo</SelectItem>
-            </SelectContent>
-          </Select>
+    <Card className="shadow-sm">
+      <CardHeader className="pb-4">
+        <div className="flex items-center gap-3">
+          <span className="rounded-full bg-primary/10 p-2">
+            <SlidersHorizontal className="h-4 w-4 text-primary" />
+          </span>
+          <div>
+            <CardTitle>Food Preferences</CardTitle>
+            <CardDescription>Helps suggestions respect your diet.</CardDescription>
+          </div>
         </div>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-2">
+            <Label>Diet type</Label>
+            <div className="flex flex-wrap gap-2">
+              {dietOptions.map((d) => (
+                <button
+                  key={d.value}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, diet: d.value })}
+                  className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors ${
+                    formData.diet === d.value
+                      ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+                      : 'bg-background text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
-        <div className="space-y-2">
-          <Label>Food Preferences (comma separated)</Label>
-          <Input
-            placeholder="e.g. spicy food, high protein, Indian cuisine"
-            value={formData.preferences}
-            onChange={(e) => setFormData({ ...formData, preferences: e.target.value })}
-          />
-        </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Meals per day</Label>
+              <Select value={formData.preferred_meal_count} onValueChange={(v) => setFormData({ ...formData, preferred_meal_count: v ?? '3' })}>
+                <SelectTrigger className="w-full"><SelectValue placeholder="Select" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="2">2 meals</SelectItem>
+                  <SelectItem value="3">3 meals</SelectItem>
+                  <SelectItem value="4">4 meals</SelectItem>
+                  <SelectItem value="5">5 meals</SelectItem>
+                  <SelectItem value="6">6 meals</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1.5">
+                Allergies
+                {allergyCount > 0 && <Badge variant="destructive" className="text-[11px]">{allergyCount}</Badge>}
+              </Label>
+              <Input placeholder="e.g. peanuts, shellfish" value={formData.allergies} onChange={(e) => setFormData({ ...formData, allergies: e.target.value })} />
+            </div>
+          </div>
 
-        <div className="space-y-2">
-          <Label>Food Restrictions / Foods to Avoid (comma separated)</Label>
-          <Input
-            placeholder="e.g. dairy, gluten, high sugar"
-            value={formData.foodsToAvoid}
-            onChange={(e) => setFormData({ ...formData, foodsToAvoid: e.target.value })}
-          />
-        </div>
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1.5">
+              <Leaf className="h-3.5 w-3.5 text-emerald-500" /> Foods you enjoy
+            </Label>
+            <Textarea rows={2} placeholder="e.g. spicy food, high protein" value={formData.preferences} onChange={(e) => setFormData({ ...formData, preferences: e.target.value })} className="resize-none" />
+            <p className="text-xs text-muted-foreground">Separate items with commas</p>
+          </div>
 
-        <div className="space-y-2">
-          <Label>Allergies (comma separated)</Label>
-          <Input
-            placeholder="e.g. peanuts, shellfish"
-            value={formData.allergies}
-            onChange={(e) => setFormData({ ...formData, allergies: e.target.value })}
-          />
-        </div>
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1.5">
+              <UtensilsCrossed className="h-3.5 w-3.5 text-amber-500" /> Foods to avoid
+            </Label>
+            <Textarea rows={2} placeholder="e.g. dairy, gluten, high sugar" value={formData.foodsToAvoid} onChange={(e) => setFormData({ ...formData, foodsToAvoid: e.target.value })} className="resize-none" />
+            <p className="text-xs text-muted-foreground">Separate items with commas</p>
+          </div>
 
-        <div className="space-y-2 pt-4 border-t">
-          <Label>Meals per day</Label>
-          <Input
-            type="number"
-            placeholder="3"
-            value={formData.preferred_meal_count}
-            onChange={(e) => setFormData({ ...formData, preferred_meal_count: e.target.value })}
-          />
-        </div>
-      </div>
-
-      <div className="flex items-center gap-4">
-        <Button type="submit" disabled={saving || loading}>
-          {saving ? 'Saving...' : 'Save Preferences'}
-        </Button>
-        {success && <span className="text-sm text-green-500 font-medium">Preferences saved successfully!</span>}
-      </div>
-    </form>
+          <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center">
+            <Button type="submit" disabled={saving || loading} className="w-full sm:w-auto">
+              {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+              {saving ? 'Saving…' : 'Save Preferences'}
+            </Button>
+            {success && (
+              <span className="flex items-center gap-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                <CheckCircle2 className="h-4 w-4" /> Saved
+              </span>
+            )}
+            {error && <span className="text-sm font-medium text-destructive">{error}</span>}
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
