@@ -32,7 +32,8 @@ export async function GET(req: NextRequest) {
     }
 
     const sessionId = crypto.randomUUID();
-    const server = createCalflowMcpServer(authInfo);
+    const defaultSource = authInfo?.clientName || 'claude';
+    const server = createCalflowMcpServer(authInfo, defaultSource as any);
     
     let streamController: ReadableStreamDefaultController;
     const encoder = new TextEncoder();

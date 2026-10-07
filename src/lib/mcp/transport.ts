@@ -12,7 +12,8 @@ export async function handleStatelessMcpRequest(webRequest: Request, authInfo: a
     enableDnsRebindingProtection: false,
     enableJsonResponse: true,
   } as any);
-  const server = createCalflowMcpServer(authInfo);
+  const defaultSource = authInfo?.clientName || 'claude';
+  const server = createCalflowMcpServer(authInfo, defaultSource as any);
   await server.connect(transport);
   return transport.handleRequest(webRequest, { authInfo });
 }
@@ -56,9 +57,18 @@ export async function authenticateToken(req: Request) {
     return null;
   }
   
+  const userAgent = req.headers.get("user-agent")?.toLowerCase() || "";
+  let clientName = 'claude';
+  if (data.client_id?.startsWith('claude_')) {
+    clientName = 'claude';
+  } else if (userAgent.includes('chatgpt') || userAgent.includes('openai') || data.client_id?.startsWith('mcp_') || data.client_id === 'personal-access-token') {
+    clientName = 'chatgpt';
+  }
+
   return { 
     token, 
     clientId: data.client_id || "unknown", 
+    clientName,
     scopes: [], 
     extra: { userId: data.user_id } 
   };

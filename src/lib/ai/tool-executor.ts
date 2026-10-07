@@ -58,7 +58,7 @@ export async function executeTool(toolName: string, args: Record<string, any>, u
         estimatedFiber: totalFiber,
         micronutrients: args.micronutrients || {},
         confidence: args.confidence || 'medium',
-        source: 'chatgpt',
+        source: 'calflow_ai',
       });
     }
 
