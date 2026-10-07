@@ -41,19 +41,31 @@ export async function GET(req: NextRequest) {
     const channel = supabase.channel(`mcp_${sessionId}`);
     
     const stream = new ReadableStream({
-        start(controller) {
+        async start(controller) {
             streamController = controller;
-            const endpointUrl = new URL(req.url);
+            
+            // Subscribe to channel for incoming POST messages FIRST
+            await new Promise((resolve, reject) => {
+                channel.on('broadcast', { event: 'mcp-message' }, (payload) => {
+                    if (transport.onmessage) {
+                        transport.onmessage(payload.payload);
+                    }
+                }).subscribe((status) => {
+                    if (status === 'SUBSCRIBED') {
+                        resolve(true);
+                    } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                        reject(new Error(`Failed to subscribe: ${status}`));
+                    }
+                });
+            });
+
+            const forwardedHost = req.headers.get('x-forwarded-host');
+            const forwardedProto = req.headers.get('x-forwarded-proto') || 'https';
+            let base = process.env.NEXT_PUBLIC_APP_URL || (forwardedHost ? `${forwardedProto}://${forwardedHost}` : new URL(req.url).origin);
+            const endpointUrl = new URL(req.nextUrl.pathname, base);
             endpointUrl.searchParams.set("sessionId", sessionId);
             // Send standard MCP endpoint event with absolute URL
             controller.enqueue(encoder.encode(`event: endpoint\ndata: ${endpointUrl.href}\n\n`));
-            
-            // Subscribe to channel for incoming POST messages
-            channel.on('broadcast', { event: 'mcp-message' }, (payload) => {
-                if (transport.onmessage) {
-                    transport.onmessage(payload.payload);
-                }
-            }).subscribe();
         },
         cancel() {
             channel.unsubscribe();
@@ -180,6 +192,8 @@ export async function POST(req: NextRequest) {
       payload: message
     });
 
+    // Wait for the message to be sent before unsubscribing
+    await new Promise((resolve) => setTimeout(resolve, 500));
     await channel.unsubscribe();
 
     // Standard MCP requires 202 Accepted for POST messages
