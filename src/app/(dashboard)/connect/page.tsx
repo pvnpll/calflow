@@ -11,16 +11,7 @@ import { Label } from '@/components/ui/label';
 export default function ConnectPage() {
   const [token, setToken] = useState<string>('');
   const [copiedToken, setCopiedToken] = useState(false);
-  const [copiedJson, setCopiedJson] = useState(false);
-  const [copiedCli, setCopiedCli] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
-  
-  const baseUrl = typeof window !== 'undefined' 
-    ? window.location.origin 
-    : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    
-  const sseUrl = `${baseUrl}/api/mcp?token=${token || '<YOUR_TOKEN>'}`;
-
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleRevealToken = async () => {
@@ -40,24 +31,6 @@ export default function ConnectPage() {
     setter(true);
     setTimeout(() => setter(false), 2000);
   };
-
-  const claudeDesktopConfig = `{
-  "mcpServers": {
-    "calflow": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/mcp-remote",
-        "${baseUrl}/api/mcp",
-        "--header",
-        "Authorization: Bearer ${token || '<YOUR_TOKEN>'}"
-      ]
-    }
-  }
-}`;
-
-  const claudeCodeCommand = `claude mcp add calflow --transport sse "${baseUrl}/api/mcp?token=${token || '<YOUR_TOKEN>'}"`;
-
 
 
   return (
@@ -140,85 +113,32 @@ export default function ConnectPage() {
             </TabsContent>
 
             <TabsContent value="claude" className="space-y-4">
-              <Tabs defaultValue="desktop" className="w-full border rounded-md p-4">
-                <TabsList className="mb-4">
-                  <TabsTrigger value="desktop">Claude Desktop</TabsTrigger>
-                  <TabsTrigger value="code">Claude Code (CLI)</TabsTrigger>
-                  <TabsTrigger value="generic">Other / Cursor</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="desktop" className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>1. Open your Claude Desktop config file:</Label>
-                    <ul className="text-sm text-muted-foreground list-disc list-inside ml-2">
-                      <li>Windows: <code>%APPDATA%\Claude\claude_desktop_config.json</code></li>
-                      <li>macOS: <code>~/Library/Application Support/Claude/claude_desktop_config.json</code></li>
-                    </ul>
-                  </div>
-                  <div className="space-y-2 mt-4">
-                    <Label>2. Add CalFlow to your mcpServers array:</Label>
-                    <div className="relative">
-                      <pre className="bg-muted p-4 rounded-md text-sm overflow-x-auto whitespace-pre-wrap">
-                        <code>{claudeDesktopConfig}</code>
-                      </pre>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="absolute top-2 right-2 bg-background/50 hover:bg-background"
-                        onClick={() => copyToClipboard(claudeDesktopConfig, setCopiedJson)}
-                      >
-                        {copiedJson ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2 text-sm text-muted-foreground bg-primary/5 p-3 rounded-md mt-4">
-                    <Info className="w-5 h-5 text-primary shrink-0" />
-                    <p>After saving the file, completely restart Claude Desktop. You should see a plug icon indicating the CalFlow tools (like <code>log_meal</code>) are available.</p>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="code" className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Run this command in your terminal where you use Claude Code:</Label>
-                    <div className="relative mt-2">
-                      <pre className="bg-muted p-4 rounded-md text-sm overflow-x-auto">
-                        <code>{claudeCodeCommand}</code>
-                      </pre>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="absolute top-2 right-2 bg-background/50 hover:bg-background"
-                        onClick={() => copyToClipboard(claudeCodeCommand, setCopiedCli)}
-                      >
-                        {copiedCli ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                      </Button>
-                    </div>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="generic" className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Generic MCP SSE Endpoint (e.g. for Cursor):</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Use this direct URL if your AI client supports adding remote MCP servers via Server-Sent Events (SSE). 
-                      It includes your personal access token automatically.
-                    </p>
-                    <div className="relative mt-2">
-                      <pre className="bg-muted p-4 rounded-md text-sm overflow-x-auto">
-                        <code>{sseUrl}</code>
-                      </pre>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="absolute top-2 right-2 bg-background/50 hover:bg-background"
-                        onClick={() => copyToClipboard(sseUrl, setCopiedUrl)}
-                      >
-                        {copiedUrl ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                      </Button>
-                    </div>
-                  </div>
-                </TabsContent>
-              </Tabs>
+              <div className="space-y-4 text-sm">
+                <ol className="list-decimal list-inside space-y-2 ml-2">
+                  <li>Go to Claude in the desktop website and log in with your Claude credentials.</li>
+                  <li>Click on <strong>Customize</strong>, then click on <strong>Connectors</strong>, then click <strong>Add</strong> on the top right.</li>
+                  <li>Select <strong>Add custom connector</strong>.</li>
+                  <li>Give it the name <code>calflow</code> and set the MCP URL to:</li>
+                </ol>
+                <div className="relative mt-2 mb-4">
+                  <pre className="bg-muted p-4 rounded-md text-sm overflow-x-auto">
+                    <code>https://cal-flow.vercel.app/api/mcp</code>
+                  </pre>
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    className="absolute top-2 right-2 bg-background/50 hover:bg-background"
+                    onClick={() => copyToClipboard('https://cal-flow.vercel.app/api/mcp', setCopiedUrl)}
+                  >
+                    {copiedUrl ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  </Button>
+                </div>
+                <ol className="list-decimal list-inside space-y-2 ml-2" start={5}>
+                  <li>Click <strong>Continue</strong>, keep the default selection, and click <strong>Add</strong>.</li>
+                  <li>Our authorization page will open. Click on <strong>Authorize</strong>.</li>
+                  <li>You can now ask Claude to log/fetch your meals and analyze trends!</li>
+                </ol>
+              </div>
             </TabsContent>
           </Tabs>
         </CardContent>
