@@ -6,14 +6,15 @@ import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Utensils } from 'lucide-react';
+import { LogIn, Loader2, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
+import { AuthShell, AuthError } from '@/components/auth/AuthShell';
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -22,7 +23,7 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     const supabase = createClient();
-    
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -39,68 +40,74 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex flex-col space-y-6 w-full sm:w-[400px] mx-auto">
-      <div className="flex flex-col space-y-2 text-center">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <div className="bg-primary/10 p-2 rounded-full">
-            <Utensils className="h-6 w-6 text-primary" />
-          </div>
-          <span className="text-2xl font-bold tracking-tight">CalFlow</span>
+    <AuthShell
+      title="Welcome back"
+      description="Sign in to continue tracking"
+      icon={<LogIn className="h-4 w-4 text-primary" />}
+      footer={
+        <>
+          Don&apos;t have an account?{' '}
+          <Link href="/signup" className="font-medium text-primary hover:underline">
+            Sign up
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleLogin} className="space-y-4">
+        {error && <AuthError message={error} />}
+
+        <div className="space-y-2">
+          <Label htmlFor="login-email">Email</Label>
+          <Input
+            id="login-email"
+            type="email"
+            placeholder="m@example.com"
+            required
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </div>
-      </div>
-      
-      <Card className="border-border shadow-md">
-        <CardHeader className="space-y-1 pb-4">
-          <CardTitle className="text-xl font-semibold">Welcome back</CardTitle>
-          <CardDescription>
-            Enter your credentials to sign in to your account
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={handleLogin}>
-          <CardContent className="space-y-4">
-            {error && <div className="p-3 bg-red-500/10 border border-red-500/20 text-sm text-red-600 dark:text-red-400 rounded-md font-medium">{error}</div>}
-            
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="m@example.com" 
-                required 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link href="/forgot-password" className="text-sm font-medium text-primary hover:underline">
-                  Forgot password?
-                </Link>
-              </div>
-              <Input 
-                id="password" 
-                type="password" 
-                required 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4 pt-2">
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign in'}
-            </Button>
-            <div className="text-sm text-center text-muted-foreground">
-              Don't have an account?{' '}
-              <Link href="/signup" className="text-primary font-medium hover:underline">
-                Sign up
-              </Link>
-            </div>
-          </CardFooter>
-        </form>
-      </Card>
-    </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="login-password">Password</Label>
+          <div className="relative">
+            <Input
+              id="login-password"
+              type={showPassword ? 'text' : 'password'}
+              required
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((s) => !s)}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+          {/* Forgot password sits under the field, right-aligned —
+              out of the label row so it never crowds the label on narrow screens */}
+          <div className="flex justify-end">
+            <Link
+              href="/forgot-password"
+              className="text-[13px] font-medium text-muted-foreground transition-colors hover:text-primary hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
+        </div>
+
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+          {loading ? 'Signing in…' : 'Sign in'}
+        </Button>
+      </form>
+    </AuthShell>
   );
 }
+

@@ -1,14 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Utensils } from 'lucide-react';
+import { KeyRound, Loader2, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
+import { AuthShell, AuthError, AuthSuccess } from '@/components/auth/AuthShell';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -22,7 +21,7 @@ export default function ForgotPasswordPage() {
     setError(null);
     setSuccess(false);
     const supabase = createClient();
-    
+
     // We assume the reset url is origin/reset-password
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
@@ -37,53 +36,48 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="flex flex-col space-y-6 w-full sm:w-[400px] mx-auto">
-      <div className="flex flex-col space-y-2 text-center">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <div className="bg-primary/10 p-2 rounded-full">
-            <Utensils className="h-6 w-6 text-primary" />
-          </div>
-          <span className="text-2xl font-bold tracking-tight">CalFlow</span>
+    <AuthShell
+      title="Reset password"
+      description="We'll email you a reset link"
+      icon={<KeyRound className="h-4 w-4 text-primary" />}
+      footer={
+        <>
+          Remember your password?{' '}
+          <Link href="/login" className="font-medium text-primary hover:underline">
+            Sign in
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleReset} className="space-y-4">
+        {error && <AuthError message={error} />}
+        {success && <AuthSuccess message="Check your email for the reset link!" />}
+
+        <div className="space-y-2">
+          <Label htmlFor="forgot-email">Email</Label>
+          <Input
+            id="forgot-email"
+            type="email"
+            placeholder="m@example.com"
+            required
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </div>
-      </div>
-      
-      <Card className="border-border shadow-md">
-        <CardHeader className="space-y-1 pb-4">
-          <CardTitle className="text-xl font-semibold">Reset password</CardTitle>
-          <CardDescription>
-            Enter your email address and we will send you a password reset link
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={handleReset}>
-          <CardContent className="space-y-4">
-            {error && <div className="p-3 bg-red-500/10 border border-red-500/20 text-sm text-red-600 dark:text-red-400 rounded-md font-medium">{error}</div>}
-            {success && <div className="p-3 bg-green-500/10 border border-green-500/20 text-sm text-green-600 dark:text-green-400 rounded-md font-medium">Check your email for the reset link!</div>}
-            
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="m@example.com" 
-                required 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4 pt-2">
-            <Button type="submit" className="w-full" disabled={loading || success}>
-              {loading ? 'Sending link...' : 'Send reset link'}
-            </Button>
-            <div className="text-sm text-center text-muted-foreground">
-              Remember your password?{' '}
-              <Link href="/login" className="text-primary font-medium hover:underline">
-                Sign in
-              </Link>
-            </div>
-          </CardFooter>
-        </form>
-      </Card>
-    </div>
+
+        <Button type="submit" className="w-full" disabled={loading || success}>
+          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+          {loading ? 'Sending link…' : success ? (
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="h-4 w-4" /> Link sent
+            </span>
+          ) : (
+            'Send reset link'
+          )}
+        </Button>
+      </form>
+    </AuthShell>
   );
 }
+
