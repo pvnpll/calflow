@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Activity } from 'lucide-react';
+import { Utensils } from 'lucide-react';
 import Link from 'next/link';
 
 export default function LoginPage() {
@@ -43,7 +43,7 @@ export default function LoginPage() {
       <div className="flex flex-col space-y-2 text-center">
         <div className="flex items-center justify-center gap-2 mb-2">
           <div className="bg-primary/10 p-2 rounded-full">
-            <Activity className="h-6 w-6 text-primary" />
+            <Utensils className="h-6 w-6 text-primary" />
           </div>
           <span className="text-2xl font-bold tracking-tight">CalFlow</span>
         </div>
