@@ -75,7 +75,18 @@ export async function POST(req: Request) {
           // Execute each tool call
           for (const toolCall of response.toolCalls) {
             try {
-              const args = JSON.parse(toolCall.function.arguments);
+              let args;
+              if (typeof toolCall.function.arguments === 'string') {
+                try {
+                  args = JSON.parse(toolCall.function.arguments);
+                } catch (e) {
+                  const cleaned = toolCall.function.arguments.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+                  args = JSON.parse(cleaned);
+                }
+              } else {
+                args = toolCall.function.arguments;
+              }
+              
               const result = await executeTool(toolCall.function.name, args, user.id);
 
               aiMessages.push({
