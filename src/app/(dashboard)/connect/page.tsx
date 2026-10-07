@@ -105,110 +105,153 @@ export default function ConnectPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="generic" className="w-full">
+          <Tabs defaultValue="chatgpt" className="w-full">
             <TabsList className="mb-4 flex-wrap h-auto">
-              <TabsTrigger value="generic">Any Client (URL)</TabsTrigger>
-              <TabsTrigger value="desktop">Claude Desktop</TabsTrigger>
-              <TabsTrigger value="code">Claude Code (CLI)</TabsTrigger>
-              <TabsTrigger value="web">Claude Web (OAuth)</TabsTrigger>
-              <TabsTrigger value="cursor">Cursor</TabsTrigger>
+              <TabsTrigger value="chatgpt">ChatGPT</TabsTrigger>
+              <TabsTrigger value="gemini">Gemini</TabsTrigger>
+              <TabsTrigger value="claude">Claude</TabsTrigger>
             </TabsList>
-            
-            <TabsContent value="generic" className="space-y-4">
-              <div className="space-y-2">
-                <Label>Generic MCP SSE Endpoint:</Label>
-                <p className="text-sm text-muted-foreground">
-                  Use this direct URL if your AI client supports adding remote MCP servers via Server-Sent Events (SSE). 
-                  It includes your personal access token automatically.
+
+            <TabsContent value="chatgpt" className="space-y-4">
+              <div className="space-y-4 text-sm">
+                <p>
+                  ChatGPT supports adding remote MCP servers using OAuth. 
                 </p>
-                <div className="relative mt-2">
+                <ol className="list-decimal list-inside space-y-2 ml-2">
+                  <li>Go to <strong>Settings</strong> in ChatGPT and find the <strong>Connected Apps</strong> or <strong>MCP Connectors</strong> section.</li>
+                  <li>Click <strong>Add New Server</strong>.</li>
+                  <li>Set the MCP Server URL to:</li>
+                </ol>
+                <div className="relative mt-2 mb-4">
                   <pre className="bg-muted p-4 rounded-md text-sm overflow-x-auto">
-                    <code>{sseUrl}</code>
+                    <code>https://cal-flow.vercel.app/api/mcp</code>
                   </pre>
                   <Button 
                     size="sm" 
                     variant="ghost" 
                     className="absolute top-2 right-2 bg-background/50 hover:bg-background"
-                    onClick={() => copyToClipboard(sseUrl, setCopiedUrl)}
+                    onClick={() => copyToClipboard('https://cal-flow.vercel.app/api/mcp', setCopiedUrl)}
                   >
                     {copiedUrl ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                   </Button>
                 </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="desktop" className="space-y-4">
-              <div className="space-y-2">
-                <Label>1. Open your Claude Desktop config file:</Label>
-                <ul className="text-sm text-muted-foreground list-disc list-inside ml-2">
-                  <li>Windows: <code>%APPDATA%\Claude\claude_desktop_config.json</code></li>
-                  <li>macOS: <code>~/Library/Application Support/Claude/claude_desktop_config.json</code></li>
-                </ul>
-              </div>
-              <div className="space-y-2 mt-4">
-                <Label>2. Add CalFlow to your mcpServers array:</Label>
-                <div className="relative">
-                  <pre className="bg-muted p-4 rounded-md text-sm overflow-x-auto whitespace-pre-wrap">
-                    <code>{claudeDesktopConfig}</code>
-                  </pre>
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    className="absolute top-2 right-2 bg-background/50 hover:bg-background"
-                    onClick={() => copyToClipboard(claudeDesktopConfig, setCopiedJson)}
-                  >
-                    {copiedJson ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  </Button>
-                </div>
-              </div>
-              <div className="flex items-start gap-2 text-sm text-muted-foreground bg-primary/5 p-3 rounded-md mt-4">
-                <Info className="w-5 h-5 text-primary shrink-0" />
-                <p>After saving the file, completely restart Claude Desktop. You should see a plug icon indicating the CalFlow tools (like <code>log_meal</code>) are available.</p>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="code" className="space-y-4">
-              <div className="space-y-2">
-                <Label>Run this command in your terminal where you use Claude Code:</Label>
-                <div className="relative mt-2">
-                  <pre className="bg-muted p-4 rounded-md text-sm overflow-x-auto">
-                    <code>{claudeCodeCommand}</code>
-                  </pre>
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    className="absolute top-2 right-2 bg-background/50 hover:bg-background"
-                    onClick={() => copyToClipboard(claudeCodeCommand, setCopiedCli)}
-                  >
-                    {copiedCli ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  </Button>
+                <div className="flex items-start gap-2 text-sm text-muted-foreground bg-primary/5 p-3 rounded-md mt-4">
+                  <Info className="w-5 h-5 text-primary shrink-0" />
+                  <p>Do not include the <code>?token=</code> query parameter. ChatGPT manages the OAuth token automatically.</p>
                 </div>
               </div>
             </TabsContent>
 
-            <TabsContent value="web" className="space-y-4">
+            <TabsContent value="gemini" className="space-y-4">
               <div className="space-y-4 text-sm">
                 <p>
-                  Claude Web does not natively support adding custom remote MCP servers manually yet. 
+                  Gemini supports adding remote MCP servers using OAuth.
                 </p>
-                <p>
-                  However, CalFlow is built with an OAuth authorization server (<code>/mcp/authorize</code>) so it can be added as an AI plugin/integration to platforms that support standard OAuth MCP discovery. 
-                </p>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="cursor" className="space-y-4">
-              <div className="space-y-4 text-sm">
-                <p>To use CalFlow tools in Cursor:</p>
                 <ol className="list-decimal list-inside space-y-2 ml-2">
-                  <li>Open Cursor Settings (<code>Ctrl/Cmd + Shift + J</code>).</li>
-                  <li>Navigate to <strong>Features &gt; MCP</strong>.</li>
-                  <li>Click <strong>+ Add New MCP Server</strong>.</li>
-                  <li>Set Type to <strong>SSE</strong>.</li>
-                  <li>Set URL to: <code className="bg-muted px-2 py-1 rounded break-all">{sseUrl}</code></li>
-                  <li>Save and verify the connection.</li>
+                  <li>Go to your Gemini <strong>Extensions</strong> or <strong>Tools</strong> settings.</li>
+                  <li>Click <strong>Add MCP Server</strong> or <strong>Connect App</strong>.</li>
+                  <li>Set the MCP Server URL to:</li>
                 </ol>
+                <div className="relative mt-2 mb-4">
+                  <pre className="bg-muted p-4 rounded-md text-sm overflow-x-auto">
+                    <code>https://cal-flow.vercel.app/api/mcp</code>
+                  </pre>
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    className="absolute top-2 right-2 bg-background/50 hover:bg-background"
+                    onClick={() => copyToClipboard('https://cal-flow.vercel.app/api/mcp', setCopiedUrl)}
+                  >
+                    {copiedUrl ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  </Button>
+                </div>
+                <div className="flex items-start gap-2 text-sm text-muted-foreground bg-primary/5 p-3 rounded-md mt-4">
+                  <Info className="w-5 h-5 text-primary shrink-0" />
+                  <p>Do not include the <code>?token=</code> query parameter. Gemini manages the OAuth token automatically.</p>
+                </div>
               </div>
+            </TabsContent>
+
+            <TabsContent value="claude" className="space-y-4">
+              <Tabs defaultValue="desktop" className="w-full border rounded-md p-4">
+                <TabsList className="mb-4">
+                  <TabsTrigger value="desktop">Claude Desktop</TabsTrigger>
+                  <TabsTrigger value="code">Claude Code (CLI)</TabsTrigger>
+                  <TabsTrigger value="generic">Other / Cursor</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="desktop" className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>1. Open your Claude Desktop config file:</Label>
+                    <ul className="text-sm text-muted-foreground list-disc list-inside ml-2">
+                      <li>Windows: <code>%APPDATA%\Claude\claude_desktop_config.json</code></li>
+                      <li>macOS: <code>~/Library/Application Support/Claude/claude_desktop_config.json</code></li>
+                    </ul>
+                  </div>
+                  <div className="space-y-2 mt-4">
+                    <Label>2. Add CalFlow to your mcpServers array:</Label>
+                    <div className="relative">
+                      <pre className="bg-muted p-4 rounded-md text-sm overflow-x-auto whitespace-pre-wrap">
+                        <code>{claudeDesktopConfig}</code>
+                      </pre>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="absolute top-2 right-2 bg-background/50 hover:bg-background"
+                        onClick={() => copyToClipboard(claudeDesktopConfig, setCopiedJson)}
+                      >
+                        {copiedJson ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2 text-sm text-muted-foreground bg-primary/5 p-3 rounded-md mt-4">
+                    <Info className="w-5 h-5 text-primary shrink-0" />
+                    <p>After saving the file, completely restart Claude Desktop. You should see a plug icon indicating the CalFlow tools (like <code>log_meal</code>) are available.</p>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="code" className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Run this command in your terminal where you use Claude Code:</Label>
+                    <div className="relative mt-2">
+                      <pre className="bg-muted p-4 rounded-md text-sm overflow-x-auto">
+                        <code>{claudeCodeCommand}</code>
+                      </pre>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="absolute top-2 right-2 bg-background/50 hover:bg-background"
+                        onClick={() => copyToClipboard(claudeCodeCommand, setCopiedCli)}
+                      >
+                        {copiedCli ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      </Button>
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="generic" className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Generic MCP SSE Endpoint (e.g. for Cursor):</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Use this direct URL if your AI client supports adding remote MCP servers via Server-Sent Events (SSE). 
+                      It includes your personal access token automatically.
+                    </p>
+                    <div className="relative mt-2">
+                      <pre className="bg-muted p-4 rounded-md text-sm overflow-x-auto">
+                        <code>{sseUrl}</code>
+                      </pre>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="absolute top-2 right-2 bg-background/50 hover:bg-background"
+                        onClick={() => copyToClipboard(sseUrl, setCopiedUrl)}
+                      >
+                        {copiedUrl ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      </Button>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </TabsContent>
           </Tabs>
         </CardContent>

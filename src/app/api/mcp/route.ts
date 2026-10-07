@@ -45,8 +45,8 @@ export async function GET(req: NextRequest) {
             streamController = controller;
             const endpointUrl = new URL(req.url);
             endpointUrl.searchParams.set("sessionId", sessionId);
-            // Send standard MCP endpoint event
-            controller.enqueue(encoder.encode(`event: endpoint\ndata: ${endpointUrl.pathname}${endpointUrl.search}\n\n`));
+            // Send standard MCP endpoint event with absolute URL
+            controller.enqueue(encoder.encode(`event: endpoint\ndata: ${endpointUrl.href}\n\n`));
             
             // Subscribe to channel for incoming POST messages
             channel.on('broadcast', { event: 'mcp-message' }, (payload) => {
@@ -113,20 +113,34 @@ export async function POST(req: NextRequest) {
     if (!sessionId) {
       const { handleStatelessMcpRequest } = await import('@/lib/mcp/transport');
       
-      // Inject required headers to satisfy SDK if Gemini omitted them
-      const newReq = new Request(req.url, {
-        method: req.method,
-        headers: new Headers(req.headers),
-        body: req.body,
-        duplex: 'half'
-      } as any);
-      
-      if (!newReq.headers.get('accept')?.includes('text/event-stream')) {
-        const currentAccept = newReq.headers.get('accept') || '*/*';
-        newReq.headers.set('accept', `${currentAccept}, text/event-stream, application/json`);
-      }
+      // Use Proxy to inject Accept header without consuming/cloning the body stream
+      const proxiedReq = new Proxy(req as unknown as Request, {
+        get(target, prop) {
+          if (prop === 'headers') {
+            return new Proxy(target.headers, {
+              get(headersTarget, headersProp) {
+                if (headersProp === 'get') {
+                  return (name: string) => {
+                    if (name.toLowerCase() === 'accept') {
+                      const val = headersTarget.get(name) || '*/*';
+                      if (!val.includes('text/event-stream')) {
+                        return `${val}, text/event-stream, application/json`;
+                      }
+                    }
+                    return headersTarget.get(name);
+                  };
+                }
+                const val = Reflect.get(headersTarget, headersProp);
+                return typeof val === 'function' ? val.bind(headersTarget) : val;
+              }
+            });
+          }
+          const val = Reflect.get(target, prop);
+          return typeof val === 'function' ? val.bind(target) : val;
+        }
+      });
 
-      const response = await handleStatelessMcpRequest(newReq, authInfo);
+      const response = await handleStatelessMcpRequest(proxiedReq, authInfo);
       
       const newHeaders = new Headers(response.headers);
       newHeaders.set("Access-Control-Allow-Origin", "*");
