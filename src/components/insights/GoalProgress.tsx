@@ -2,6 +2,7 @@
 
 import { Card } from '@/components/ui/card';
 import { Target, TrendingDown, TrendingUp } from 'lucide-react';
+import { GOAL_LABELS, enumLabel } from '@/lib/utils';
 
 interface GoalProgressProps {
   goal: string;
@@ -35,8 +36,8 @@ export function GoalProgress({
       
       <div className="space-y-4">
         <div>
-          <div className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-            {goal.replace('_', ' ')}
+          <div className="text-sm font-semibold capitalize tracking-wider text-muted-foreground mb-1">
+            {enumLabel(GOAL_LABELS, goal, 'Goal')}
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-bold">{currentWeight.toFixed(1)}</span>
