@@ -168,13 +168,8 @@ export default function ConnectPage() {
                 <div className="flex items-start gap-2 text-sm text-muted-foreground bg-primary/5 p-3 rounded-md mt-4">
                   <Info className="w-5 h-5 text-primary shrink-0" />
                   <div className="space-y-2">
-                    <p>If Gemini shows <strong>"Account linking is required to use this custom app"</strong>, click <strong>Show more</strong> under Additional settings and configure it manually:</p>
-                    <ul className="list-disc list-inside ml-2">
-                      <li><strong>Client ID:</strong> <code>calflow</code></li>
-                      <li><strong>Client Secret:</strong> <code>calflow</code></li>
-                      <li><strong>Authorization URL:</strong> <code>https://cal-flow.vercel.app/mcp/authorize</code></li>
-                      <li><strong>Token URL:</strong> <code>https://cal-flow.vercel.app/api/mcp/token</code></li>
-                    </ul>
+                    <p><strong>How to use it:</strong> Do not use the <code>@</code> menu to try and tag CalFlow (the <code>@</code> menu is only for official Google extensions). Just ask Gemini naturally in your chat! For example: <em>"Log my lunch using CalFlow: 3 chapati and mushroom gravy"</em>.</p>
+                    <p className="mt-2 text-xs">If Gemini ever shows an <em>"Account linking is required"</em> error during setup, click <strong>Show more</strong> and enter <code>calflow</code> for both Client ID and Secret, <code>{baseUrl}/mcp/authorize</code> for Auth URL, and <code>{baseUrl}/api/mcp/token</code> for Token URL.</p>
                   </div>
                 </div>
               </div>
