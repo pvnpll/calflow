@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
     }
 
     const sessionId = crypto.randomUUID();
-    const server = createCalflowMcpServer(authInfo);
+    const server = createCalflowMcpServer(authInfo, 'calflow_ai');
     
     let streamController: ReadableStreamDefaultController;
     const encoder = new TextEncoder();

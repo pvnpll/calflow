@@ -8,7 +8,7 @@ import { getInsights } from "@/lib/services/insights.service";
 import { createMeal, getMealsByDate, getMealsByDateRange, updateMeal, deleteMeal } from "@/lib/services/meals.service";
 import { getTodaySummary, getNutritionSummary } from "@/lib/services/nutrition.service";
 
-export function createCalflowMcpServer(authInfo?: any) {
+export function createCalflowMcpServer(authInfo?: any, defaultSource: 'chatgpt' | 'claude' | 'mcp' | 'calflow_ai' | 'web_app' = 'claude') {
   const server = new McpServer({
     name: "calflow",
     version: "1.0.0",
@@ -87,7 +87,7 @@ export function createCalflowMcpServer(authInfo?: any) {
           estimatedFiber: args.fiber_g,
           micronutrients: args.micronutrients || {},
           items: mealItems,
-          source: 'claude'
+          source: defaultSource
         });
         console.log("[MCP log_meal] Success, created meal id:", meal?.id);
         return { content: [{ type: "text", text: `Meal logged successfully as ${inferredMealType}. ID: ${meal?.id}` }] };

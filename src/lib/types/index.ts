@@ -57,7 +57,7 @@ export interface Meal {
   estimatedFat?: number;
   estimatedFiber?: number;
   micronutrients?: Micronutrients;
-  source?: 'chatgpt' | 'claude' | 'mcp' | 'web_app' | 'import';
+  source?: 'chatgpt' | 'claude' | 'mcp' | 'calflow_ai' | 'web_app' | 'import';
   confidence?: 'low' | 'medium' | 'high';
   createdAt?: string;
   updatedAt?: string;
@@ -138,7 +138,7 @@ export interface MealInput {
   estimatedFat?: number;
   estimatedFiber?: number;
   micronutrients?: Micronutrients;
-  source?: 'chatgpt' | 'claude' | 'mcp' | 'web_app' | 'import';
+  source?: 'chatgpt' | 'claude' | 'mcp' | 'calflow_ai' | 'web_app' | 'import';
   confidence?: 'low' | 'medium' | 'high';
   items?: MealItemInput[];
 }

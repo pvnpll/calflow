@@ -68,6 +68,7 @@ export async function POST(req: NextRequest) {
         result = await upsertGoals(userId, params);
         break;
       case 'log_meal':
+        params.source = 'chatgpt';
         result = await createMeal(userId, params);
         break;
       case 'get_meals':

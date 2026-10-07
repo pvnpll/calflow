@@ -92,8 +92,14 @@ export default function MealCard({ meal, onUpdate }: MealCardProps) {
                 <Badge variant="secondary" className="capitalize">{meal.meal_type}</Badge>
               )}
               {meal.source && (
-                <Badge variant="outline" className="font-normal">
-                  <Sparkles className="h-3 w-3 opacity-60" />{meal.source}
+                <Badge variant="outline" className="font-normal gap-1">
+                  <Sparkles className="h-3 w-3 opacity-60" />
+                  {meal.source === 'chatgpt' ? 'ChatGPT' : 
+                   meal.source === 'claude' ? 'Claude' : 
+                   meal.source === 'calflow_ai' ? 'CalFlow AI' : 
+                   meal.source === 'web_app' ? 'Web App' : 
+                   meal.source === 'mcp' ? 'MCP' : 
+                   meal.source}
                 </Badge>
               )}
             </div>
