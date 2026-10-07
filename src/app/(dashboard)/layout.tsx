@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { User } from '@supabase/supabase-js';
 import {
@@ -12,11 +11,10 @@ import {
   BarChart3,
   MessageSquare,
   User as UserIcon,
-  LogOut,
   Plug,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 
@@ -70,12 +68,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     };
   }, [getSupabase, router]);
 
-  const handleLogout = async () => {
-    const supabase = getSupabase();
-    await supabase.auth.signOut();
-    router.push('/login');
-  };
-
   return (
     <div className="flex h-screen overflow-hidden bg-muted/20">
       {/* Desktop Sidebar */}
@@ -113,23 +105,37 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         <div className="border-t p-4">
-          <div className="flex items-center gap-3 mb-4 px-2">
-            <Avatar className="h-9 w-9">
+          <div className="flex items-center gap-3 px-2">
+            <Avatar className="h-9 w-9 shrink-0">
               <AvatarFallback>{user?.email?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
             </Avatar>
-            <div className="flex flex-col">
-              <span className="text-sm font-medium truncate max-w-[130px]">
-                {user?.user_metadata?.full_name || 'User'}
-              </span>
-              <span className="text-xs text-muted-foreground truncate max-w-[130px]">
-                {user?.email}
-              </span>
+            <div className="flex min-w-0 flex-1 flex-col">
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <span className="truncate text-sm font-medium" title={user?.user_metadata?.full_name || 'User'} />
+                  }
+                >
+                  {user?.user_metadata?.full_name || 'User'}
+                </TooltipTrigger>
+                <TooltipContent side="top" align="start" className="max-w-none break-all">
+                  {user?.user_metadata?.full_name || 'User'}
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <span className="truncate text-xs text-muted-foreground" title={user?.email ?? undefined} />
+                  }
+                >
+                  {user?.email}
+                </TooltipTrigger>
+                <TooltipContent side="top" align="start" className="max-w-none break-all">
+                  {user?.email}
+                </TooltipContent>
+              </Tooltip>
             </div>
           </div>
-          <Button variant="outline" className="w-full justify-start gap-2" onClick={handleLogout}>
-            <LogOut className="h-4 w-4" />
-            Logout
-          </Button>
         </div>
       </aside>
 
