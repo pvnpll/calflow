@@ -51,7 +51,7 @@ export function LandingNav({ isLoggedIn }: { isLoggedIn?: boolean }) {
                 Log in
               </Link>
               <Link
-                href="/login"
+                href="/signup"
                 className="inline-flex h-9 items-center justify-center rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 shadow transition-colors hover:bg-neutral-900/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-950 disabled:pointer-events-none disabled:opacity-50 dark:bg-neutral-50 dark:text-neutral-900 dark:hover:bg-neutral-50/90"
               >
                 Get started
@@ -81,7 +81,7 @@ export function LandingNav({ isLoggedIn }: { isLoggedIn?: boolean }) {
           ) : (
             <>
               <Link href="/login" className="font-medium">Log in</Link>
-              <Link href="/login" className="font-medium text-blue-600 dark:text-blue-400">Get started</Link>
+              <Link href="/signup" className="font-medium text-blue-600 dark:text-blue-400">Get started</Link>
             </>
           )}
         </div>

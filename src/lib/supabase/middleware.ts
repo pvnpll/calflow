@@ -56,6 +56,13 @@ export async function updateSession(request: NextRequest) {
       url.pathname = '/login'
       return NextResponse.redirect(url)
     }
+
+    if (user && isAuthRoute) {
+      // User is logged in and trying to access an auth route
+      const url = request.nextUrl.clone()
+      url.pathname = '/dashboard'
+      return NextResponse.redirect(url)
+    }
   } catch (e) {
     console.error('Error fetching user in middleware:', e)
   }

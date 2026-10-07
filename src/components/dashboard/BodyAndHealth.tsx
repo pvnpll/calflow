@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Scale, TrendingDown, TrendingUp, Minus, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,11 @@ export function BodyAndHealth({ weight, weightHistory, onWeightLogged }: BodyAnd
   const [isLogging, setIsLogging] = useState(false);
   const [newWeight, setNewWeight] = useState('');
   const [saving, setSaving] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   // Format chart data
   const chartData = [...weightHistory]
@@ -96,7 +101,7 @@ export function BodyAndHealth({ weight, weightHistory, onWeightLogged }: BodyAnd
 
       {/* Chart Section */}
       <div className="h-[150px] w-full mt-2 mb-4 -ml-4">
-        {chartData.length > 1 ? (
+        {mounted && (chartData.length > 1 ? (
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: 0 }}>
               <XAxis dataKey="date" hide />
@@ -120,7 +125,7 @@ export function BodyAndHealth({ weight, weightHistory, onWeightLogged }: BodyAnd
           <div className="h-full w-full flex items-center justify-center text-sm text-muted-foreground bg-muted/20 rounded-md border border-dashed ml-4">
             Not enough data for chart
           </div>
-        )}
+        ))}
       </div>
 
       {/* Log Weight Button */}

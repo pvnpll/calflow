@@ -53,7 +53,7 @@ export function HeroSection({ isLoggedIn }: { isLoggedIn?: boolean }) {
               </Link>
             ) : (
               <Link
-                href="/login"
+                href="/signup"
                 className="w-full sm:w-auto inline-flex h-12 items-center justify-center rounded-md bg-neutral-900 px-8 text-sm font-medium text-neutral-50 shadow transition-colors hover:bg-neutral-900/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-950 dark:bg-neutral-50 dark:text-neutral-900 dark:hover:bg-neutral-50/90"
               >
                 Get started

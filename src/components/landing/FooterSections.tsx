@@ -36,7 +36,7 @@ export function CtaSection({ isLoggedIn }: { isLoggedIn?: boolean }) {
             </Link>
           ) : (
             <Link
-              href="/login"
+              href="/signup"
               className="inline-flex h-14 items-center justify-center rounded-xl bg-white px-8 text-base font-medium text-blue-900 shadow-xl transition-transform hover:scale-105 focus-visible:outline-none w-full sm:w-auto"
             >
               Get started <ArrowRight size={18} className="ml-2" />
@@ -91,7 +91,7 @@ export function LandingFooter() {
             <h4 className="font-medium mb-4">Account</h4>
             <ul className="space-y-3 text-sm text-neutral-500 dark:text-neutral-400">
               <li><Link href="/login" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Log in</Link></li>
-              <li><Link href="/login" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Get started</Link></li>
+              <li><Link href="/signup" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Get started</Link></li>
             </ul>
           </div>
         </div>

@@ -34,7 +34,7 @@ export function WaterTracker({ initialConsumed = 0, target = 2500 }: WaterTracke
       await fetch('/api/water', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount, date: new Date().toISOString().split('T')[0] }),
+        body: JSON.stringify({ amount_ml: amount, date: new Date().toISOString().split('T')[0] }),
       });
       // Optionally fetch again to confirm
     } catch (err) {
