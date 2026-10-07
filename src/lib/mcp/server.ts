@@ -28,7 +28,7 @@ export function createCalflowMcpServer(authInfo?: any, defaultSource: 'chatgpt' 
       fat_g: z.number().describe("Estimated total fat in grams"),
       fiber_g: z.number().optional().describe("Estimated total fiber in grams"),
       meal_type: z.enum(['breakfast', 'lunch', 'dinner', 'snack']).optional().describe("Meal type: breakfast, lunch, dinner, or snack. Infer from time or food if omitted."),
-      date: z.string().describe("Date in YYYY-MM-DD format"),
+      date: z.string().optional().describe("Date in YYYY-MM-DD format. ALWAYS OMIT this field to default to the current day, unless the user explicitly specifies a different date (e.g., 'yesterday')."),
       time: z.string().optional().describe("Time in HH:mm format"),
       notes: z.string().optional().describe("Any additional notes"),
       items: z.array(z.object({
@@ -77,7 +77,7 @@ export function createCalflowMcpServer(authInfo?: any, defaultSource: 'chatgpt' 
         })) || [];
 
         const meal = await createMeal(userId, {
-          date: args.date,
+          date: args.date || new Date().toISOString().split('T')[0],
           mealType: inferredMealType,
           description: args.meal_text,
           estimatedCalories: args.calories,
@@ -106,7 +106,7 @@ export function createCalflowMcpServer(authInfo?: any, defaultSource: 'chatgpt' 
     "get_meals",
     "Retrieve meal records belonging to the currently authenticated CalFlow user for a specified date or date range.",
     {
-      start_date: z.string().optional().describe("Start date in YYYY-MM-DD format (or just date if end_date is omitted)"),
+      start_date: z.string().optional().describe("Start date in YYYY-MM-DD format (or just date if end_date is omitted). ALWAYS OMIT to use today unless explicitly requested."),
       end_date: z.string().optional().describe("End date in YYYY-MM-DD format")
     },
     async (args, extra) => {
@@ -306,7 +306,7 @@ export function createCalflowMcpServer(authInfo?: any, defaultSource: 'chatgpt' 
     "Record a new weight measurement for the user.",
     {
       weight_kg: z.number().describe("Weight in kilograms"),
-      date: z.string().optional().describe("Date in YYYY-MM-DD format (defaults to today)"),
+      date: z.string().optional().describe("Date in YYYY-MM-DD format. ALWAYS OMIT to use today unless explicitly requested."),
       note: z.string().optional().describe("Optional note for this weight log")
     },
     async (args, extra) => {
@@ -341,7 +341,7 @@ export function createCalflowMcpServer(authInfo?: any, defaultSource: 'chatgpt' 
     "Record a new water consumption log for the user.",
     {
       amount_ml: z.number().describe("Amount of water consumed in milliliters (ml)"),
-      date: z.string().optional().describe("Date in YYYY-MM-DD format (defaults to today)")
+      date: z.string().optional().describe("Date in YYYY-MM-DD format. ALWAYS OMIT to use today unless explicitly requested.")
     },
     async (args, extra) => {
       const userId = authInfo?.extra?.userId as string;

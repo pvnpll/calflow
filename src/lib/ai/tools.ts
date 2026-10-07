@@ -9,7 +9,7 @@ export const calflowTools: AIToolDefinition[] = [
       parameters: {
         type: 'object',
         properties: {
-          date: { type: 'string', description: 'YYYY-MM-DD (defaults to today)' },
+          date: { type: 'string', description: 'YYYY-MM-DD. ALWAYS OMIT this field to default to the current date (today), unless the user explicitly specifies a different date (e.g. yesterday, Monday).' },
           meal_type: { type: 'string', enum: ['breakfast', 'lunch', 'dinner', 'snack'] },
           description: { type: 'string' },
           calories: { type: 'number', description: 'Total calories estimated' },
@@ -67,7 +67,7 @@ export const calflowTools: AIToolDefinition[] = [
       parameters: {
         type: 'object',
         properties: {
-          date: { type: 'string', description: 'YYYY-MM-DD' },
+          date: { type: 'string', description: 'YYYY-MM-DD. ALWAYS OMIT this field to use today unless explicitly requested.' },
           start_date: { type: 'string', description: 'YYYY-MM-DD' },
           end_date: { type: 'string', description: 'YYYY-MM-DD' }
         }
@@ -200,7 +200,7 @@ export const calflowTools: AIToolDefinition[] = [
         type: 'object',
         properties: {
           amount_ml: { type: 'number' },
-          date: { type: 'string', description: 'YYYY-MM-DD' }
+          date: { type: 'string', description: 'YYYY-MM-DD. ALWAYS OMIT to use today unless explicitly requested.' }
         },
         required: ['amount_ml']
       }
@@ -230,7 +230,7 @@ export const calflowTools: AIToolDefinition[] = [
         type: 'object',
         properties: {
           weight_kg: { type: 'number' },
-          date: { type: 'string' },
+          date: { type: 'string', description: 'YYYY-MM-DD. OMIT to use today.' },
           note: { type: 'string' }
         },
         required: ['weight_kg']
