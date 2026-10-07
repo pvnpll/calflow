@@ -70,7 +70,19 @@ export default function LoginPage() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="login-password">Password</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="login-password">Password</Label>
+            <button
+              type="button"
+              className="text-[13px] font-medium text-muted-foreground transition-colors hover:text-primary hover:underline"
+              onClick={(e) => {
+                e.preventDefault();
+                router.push('/forgot-password');
+              }}
+            >
+              Forgot password?
+            </button>
+          </div>
           <div className="relative">
             <Input
               id="login-password"
@@ -89,16 +101,6 @@ export default function LoginPage() {
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
-          </div>
-          {/* Forgot password sits under the field, right-aligned —
-              out of the label row so it never crowds the label on narrow screens */}
-          <div className="flex justify-end">
-            <Link
-              href="/forgot-password"
-              className="text-[13px] font-medium text-muted-foreground transition-colors hover:text-primary hover:underline"
-            >
-              Forgot password?
-            </Link>
           </div>
         </div>
 
