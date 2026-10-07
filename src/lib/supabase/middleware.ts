@@ -48,7 +48,7 @@ export async function updateSession(request: NextRequest) {
     const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/signup') || pathname.startsWith('/forgot-password') || pathname.startsWith('/reset-password') || pathname === '/'
     
     // API or static routes to ignore
-    const isPublicPath = pathname.startsWith('/api') || pathname.startsWith('/_next') || pathname.startsWith('/static') || pathname.startsWith('/.well-known')
+    const isPublicPath = pathname.startsWith('/api') || pathname.startsWith('/_next') || pathname.startsWith('/static') || pathname.startsWith('/.well-known') || pathname.startsWith('/auth/callback')
 
     if (!user && !isAuthRoute && !isPublicPath) {
       // User is not logged in and trying to access a protected route
