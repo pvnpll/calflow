@@ -32,7 +32,7 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    router.push('/login');
+    router.push('/dashboard');
   };
 
   return (
