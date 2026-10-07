@@ -63,7 +63,7 @@ export default function ConnectPage() {
                 <ol className="list-decimal list-inside space-y-2 ml-2" start={5}>
                   <li>Click <strong>Create as plugin</strong>.</li>
                   <li>This will open the CalFlow authorization page. Just click <strong>Authorize</strong>.</li>
-                  <li>You can now ask Claude to log/fetch your meals and analyze trends!</li>
+                  <li>You can now ask ChatGPT to log/fetch your meals and analyze trends!</li>
                 </ol>
               </div>
             </TabsContent>
