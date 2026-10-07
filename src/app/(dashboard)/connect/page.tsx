@@ -154,13 +154,13 @@ export default function ConnectPage() {
                 </ol>
                 <div className="relative mt-2 mb-4">
                   <pre className="bg-muted p-4 rounded-md text-sm overflow-x-auto">
-                    <code>https://cal-flow.vercel.app/api/mcp</code>
+                    <code>https://cal-flow.vercel.app/api/mcp/gemini</code>
                   </pre>
                   <Button 
                     size="sm" 
                     variant="ghost" 
                     className="absolute top-2 right-2 bg-background/50 hover:bg-background"
-                    onClick={() => copyToClipboard('https://cal-flow.vercel.app/api/mcp', setCopiedUrl)}
+                    onClick={() => copyToClipboard('https://cal-flow.vercel.app/api/mcp/gemini', setCopiedUrl)}
                   >
                     {copiedUrl ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                   </Button>
