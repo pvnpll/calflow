@@ -108,19 +108,16 @@ export default function ConnectPage() {
           <Tabs defaultValue="chatgpt" className="w-full">
             <TabsList className="mb-4 flex-wrap h-auto">
               <TabsTrigger value="chatgpt">ChatGPT</TabsTrigger>
-              <TabsTrigger value="gemini">Gemini</TabsTrigger>
               <TabsTrigger value="claude">Claude</TabsTrigger>
             </TabsList>
 
             <TabsContent value="chatgpt" className="space-y-4">
               <div className="space-y-4 text-sm">
-                <p>
-                  ChatGPT supports adding remote MCP servers using OAuth. 
-                </p>
                 <ol className="list-decimal list-inside space-y-2 ml-2">
-                  <li>Go to <strong>Settings</strong> in ChatGPT and find the <strong>Connected Apps</strong> or <strong>MCP Connectors</strong> section.</li>
-                  <li>Click <strong>Add New Server</strong>.</li>
-                  <li>Set the MCP Server URL to:</li>
+                  <li>Go to <strong>Plugins</strong> on the ChatGPT desktop app.</li>
+                  <li>Click on <strong>Add</strong> on the top left.</li>
+                  <li>Select <strong>Add custom MCP server</strong>.</li>
+                  <li>Give it the name <code>calflow</code> and set the URL to:</li>
                 </ol>
                 <div className="relative mt-2 mb-4">
                   <pre className="bg-muted p-4 rounded-md text-sm overflow-x-auto">
@@ -135,43 +132,10 @@ export default function ConnectPage() {
                     {copiedUrl ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                   </Button>
                 </div>
-                <div className="flex items-start gap-2 text-sm text-muted-foreground bg-primary/5 p-3 rounded-md mt-4">
-                  <Info className="w-5 h-5 text-primary shrink-0" />
-                  <p>Do not include the <code>?token=</code> query parameter. ChatGPT manages the OAuth token automatically.</p>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="gemini" className="space-y-4">
-              <div className="space-y-4 text-sm">
-                <p>
-                  Gemini supports adding remote MCP servers using OAuth.
-                </p>
-                <ol className="list-decimal list-inside space-y-2 ml-2">
-                  <li>Go to your Gemini <strong>Extensions</strong> or <strong>Connected Apps</strong> settings.</li>
-                  <li>Click <strong>Add MCP Server</strong> or <strong>+ Custom</strong>.</li>
-                  <li>Set the MCP Server URL to:</li>
+                <ol className="list-decimal list-inside space-y-2 ml-2" start={5}>
+                  <li>Click <strong>Create as plugin</strong>.</li>
+                  <li>This will open the CalFlow authorization page. Just click <strong>Authorize</strong>.</li>
                 </ol>
-                <div className="relative mt-2 mb-4">
-                  <pre className="bg-muted p-4 rounded-md text-sm overflow-x-auto">
-                    <code>https://cal-flow.vercel.app/api/mcp/gemini</code>
-                  </pre>
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    className="absolute top-2 right-2 bg-background/50 hover:bg-background"
-                    onClick={() => copyToClipboard('https://cal-flow.vercel.app/api/mcp/gemini', setCopiedUrl)}
-                  >
-                    {copiedUrl ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  </Button>
-                </div>
-                <div className="flex items-start gap-2 text-sm text-muted-foreground bg-primary/5 p-3 rounded-md mt-4">
-                  <Info className="w-5 h-5 text-primary shrink-0" />
-                  <div className="space-y-2">
-                    <p><strong>How to use it:</strong> Do not use the <code>@</code> menu to try and tag CalFlow (the <code>@</code> menu is only for official Google extensions). Just ask Gemini naturally in your chat! For example: <em>"Log my lunch using CalFlow: 3 chapati and mushroom gravy"</em>.</p>
-                    <p className="mt-2 text-xs">If Gemini ever shows an <em>"Account linking is required"</em> error during setup, click <strong>Show more</strong> and enter <code>calflow</code> for both Client ID and Secret, <code>{baseUrl}/mcp/authorize</code> for Auth URL, and <code>{baseUrl}/api/mcp/token</code> for Token URL.</p>
-                  </div>
-                </div>
               </div>
             </TabsContent>
 
