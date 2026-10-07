@@ -66,14 +66,14 @@ export default async function AuthorizePage(props: { searchParams: Promise<Recor
   return (
     <Card className="w-[400px]">
       <CardHeader>
-        <CardTitle>Connect to Claude</CardTitle>
+        <CardTitle>Connect Application</CardTitle>
         <CardDescription>
-          Claude is requesting access to your CalFlow account.
+          An application is requesting access to your CalFlow account.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <p className="text-sm">
-          This will allow Claude to view your nutrition goals, log meals, and retrieve your meal history.
+          This will allow the app to view your nutrition goals, log meals, and retrieve your meal history.
         </p>
         <p className="text-sm mt-4 text-muted-foreground">
           Connected as: {user.email}
