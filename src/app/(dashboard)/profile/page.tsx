@@ -10,11 +10,13 @@ import PreferencesForm from "@/components/profile/PreferencesForm";
 import { ProfileProvider, useProfile } from "@/lib/context/ProfileContext";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { User as UserIcon, Target, SlidersHorizontal, Settings2, Mail, ShieldAlert, Trash2, Loader2, BadgeCheck } from "lucide-react";
+import { User as UserIcon, Target, SlidersHorizontal, Settings2, Mail, ShieldAlert, Trash2, Loader2, BadgeCheck, LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 function AccountTabContent() {
   const [email, setEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -25,6 +27,12 @@ function AccountTabContent() {
     };
     fetchUser();
   }, []);
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
 
   return (
     <div className="space-y-4">
@@ -59,6 +67,13 @@ function AccountTabContent() {
                 <span className="text-sm text-muted-foreground">No email found</span>
               )}
             </div>
+          </div>
+          
+          <div className="mt-4 pt-4 border-t">
+            <Button variant="outline" onClick={handleLogout} className="w-full sm:w-auto">
+              <LogOut className="mr-2 h-4 w-4" />
+              Log out
+            </Button>
           </div>
         </CardContent>
       </Card>
