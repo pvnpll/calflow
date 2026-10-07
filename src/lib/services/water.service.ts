@@ -3,7 +3,9 @@ import { TABLES } from '@/lib/db-tables'
 
 export async function logWater(userId: string, amountMl: number, date?: string) {
   const supabase = createAdminClient()
-  const logDate = date || new Date().toISOString().split('T')[0]
+  let logDate = date || new Date().toISOString().split('T')[0]
+  const today = new Date().toISOString().split('T')[0];
+  if (logDate > today) logDate = today;
   
   const { data, error } = await supabase
     .from(TABLES.WATER_LOGS)
@@ -17,6 +19,9 @@ export async function logWater(userId: string, amountMl: number, date?: string) 
 
 export async function getWaterByDate(userId: string, date: string) {
   const supabase = createAdminClient()
+  const today = new Date().toISOString().split('T')[0];
+  if (date > today) date = today;
+  
   const { data, error } = await supabase
     .from(TABLES.WATER_LOGS)
     .select('amount_ml')
@@ -29,6 +34,9 @@ export async function getWaterByDate(userId: string, date: string) {
 
 export async function getWaterByDateRange(userId: string, startDate: string, endDate: string) {
   const supabase = createAdminClient()
+  const today = new Date().toISOString().split('T')[0];
+  if (startDate > today) startDate = today;
+  if (endDate > today) endDate = today;
   const { data, error } = await supabase
     .from(TABLES.WATER_LOGS)
     .select('*')
