@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { Menu, X, UtensilsCrossed } from "lucide-react";
 
 export function LandingNav({ isLoggedIn }: { isLoggedIn?: boolean }) {
   const [scrolled, setScrolled] = useState(false);
@@ -26,7 +26,10 @@ export function LandingNav({ isLoggedIn }: { isLoggedIn?: boolean }) {
     >
       <div className="container mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-8">
-          <Link href="/" className="font-semibold text-xl tracking-tight">
+          <Link href="/" className="flex items-center gap-2 font-semibold text-xl tracking-tight">
+            <span className="rounded-md bg-black/10 dark:bg-white/10 p-1.5">
+              <UtensilsCrossed className="h-5 w-5" />
+            </span>
             CalFlow
           </Link>
           <nav className="hidden md:flex gap-6 text-sm font-medium text-neutral-600 dark:text-neutral-400">

@@ -51,6 +51,8 @@ export function HowItWorksSection() {
              │
              ├── Claude
              │
+             ├── Gemini
+             │
 USER ────────┼── CalFlow AI
              │
              ├── Mobile

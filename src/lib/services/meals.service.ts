@@ -76,6 +76,7 @@ export async function createMeal(userId: string, data: MealInput) {
 
 export async function getMealsByDate(userId: string, date: string) {
   const supabase = createAdminClient()
+  
   const { data, error } = await supabase
     .from(TABLES.MEALS)
     .select(`*, ${TABLES.MEAL_ITEMS}(*)`)
@@ -92,6 +93,7 @@ export async function getMealsByDate(userId: string, date: string) {
 
 export async function getMealsByDateRange(userId: string, startDate: string, endDate: string) {
   const supabase = createAdminClient()
+  
   const { data, error } = await supabase
     .from(TABLES.MEALS)
     .select(`*, ${TABLES.MEAL_ITEMS}(*)`)

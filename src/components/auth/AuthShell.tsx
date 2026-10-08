@@ -19,14 +19,14 @@ export function AuthShell({
 }) {
   return (
     <div className="flex w-full flex-col gap-5">
-      <Link href="/login" className="mx-auto flex items-center gap-2.5" aria-label="CalFlow home">
+      <Link href="/login" className="mx-auto flex items-center gap-2.5 transition-all active:scale-95" aria-label="CalFlow home">
         <span className="rounded-full bg-primary/10 p-2.5">
           <UtensilsCrossed className="h-5 w-5 text-primary" />
         </span>
         <span className="text-2xl font-bold tracking-tight">CalFlow</span>
       </Link>
 
-      <Card className="shadow-sm">
+      <Card className="shadow-sm bg-background/60 backdrop-blur-xl border-white/10 dark:border-white/5">
         <CardHeader className="pb-4">
           <div className="flex items-center gap-3">
             {icon ? (

@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, UtensilsCrossed } from "lucide-react";
 
 export function CtaSection({ isLoggedIn }: { isLoggedIn?: boolean }) {
   return (
@@ -60,7 +60,10 @@ export function LandingFooter() {
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="font-semibold text-xl tracking-tight mb-4 inline-block">
+            <Link href="/" className="flex items-center gap-2 font-semibold text-xl tracking-tight mb-4 inline-flex">
+              <span className="rounded-md bg-black/10 dark:bg-white/10 p-1.5">
+                <UtensilsCrossed className="h-5 w-5" />
+              </span>
               CalFlow
             </Link>
             <p className="text-sm text-neutral-500 dark:text-neutral-400">

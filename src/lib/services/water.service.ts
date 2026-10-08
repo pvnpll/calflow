@@ -17,6 +17,7 @@ export async function logWater(userId: string, amountMl: number, date?: string) 
 
 export async function getWaterByDate(userId: string, date: string) {
   const supabase = createAdminClient()
+  
   const { data, error } = await supabase
     .from(TABLES.WATER_LOGS)
     .select('amount_ml')

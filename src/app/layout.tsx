@@ -1,14 +1,38 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ThemeProvider } from '@/components/shared/ThemeProvider';
+import { PWAManager } from '@/components/PWAManager';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'CalFlow',
   description: 'AI-first personal nutrition tracking',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'CalFlow',
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  other: {
+    'apple-mobile-web-app-capable': 'yes',
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
+  ],
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({
@@ -22,6 +46,7 @@ export default function RootLayout({
         <ThemeProvider>
           <TooltipProvider>
             {children}
+            <PWAManager />
           </TooltipProvider>
         </ThemeProvider>
       </body>

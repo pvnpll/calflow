@@ -69,13 +69,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [getSupabase, router]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-muted/20">
+    <div className="relative flex min-h-[100dvh] bg-muted/20">
+      {/* Subtle backdrop matching auth pages */}
+      <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
+        <div className="absolute -top-32 left-1/2 h-72 w-[42rem] -translate-x-1/2 rounded-full bg-primary/[0.07] blur-3xl" />
+        <div className="absolute -bottom-40 -left-24 h-80 w-80 rounded-full bg-primary/[0.05] blur-3xl" />
+        <div className="absolute -bottom-40 -right-24 h-80 w-80 rounded-full bg-primary/[0.05] blur-3xl" />
+      </div>
+
       {/* Desktop Sidebar */}
-      <aside className="hidden w-64 flex-col border-r bg-background md:flex">
+      <aside className="sticky top-0 z-10 hidden h-[100dvh] w-64 flex-col border-r bg-background/60 backdrop-blur-md md:flex shrink-0">
         <div className="flex h-16 items-center justify-between border-b px-6">
           <div className="flex items-center gap-2">
             <div className="bg-primary/10 p-1.5 rounded-md">
-              <Utensils className="h-5 w-5 text-primary" />
+              <UtensilsCrossed className="h-5 w-5 text-primary" />
             </div>
             <span className="text-xl font-bold tracking-tight">CalFlow</span>
           </div>
@@ -87,10 +94,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {navItems.map((item) => {
               const isActive = pathname === item.href;
               return (
-                <button
+                <Link
                   key={item.name}
-                  onClick={() => router.push(item.href)}
-                  className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors w-full ${
+                  href={item.href}
+                  className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all active:scale-95 w-full ${
                     isActive
                       ? 'bg-primary/10 text-primary'
                       : 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -98,7 +105,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 >
                   <item.icon className="h-5 w-5" />
                   {item.name}
-                </button>
+                </Link>
               );
             })}
           </nav>
@@ -139,41 +146,40 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden pb-16 md:pb-0">
-        {/* Mobile Top Header */}
-        <div className="flex h-14 items-center justify-between border-b bg-background px-4 md:hidden">
+      {/* Mobile Top Header */}
+      <main className="relative z-10 flex-1 flex flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0 min-w-0">
+        <div className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-md md:hidden">
           <div className="flex items-center gap-2">
             <div className="bg-primary/10 p-1 rounded-md">
-              <Utensils className="h-5 w-5 text-primary" />
+              <UtensilsCrossed className="h-5 w-5 text-primary" />
             </div>
             <span className="text-lg font-bold tracking-tight">CalFlow</span>
           </div>
           <ThemeToggle />
         </div>
 
-        <div className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-5xl p-4 md:p-6 lg:p-8">
+        <div className="flex-1 relative flex flex-col">
+          <div className={`mx-auto max-w-5xl w-full flex-1 flex flex-col ${pathname === '/chat' ? 'p-0' : 'p-4 md:p-6 lg:p-8'}`}>
             {children}
           </div>
         </div>
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 z-50 flex h-16 w-full items-center justify-around border-t bg-background px-2 pb-safe md:hidden">
+      <nav className="fixed bottom-0 z-50 flex h-[calc(4rem+env(safe-area-inset-bottom))] w-full items-center justify-around border-t bg-background/80 px-2 pb-safe backdrop-blur-md md:hidden">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
-            <button
+            <Link
               key={item.name}
-              onClick={() => router.push(item.href)}
-              className={`flex flex-col items-center justify-center space-y-1 rounded-md px-2 py-1 ${
+              href={item.href}
+              className={`flex flex-col items-center justify-center space-y-1 rounded-md px-1 py-1 transition-all active:scale-95 ${
                 isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <item.icon className={`h-6 w-6 ${isActive ? 'fill-primary/20' : ''}`} />
+              <item.icon className={`h-5 w-5 ${isActive ? 'fill-primary/20' : ''}`} />
               <span className="text-[10px] font-medium">{item.name}</span>
-            </button>
+            </Link>
           );
         })}
       </nav>

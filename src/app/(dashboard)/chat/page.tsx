@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import ChatMessage from '@/components/chat/ChatMessage';
 import ChatInput from '@/components/chat/ChatInput';
+import { createClient } from '@/lib/supabase/client';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -13,12 +14,26 @@ export default function ChatPage() {
     { role: 'assistant', content: 'Hi! I can help you log meals, check your progress, or answer nutrition questions. What did you have for lunch?' }
   ]);
   const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Restore messages from localStorage on client mount
+  // Fetch current user
   useEffect(() => {
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  // Restore messages from localStorage on client mount, tied to user
+  useEffect(() => {
+    if (!userId) return;
     try {
-      const saved = localStorage.getItem('calflow_chat_messages');
+      const saved = localStorage.getItem(`calflow_chat_messages_${userId}`);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -28,12 +43,13 @@ export default function ChatPage() {
     } catch (e) {
       console.error('Failed to restore chat messages:', e);
     }
-  }, []);
+  }, [userId]);
 
-  const saveMessages = (msgs: Message[]) => {
+  const saveMessages = (msgs: Message[], uid: string | null = userId) => {
     setMessages(msgs);
+    if (!uid) return;
     try {
-      localStorage.setItem('calflow_chat_messages', JSON.stringify(msgs));
+      localStorage.setItem(`calflow_chat_messages_${uid}`, JSON.stringify(msgs));
     } catch (e) {
       console.error('Failed to persist chat messages:', e);
     }
@@ -77,21 +93,21 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)] max-w-3xl mx-auto w-full">
-      <div className="p-3 border-b flex justify-between items-center bg-card/50">
+    <div className="flex flex-col min-h-full w-full relative">
+      <div className="sticky top-14 md:top-0 z-30 p-3 md:p-4 border-b flex justify-between items-center bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shrink-0">
         <div>
           <h2 className="text-sm font-semibold">Nutrition Assistant</h2>
-          <p className="text-xs text-muted-foreground">Powered by {process.env.NEXT_PUBLIC_AI_MODEL || 'nemotron-3-ultra'}</p>
+          <p className="text-xs text-muted-foreground">Powered by {process.env.NEXT_PUBLIC_AI_MODEL || 'gemma4:31b'}</p>
         </div>
         <button
           onClick={clearChat}
-          className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded border hover:bg-muted transition-colors"
+          className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded border hover:bg-muted transition-colors active:scale-95"
         >
           Clear Chat
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+      <div className="flex-1 p-4 space-y-6 flex flex-col">
         {messages.map((msg, i) => (
           <ChatMessage key={i} message={msg} />
         ))}
@@ -101,10 +117,10 @@ export default function ChatPage() {
             <span className="animate-pulse">Thinking...</span>
           </div>
         )}
-        <div ref={messagesEndRef} />
+        <div ref={messagesEndRef} className="h-2" />
       </div>
       
-      <div className="p-4 border-t bg-background">
+      <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] md:bottom-0 z-30 p-4 md:p-6 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shrink-0 mt-auto">
         <ChatInput onSend={handleSend} disabled={loading} />
       </div>
     </div>

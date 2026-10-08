@@ -8,6 +8,76 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.7.6] — 2026-10-09
+
+**Fix: Isolate AI Chat Sessions per User**
+
+### Fixed
+- Fixed a bug where AI chat sessions were stored in `localStorage` under a common key (`calflow_chat_messages`), causing new signups or different users logging in on the same device to see previous users' chat history.
+- Chat history is now isolated by appending the Supabase `userId` to the `localStorage` key.
+
+---
+
+## [0.7.5] — 2026-10-08
+
+**Fix: Scrolling Background & Rubber Banding**
+
+### Fixed
+- Fixed an issue where the background blobs would scroll out of view when the document scrolled by changing their positioning from absolute to fixed.
+- Added `overscroll-behavior-y: none` to the global stylesheet to prevent the entire website from rubber-banding (bouncing) on iOS Safari when scrolling past the top or bottom bounds.
+
+---
+
+## [0.7.4] — 2026-10-08
+
+**Fix: AI Chat Mobile Scrolling & Keyboard Trap**
+
+### Fixed
+- Fixed a severe regression on mobile where focusing the AI chat input pushed the entire website up, permanently trapping the viewport and preventing scrolling.
+- Removed strict `h-[100dvh]` bounded flex heights from the root layout container.
+- Chat page now allows native document scrolling, preventing Safari's virtual keyboard from locking the page layout.
+- Chat input and header use sticky positioning adjusted for the mobile navigation bar, ensuring they remain accessible above the keyboard without breaking the document flow.
+- Ensured non-chat pages also continue to scroll natively with buttery smoothness.
+
+---
+
+## [0.7.3] — 2026-10-08
+
+**Fix: Layout Regression on Non-Chat Pages**
+
+### Fixed
+- Fixed an issue where non-chat pages couldn't scroll.
+
+---
+
+## [0.7.2] — 2026-10-08
+
+**Fix: AI Chat Scrolling & Layout**
+
+### Fixed
+- Fixed critical scrolling issues in the AI Chat page on both mobile and desktop.
+- Chat UI is now a true fullscreen flex layout that perfectly bounds to the viewport, keeping the input fixed at the bottom while allowing messages to scroll cleanly within their own container.
+- Eliminated double-scrollbar issues on desktop and layout-shift bugs on mobile Safari.
+- Replaced `h-screen` (which uses `100vh`) with `h-[100dvh]` globally in the dashboard layout to fix iOS Safari address bar and virtual keyboard viewport resizing issues, ensuring the chat input is never pushed off-screen.
+
+---
+
+## [0.7.1] — 2026-10-08
+
+**Mobile UI Polish & Glassmorphism Theme**
+
+### Added
+- Unified glassmorphism theme: added frosted glass (`backdrop-blur-md`) to mobile top header, mobile bottom navigation, desktop sidebar, and Auth cards.
+- Ambient glowing background blobs from auth layout applied globally to the dashboard layout for a premium consistent theme.
+- Global `-webkit-tap-highlight-color: transparent` to remove iOS Safari tap highlights.
+
+### Changed
+- Replaced basic buttons and `<a>` links in navigation components with Next.js `<Link>` for buttery smooth SPA client-side routing.
+- Replaced default button active translation with `active:scale-95` to provide a buttery smooth, bouncy touch feedback on all buttons and navigation links.
+- Increased default `Input`, `Textarea`, and `Button` heights from 32px (`h-8`) to 40px (`h-10`) with proportionally larger padding to improve mobile tap targets and prevent clumsy interactions.
+
+---
+
 ## [0.7.0] — 2026-10-02 · `76bb022`
 
 **Merge: Goal-Based Tracking**
