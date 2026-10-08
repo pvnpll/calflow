@@ -1,17 +1,11 @@
 import { ImageResponse } from 'next/og';
-import { NextRequest } from 'next/server';
 
 export const runtime = 'edge';
+export const size = { width: 192, height: 192 };
+export const contentType = 'image/png';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ size: string }> }
-) {
-  const { size: sizeParam } = await params;
-  const size = parseInt(sizeParam) || 192;
-  
-  // Scale down the icon inside the box a bit for padding
-  const iconSize = Math.floor(size * 0.6);
+export default function Icon() {
+  const iconSize = Math.floor(192 * 0.6);
 
   return new ImageResponse(
     (
@@ -23,7 +17,7 @@ export async function GET(
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          borderRadius: size >= 512 ? '20%' : '50%',
+          borderRadius: '20%',
         }}
       >
         <svg
@@ -45,8 +39,7 @@ export async function GET(
       </div>
     ),
     {
-      width: size,
-      height: size,
+      ...size,
     }
   );
 }

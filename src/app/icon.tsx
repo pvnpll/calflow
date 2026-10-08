@@ -1,14 +1,12 @@
-import { ImageResponse } from 'next/og'
- 
-export const runtime = 'edge'
- 
-export const size = {
-  width: 32,
-  height: 32,
-}
-export const contentType = 'image/png'
- 
+import { ImageResponse } from 'next/og';
+
+export const runtime = 'edge';
+export const size = { width: 512, height: 512 };
+export const contentType = 'image/png';
+
 export default function Icon() {
+  const iconSize = Math.floor(512 * 0.6);
+
   return new ImageResponse(
     (
       <div
@@ -19,13 +17,13 @@ export default function Icon() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          borderRadius: '50%',
+          borderRadius: '20%',
         }}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
+          width={iconSize}
+          height={iconSize}
           viewBox="0 0 24 24"
           fill="none"
           stroke="white"
@@ -43,5 +41,5 @@ export default function Icon() {
     {
       ...size,
     }
-  )
+  );
 }

@@ -19,15 +19,6 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false,
   },
-  icons: {
-    icon: [
-      { url: '/api/icon/192', sizes: '192x192', type: 'image/png' },
-      { url: '/api/icon/512', sizes: '512x512', type: 'image/png' },
-    ],
-    apple: [
-      { url: '/api/icon/192' },
-    ],
-  },
   other: {
     'apple-mobile-web-app-capable': 'yes',
   },
