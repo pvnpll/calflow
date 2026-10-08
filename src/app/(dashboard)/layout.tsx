@@ -134,7 +134,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       {/* Mobile Top Header */}
-      <main className="flex-1 flex flex-col overflow-hidden pb-16 md:pb-0">
+      <main className="flex-1 flex flex-col overflow-hidden pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
         <div className="flex h-14 items-center justify-between border-b bg-background px-4 md:hidden">
           <div className="flex items-center gap-2">
             <div className="bg-primary/10 p-1 rounded-md">
@@ -153,7 +153,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 z-50 flex h-16 w-full items-center justify-around border-t bg-background px-2 pb-safe md:hidden">
+      <nav className="fixed bottom-0 z-50 flex h-[calc(4rem+env(safe-area-inset-bottom))] w-full items-center justify-around border-t bg-background px-2 pb-safe md:hidden">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
