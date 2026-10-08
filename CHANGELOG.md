@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.7.2] — 2026-10-08
+
+**Fix: AI Chat Scrolling & Layout**
+
+### Fixed
+- Fixed critical scrolling issues in the AI Chat page on both mobile and desktop.
+- Chat UI is now a true fullscreen flex layout that perfectly bounds to the viewport, keeping the input fixed at the bottom while allowing messages to scroll cleanly within their own container.
+- Eliminated double-scrollbar issues on desktop and layout-shift bugs on mobile Safari.
+- Replaced `h-screen` (which uses `100vh`) with `h-[100dvh]` globally in the dashboard layout to fix iOS Safari address bar and virtual keyboard viewport resizing issues, ensuring the chat input is never pushed off-screen.
+
+---
+
 ## [0.7.1] — 2026-10-08
 
 **Mobile UI Polish & Glassmorphism Theme**

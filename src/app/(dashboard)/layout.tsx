@@ -77,7 +77,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   return (
-    <div className="relative flex h-screen overflow-hidden bg-muted/20">
+    <div className="relative flex h-[100dvh] overflow-hidden bg-muted/20">
       {/* Subtle backdrop matching auth pages */}
       <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
         <div className="absolute -top-32 left-1/2 h-72 w-[42rem] -translate-x-1/2 rounded-full bg-primary/[0.07] blur-3xl" />
@@ -152,8 +152,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <ThemeToggle />
         </div>
 
-        <div className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-5xl p-4 md:p-6 lg:p-8">
+        <div className={`flex-1 flex flex-col relative ${pathname === '/chat' ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+          <div className={`mx-auto max-w-5xl flex-1 w-full flex flex-col ${pathname === '/chat' ? 'p-0' : 'p-4 md:p-6 lg:p-8'}`}>
             {children}
           </div>
         </div>

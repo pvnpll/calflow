@@ -77,15 +77,15 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)] max-w-3xl mx-auto w-full">
-      <div className="p-3 border-b flex justify-between items-center bg-card/50">
+    <div className="flex flex-col flex-1 min-h-0 w-full relative">
+      <div className="p-3 md:p-4 border-b flex justify-between items-center bg-card/50 shrink-0">
         <div>
           <h2 className="text-sm font-semibold">Nutrition Assistant</h2>
           <p className="text-xs text-muted-foreground">Powered by {process.env.NEXT_PUBLIC_AI_MODEL || 'gemma4:31b'}</p>
         </div>
         <button
           onClick={clearChat}
-          className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded border hover:bg-muted transition-colors"
+          className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded border hover:bg-muted transition-colors active:scale-95"
         >
           Clear Chat
         </button>
@@ -101,10 +101,10 @@ export default function ChatPage() {
             <span className="animate-pulse">Thinking...</span>
           </div>
         )}
-        <div ref={messagesEndRef} />
+        <div ref={messagesEndRef} className="h-2" />
       </div>
       
-      <div className="p-4 border-t bg-background">
+      <div className="p-4 md:p-6 border-t bg-background/80 backdrop-blur-md shrink-0">
         <ChatInput onSend={handleSend} disabled={loading} />
       </div>
     </div>
