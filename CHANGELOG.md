@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.7.5] — 2026-10-08
+
+**Fix: Scrolling Background & Rubber Banding**
+
+### Fixed
+- Fixed an issue where the background blobs would scroll out of view when the document scrolled by changing their positioning from absolute to fixed.
+- Added `overscroll-behavior-y: none` to the global stylesheet to prevent the entire website from rubber-banding (bouncing) on iOS Safari when scrolling past the top or bottom bounds.
+
+---
+
 ## [0.7.4] — 2026-10-08
 
 **Fix: AI Chat Mobile Scrolling & Keyboard Trap**

@@ -79,7 +79,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="relative flex min-h-[100dvh] bg-muted/20">
       {/* Subtle backdrop matching auth pages */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
+      <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
         <div className="absolute -top-32 left-1/2 h-72 w-[42rem] -translate-x-1/2 rounded-full bg-primary/[0.07] blur-3xl" />
         <div className="absolute -bottom-40 -left-24 h-80 w-80 rounded-full bg-primary/[0.05] blur-3xl" />
         <div className="absolute -bottom-40 -right-24 h-80 w-80 rounded-full bg-primary/[0.05] blur-3xl" />
