@@ -6,6 +6,7 @@ interface ProfileContextValue {
   goals: any;
   loading: boolean;
   refresh: () => void;
+  refreshSilent: () => void;
 }
 
 const ProfileContext = createContext<ProfileContextValue>({
@@ -13,6 +14,7 @@ const ProfileContext = createContext<ProfileContextValue>({
   goals: null,
   loading: true,
   refresh: () => {},
+  refreshSilent: () => {},
 });
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
@@ -36,12 +38,26 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Same fetch but without touching `loading` — no skeleton flash, no remount.
+  const fetchSilent = useCallback(async () => {
+    try {
+      const res = await fetch('/api/profile/full');
+      if (res.ok) {
+        const data = await res.json();
+        setProfile(data.profile);
+        setGoals(data.goals);
+      }
+    } catch (err) {
+      console.error('ProfileContext silent fetch failed:', err);
+    }
+  }, []);
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
   return (
-    <ProfileContext.Provider value={{ profile, goals, loading, refresh: fetchData }}>
+    <ProfileContext.Provider value={{ profile, goals, loading, refresh: fetchData, refreshSilent: fetchSilent }}>
       {children}
     </ProfileContext.Provider>
   );
