@@ -25,6 +25,8 @@ export default function DashboardContent() {
   const [meals, setMeals] = useState<any[]>([]);
   const [weightHistory, setWeightHistory] = useState<any[]>([]);
   const [weight, setWeight] = useState<{ current: number; trend: 'up' | 'down' | 'stable'; trendValue: number; targetWeight?: number }>({ current: 0, trend: 'stable', trendValue: 0 });
+  const [showAllVitamins, setShowAllVitamins] = useState(false);
+  const [showAllMinerals, setShowAllMinerals] = useState(false);
 
   const fetchDashboardData = useCallback(async () => {
     try {
@@ -216,38 +218,56 @@ export default function DashboardContent() {
         }
 
         // Definitive 27 Essential Micronutrients (FDA / NIH standards)
+        // Display: only 12 "key" essentials — 6 vitamins + 6 minerals.
+        // Full list retained so AI logging / alias matching keeps working.
         const ESSENTIAL_MICRONUTRIENTS = [
           // 14 Vitamins
-          { id: 'vitamina', name: 'Vitamin A', category: 'Vitamin', target: 900, unit: 'mcg', aliases: ['vitamina', 'vita'] },
-          { id: 'vitaminc', name: 'Vitamin C', category: 'Vitamin', target: 90, unit: 'mg', aliases: ['vitaminc', 'vitc', 'ascorbicacid'] },
-          { id: 'vitamind', name: 'Vitamin D', category: 'Vitamin', target: 20, unit: 'mcg', aliases: ['vitamind', 'vitd'] },
-          { id: 'vitamine', name: 'Vitamin E', category: 'Vitamin', target: 15, unit: 'mg', aliases: ['vitamine', 'vite'] },
-          { id: 'vitamink', name: 'Vitamin K', category: 'Vitamin', target: 120, unit: 'mcg', aliases: ['vitamink', 'vitk'] },
-          { id: 'thiamin', name: 'Thiamin (B1)', category: 'Vitamin', target: 1.2, unit: 'mg', aliases: ['thiamin', 'vitaminb1', 'b1'] },
-          { id: 'riboflavin', name: 'Riboflavin (B2)', category: 'Vitamin', target: 1.3, unit: 'mg', aliases: ['riboflavin', 'vitaminb2', 'b2'] },
-          { id: 'niacin', name: 'Niacin (B3)', category: 'Vitamin', target: 16, unit: 'mg', aliases: ['niacin', 'vitaminb3', 'b3'] },
-          { id: 'pantothenicacid', name: 'Pantothenic Acid (B5)', category: 'Vitamin', target: 5, unit: 'mg', aliases: ['pantothenicacid', 'vitaminb5', 'b5'] },
-          { id: 'vitaminb6', name: 'Vitamin B6', category: 'Vitamin', target: 1.7, unit: 'mg', aliases: ['vitaminb6', 'b6'] },
-          { id: 'biotin', name: 'Biotin (B7)', category: 'Vitamin', target: 30, unit: 'mcg', aliases: ['biotin', 'vitaminb7', 'b7'] },
-          { id: 'folate', name: 'Folate (B9)', category: 'Vitamin', target: 400, unit: 'mcg', aliases: ['folate', 'vitaminb9', 'b9', 'folicacid'] },
-          { id: 'vitaminb12', name: 'Vitamin B12', category: 'Vitamin', target: 2.4, unit: 'mcg', aliases: ['vitaminb12', 'b12', 'cobalamin'] },
-          { id: 'choline', name: 'Choline', category: 'Vitamin', target: 550, unit: 'mg', aliases: ['choline'] },
+          { id: 'vitamina', name: 'Vitamin A', category: 'Vitamin', target: 900, unit: 'mcg', featured: true, aliases: ['vitamina', 'vita'] },
+          { id: 'vitaminc', name: 'Vitamin C', category: 'Vitamin', target: 90, unit: 'mg', featured: true, aliases: ['vitaminc', 'vitc', 'ascorbicacid'] },
+          { id: 'vitamind', name: 'Vitamin D', category: 'Vitamin', target: 20, unit: 'mcg', featured: true, aliases: ['vitamind', 'vitd'] },
+          { id: 'vitamine', name: 'Vitamin E', category: 'Vitamin', target: 15, unit: 'mg', featured: false, aliases: ['vitamine', 'vite'] },
+          { id: 'vitamink', name: 'Vitamin K', category: 'Vitamin', target: 120, unit: 'mcg', featured: true, aliases: ['vitamink', 'vitk'] },
+          { id: 'thiamin', name: 'Thiamin (B1)', category: 'Vitamin', target: 1.2, unit: 'mg', featured: false, aliases: ['thiamin', 'vitaminb1', 'b1'] },
+          { id: 'riboflavin', name: 'Riboflavin (B2)', category: 'Vitamin', target: 1.3, unit: 'mg', featured: false, aliases: ['riboflavin', 'vitaminb2', 'b2'] },
+          { id: 'niacin', name: 'Niacin (B3)', category: 'Vitamin', target: 16, unit: 'mg', featured: false, aliases: ['niacin', 'vitaminb3', 'b3'] },
+          { id: 'pantothenicacid', name: 'Pantothenic Acid (B5)', category: 'Vitamin', target: 5, unit: 'mg', featured: false, aliases: ['pantothenicacid', 'vitaminb5', 'b5'] },
+          { id: 'vitaminb6', name: 'Vitamin B6', category: 'Vitamin', target: 1.7, unit: 'mg', featured: false, aliases: ['vitaminb6', 'b6'] },
+          { id: 'biotin', name: 'Biotin (B7)', category: 'Vitamin', target: 30, unit: 'mcg', featured: false, aliases: ['biotin', 'vitaminb7', 'b7'] },
+          { id: 'folate', name: 'Folate (B9)', category: 'Vitamin', target: 400, unit: 'mcg', featured: true, aliases: ['folate', 'vitaminb9', 'b9', 'folicacid'] },
+          { id: 'vitaminb12', name: 'Vitamin B12', category: 'Vitamin', target: 2.4, unit: 'mcg', featured: true, aliases: ['vitaminb12', 'b12', 'cobalamin'] },
+          { id: 'choline', name: 'Choline', category: 'Vitamin', target: 550, unit: 'mg', featured: false, aliases: ['choline'] },
           
           // 13 Minerals & Trace Elements
-          { id: 'calcium', name: 'Calcium', category: 'Mineral', target: 1300, unit: 'mg', aliases: ['calcium'] },
-          { id: 'iron', name: 'Iron', category: 'Mineral', target: 18, unit: 'mg', aliases: ['iron'] },
-          { id: 'magnesium', name: 'Magnesium', category: 'Mineral', target: 420, unit: 'mg', aliases: ['magnesium'] },
-          { id: 'potassium', name: 'Potassium', category: 'Mineral', target: 4700, unit: 'mg', aliases: ['potassium'] },
-          { id: 'sodium', name: 'Sodium', category: 'Mineral', target: 2300, unit: 'mg', aliases: ['sodium'] },
-          { id: 'zinc', name: 'Zinc', category: 'Mineral', target: 11, unit: 'mg', aliases: ['zinc'] },
-          { id: 'selenium', name: 'Selenium', category: 'Mineral', target: 55, unit: 'mcg', aliases: ['selenium'] },
-          { id: 'phosphorus', name: 'Phosphorus', category: 'Mineral', target: 1250, unit: 'mg', aliases: ['phosphorus'] },
-          { id: 'copper', name: 'Copper', category: 'Mineral', target: 0.9, unit: 'mg', aliases: ['copper'] },
-          { id: 'manganese', name: 'Manganese', category: 'Mineral', target: 2.3, unit: 'mg', aliases: ['manganese'] },
-          { id: 'iodine', name: 'Iodine', category: 'Mineral', target: 150, unit: 'mcg', aliases: ['iodine'] },
-          { id: 'chromium', name: 'Chromium', category: 'Mineral', target: 35, unit: 'mcg', aliases: ['chromium'] },
-          { id: 'molybdenum', name: 'Molybdenum', category: 'Mineral', target: 45, unit: 'mcg', aliases: ['molybdenum'] },
+          { id: 'calcium', name: 'Calcium', category: 'Mineral', target: 1300, unit: 'mg', featured: true, aliases: ['calcium'] },
+          { id: 'iron', name: 'Iron', category: 'Mineral', target: 18, unit: 'mg', featured: true, aliases: ['iron'] },
+          { id: 'magnesium', name: 'Magnesium', category: 'Mineral', target: 420, unit: 'mg', featured: true, aliases: ['magnesium'] },
+          { id: 'potassium', name: 'Potassium', category: 'Mineral', target: 4700, unit: 'mg', featured: true, aliases: ['potassium'] },
+          { id: 'sodium', name: 'Sodium', category: 'Mineral', target: 2300, unit: 'mg', featured: true, aliases: ['sodium'] },
+          { id: 'zinc', name: 'Zinc', category: 'Mineral', target: 11, unit: 'mg', featured: true, aliases: ['zinc'] },
+          { id: 'selenium', name: 'Selenium', category: 'Mineral', target: 55, unit: 'mcg', featured: false, aliases: ['selenium'] },
+          { id: 'phosphorus', name: 'Phosphorus', category: 'Mineral', target: 1250, unit: 'mg', featured: false, aliases: ['phosphorus'] },
+          { id: 'copper', name: 'Copper', category: 'Mineral', target: 0.9, unit: 'mg', featured: false, aliases: ['copper'] },
+          { id: 'manganese', name: 'Manganese', category: 'Mineral', target: 2.3, unit: 'mg', featured: false, aliases: ['manganese'] },
+          { id: 'iodine', name: 'Iodine', category: 'Mineral', target: 150, unit: 'mcg', featured: false, aliases: ['iodine'] },
+          { id: 'chromium', name: 'Chromium', category: 'Mineral', target: 35, unit: 'mcg', featured: false, aliases: ['chromium'] },
+          { id: 'molybdenum', name: 'Molybdenum', category: 'Mineral', target: 45, unit: 'mcg', featured: false, aliases: ['molybdenum'] },
         ];
+
+        // Only the 12 featured essentials are displayed (6 + 6) by default.
+        // Toggles reveal the remaining hidden items in each group.
+        // Expanded lists keep featured 6 first (stable order), extras appended after.
+        const ALL_VITAMINS = ESSENTIAL_MICRONUTRIENTS.filter(n => n.category === 'Vitamin');
+        const ALL_MINERALS = ESSENTIAL_MICRONUTRIENTS.filter(n => n.category === 'Mineral');
+        const FEATURED_VITAMINS = ALL_VITAMINS.filter(n => n.featured);
+        const FEATURED_MINERALS = ALL_MINERALS.filter(n => n.featured);
+        const EXTRA_VITAMINS = ALL_VITAMINS.filter(n => !n.featured);
+        const EXTRA_MINERALS = ALL_MINERALS.filter(n => !n.featured);
+        const HIDDEN_VITAMIN_COUNT = EXTRA_VITAMINS.length;
+        const HIDDEN_MINERAL_COUNT = EXTRA_MINERALS.length;
+        const visibleVitamins = showAllVitamins ? [...FEATURED_VITAMINS, ...EXTRA_VITAMINS] : FEATURED_VITAMINS;
+        const visibleMinerals = showAllMinerals ? [...FEATURED_MINERALS, ...EXTRA_MINERALS] : FEATURED_MINERALS;
+        const DISPLAYED_NUTRIENTS = [...visibleVitamins, ...visibleMinerals];
+        const TOTAL_COUNT = showAllVitamins || showAllMinerals ? ESSENTIAL_MICRONUTRIENTS.length : DISPLAYED_NUTRIENTS.length;
 
         const getConsumedFor = (item: typeof ESSENTIAL_MICRONUTRIENTS[0]) => {
           for (const alias of item.aliases) {
@@ -260,16 +280,72 @@ export default function DashboardContent() {
           return 0;
         };
 
-        const totalActive = ESSENTIAL_MICRONUTRIENTS.filter(item => getConsumedFor(item) > 0).length;
+        const totalActive = DISPLAYED_NUTRIENTS.filter(item => getConsumedFor(item) > 0).length;
+
+        const renderNutrientCard = (nutrient: typeof ESSENTIAL_MICRONUTRIENTS[0]) => {
+          const consumed = getConsumedFor(nutrient);
+          const percent = Math.min(100, Math.round((consumed / nutrient.target) * 100));
+          const formattedConsumed = Math.round(consumed * 10) / 10;
+          const isMet = percent >= 100;
+          const isGood = percent >= 50;
+
+          return (
+            <div
+              key={nutrient.id}
+              className={`p-3 rounded-xl border transition-colors ${
+                consumed > 0 ? 'bg-background' : 'bg-muted/20 opacity-70 hover:opacity-100'
+              }`}
+            >
+              <div className="flex justify-between items-center text-xs mb-1.5">
+                <span className="font-semibold text-foreground">{nutrient.name}</span>
+                <span
+                  className={`text-[11px] font-bold px-1.5 py-0.5 rounded ${
+                    consumed === 0
+                      ? 'bg-muted text-muted-foreground'
+                      : isMet
+                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                      : isGood
+                      ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                      : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                  }`}
+                >
+                  {percent}% DV
+                </span>
+              </div>
+
+              <div className="flex justify-between text-xs text-muted-foreground mb-2">
+                <span className={consumed > 0 ? 'font-medium text-foreground' : ''}>
+                  {consumed > 0 ? `~${formattedConsumed}` : '0'} {nutrient.unit}
+                </span>
+                <span>Target: {nutrient.target} {nutrient.unit}</span>
+              </div>
+
+              <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    consumed === 0
+                      ? 'w-0'
+                      : isMet
+                      ? 'bg-emerald-500'
+                      : isGood
+                      ? 'bg-blue-500'
+                      : 'bg-amber-500'
+                  }`}
+                  style={{ width: `${percent}%` }}
+                />
+              </div>
+            </div>
+          );
+        };
 
         return (
           <div className="p-5 border rounded-2xl bg-card shadow-sm space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-4">
               <div>
                 <h3 className="font-semibold text-base flex items-center gap-2">
-                  <span>Essential Vitamins & Micronutrients</span>
+                  <span>Essential Vitamins & Minerals</span>
                   <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full font-normal">
-                    {totalActive} of 27 tracked today
+                    {totalActive} of {TOTAL_COUNT} tracked today
                   </span>
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
@@ -277,69 +353,50 @@ export default function DashboardContent() {
                 </p>
               </div>
               <span className="text-[11px] bg-primary/10 text-primary px-2.5 py-1 rounded-full font-medium self-start sm:self-auto border border-primary/20">
-                27 Essential FDA/NIH Standards
+                {showAllVitamins || showAllMinerals ? 'All 27 FDA/NIH Standards' : '12 Key Essentials · FDA/NIH'}
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {ESSENTIAL_MICRONUTRIENTS.map((nutrient) => {
-                const consumed = getConsumedFor(nutrient);
-                const percent = Math.min(100, Math.round((consumed / nutrient.target) * 100));
-                const formattedConsumed = Math.round(consumed * 10) / 10;
-                const isMet = percent >= 100;
-                const isGood = percent >= 50;
+            {/* Vitamins — 6 most essential */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <h4 className="text-sm font-semibold flex items-center gap-2">
+                  <span>Vitamins</span>
+                  <span className="text-[11px] bg-muted text-muted-foreground px-2 py-0.5 rounded-full font-normal">
+                    {showAllVitamins ? `all ${ALL_VITAMINS.length}` : `${FEATURED_VITAMINS.length} essentials`}
+                  </span>
+                </h4>
+                <button
+                  onClick={() => setShowAllVitamins(prev => !prev)}
+                  className="text-xs font-medium text-primary hover:underline shrink-0"
+                >
+                  {showAllVitamins ? 'Show less' : `Show all ${ALL_VITAMINS.length} (+${HIDDEN_VITAMIN_COUNT} more)`}
+                </button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {visibleVitamins.map(renderNutrientCard)}
+              </div>
+            </div>
 
-                return (
-                  <div
-                    key={nutrient.id}
-                    className={`p-3 rounded-xl border transition-colors ${
-                      consumed > 0 ? 'bg-background' : 'bg-muted/20 opacity-70 hover:opacity-100'
-                    }`}
-                  >
-                    <div className="flex justify-between items-start text-xs mb-1.5">
-                      <div>
-                        <span className="font-semibold text-foreground block">{nutrient.name}</span>
-                        <span className="text-[10px] text-muted-foreground">{nutrient.category}</span>
-                      </div>
-                      <span
-                        className={`text-[11px] font-bold px-1.5 py-0.5 rounded ${
-                          consumed === 0
-                            ? 'bg-muted text-muted-foreground'
-                            : isMet
-                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                            : isGood
-                            ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
-                            : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                        }`}
-                      >
-                        {percent}% DV
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between text-xs text-muted-foreground mb-2">
-                      <span className={consumed > 0 ? 'font-medium text-foreground' : ''}>
-                        {consumed > 0 ? `~${formattedConsumed}` : '0'} {nutrient.unit}
-                      </span>
-                      <span>Target: {nutrient.target} {nutrient.unit}</span>
-                    </div>
-
-                    <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-500 ${
-                          consumed === 0
-                            ? 'w-0'
-                            : isMet
-                            ? 'bg-emerald-500'
-                            : isGood
-                            ? 'bg-blue-500'
-                            : 'bg-amber-500'
-                        }`}
-                        style={{ width: `${percent}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+            {/* Minerals — 6 most essential */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <h4 className="text-sm font-semibold flex items-center gap-2">
+                  <span>Minerals</span>
+                  <span className="text-[11px] bg-muted text-muted-foreground px-2 py-0.5 rounded-full font-normal">
+                    {showAllMinerals ? `all ${ALL_MINERALS.length}` : `${FEATURED_MINERALS.length} essentials`}
+                  </span>
+                </h4>
+                <button
+                  onClick={() => setShowAllMinerals(prev => !prev)}
+                  className="text-xs font-medium text-primary hover:underline shrink-0"
+                >
+                  {showAllMinerals ? 'Show less' : `Show all ${ALL_MINERALS.length} (+${HIDDEN_MINERAL_COUNT} more)`}
+                </button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {visibleMinerals.map(renderNutrientCard)}
+              </div>
             </div>
           </div>
         );
