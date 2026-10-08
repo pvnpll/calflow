@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.7.3] — 2026-10-08
+
+**Fix: Restore Scrolling for Standard Pages**
+
+### Fixed
+- Fixed an issue introduced in 0.7.2 where standard pages (Dashboard, Meals, Insights, etc.) were unable to scroll due to being globally wrapped in bounded flex containers (`flex-1 min-h-0`).
+- DashboardLayout now correctly applies flex constraints (`overflow-hidden`, `min-h-0`) *only* to the `/chat` route to support its fullscreen fixed-input UI, while seamlessly restoring the standard block layout (`overflow-y-auto`, unbounded height) for all other routes so they can scroll naturally.
+
+---
+
 ## [0.7.2] — 2026-10-08
 
 **Fix: AI Chat Scrolling & Layout**

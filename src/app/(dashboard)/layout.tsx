@@ -152,8 +152,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <ThemeToggle />
         </div>
 
-        <div className={`flex-1 flex flex-col relative ${pathname === '/chat' ? 'overflow-hidden' : 'overflow-y-auto'}`}>
-          <div className={`mx-auto max-w-5xl flex-1 w-full flex flex-col ${pathname === '/chat' ? 'p-0' : 'p-4 md:p-6 lg:p-8'}`}>
+        <div className={`flex-1 relative ${pathname === '/chat' ? 'flex flex-col overflow-hidden' : 'overflow-y-auto'}`}>
+          <div className={`mx-auto max-w-5xl w-full ${pathname === '/chat' ? 'flex-1 min-h-0 flex flex-col p-0' : 'p-4 md:p-6 lg:p-8'}`}>
             {children}
           </div>
         </div>
