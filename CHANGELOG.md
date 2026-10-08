@@ -8,13 +8,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [0.7.3] — 2026-10-08
+## [0.7.4] — 2026-10-08
 
-**Fix: Restore Scrolling for Standard Pages**
+**Fix: AI Chat Mobile Scrolling & Keyboard Trap**
 
 ### Fixed
-- Fixed an issue introduced in 0.7.2 where standard pages (Dashboard, Meals, Insights, etc.) were unable to scroll due to being globally wrapped in bounded flex containers (`flex-1 min-h-0`).
-- DashboardLayout now correctly applies flex constraints (`overflow-hidden`, `min-h-0`) *only* to the `/chat` route to support its fullscreen fixed-input UI, while seamlessly restoring the standard block layout (`overflow-y-auto`, unbounded height) for all other routes so they can scroll naturally.
+- Fixed a severe regression on mobile where focusing the AI chat input pushed the entire website up, permanently trapping the viewport and preventing scrolling.
+- Removed strict `h-[100dvh]` bounded flex heights from the root layout container.
+- Chat page now allows native document scrolling, preventing Safari's virtual keyboard from locking the page layout.
+- Chat input and header use sticky positioning adjusted for the mobile navigation bar, ensuring they remain accessible above the keyboard without breaking the document flow.
+- Ensured non-chat pages also continue to scroll natively with buttery smoothness.
+
+---
+
+## [0.7.3] — 2026-10-08
+
+**Fix: Layout Regression on Non-Chat Pages**
+
+### Fixed
+- Fixed an issue where non-chat pages couldn't scroll.
 
 ---
 

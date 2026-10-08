@@ -77,8 +77,8 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 w-full relative">
-      <div className="p-3 md:p-4 border-b flex justify-between items-center bg-card/50 shrink-0">
+    <div className="flex flex-col min-h-full w-full relative">
+      <div className="sticky top-14 md:top-0 z-30 p-3 md:p-4 border-b flex justify-between items-center bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shrink-0">
         <div>
           <h2 className="text-sm font-semibold">Nutrition Assistant</h2>
           <p className="text-xs text-muted-foreground">Powered by {process.env.NEXT_PUBLIC_AI_MODEL || 'gemma4:31b'}</p>
@@ -91,7 +91,7 @@ export default function ChatPage() {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+      <div className="flex-1 p-4 space-y-6 flex flex-col">
         {messages.map((msg, i) => (
           <ChatMessage key={i} message={msg} />
         ))}
@@ -104,7 +104,7 @@ export default function ChatPage() {
         <div ref={messagesEndRef} className="h-2" />
       </div>
       
-      <div className="p-4 md:p-6 border-t bg-background/80 backdrop-blur-md shrink-0">
+      <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] md:bottom-0 z-30 p-4 md:p-6 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shrink-0 mt-auto">
         <ChatInput onSend={handleSend} disabled={loading} />
       </div>
     </div>
