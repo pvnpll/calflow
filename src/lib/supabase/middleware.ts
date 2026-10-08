@@ -48,7 +48,17 @@ export async function updateSession(request: NextRequest) {
     const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/signup') || pathname.startsWith('/forgot-password') || pathname === '/'
     
     // API or static routes to ignore
-    const isPublicPath = pathname.startsWith('/api') || pathname.startsWith('/_next') || pathname.startsWith('/static') || pathname.startsWith('/.well-known') || pathname.startsWith('/auth/callback')
+    const isPublicPath = pathname.startsWith('/api') || 
+      pathname.startsWith('/_next') || 
+      pathname.startsWith('/static') || 
+      pathname.startsWith('/.well-known') || 
+      pathname.startsWith('/auth/callback') ||
+      pathname.match(/\.(png|json|xml|ico|webmanifest)$/i) || // Static assets
+      pathname === '/apple-icon' ||
+      pathname === '/icon' ||
+      pathname === '/manifest.json' ||
+      pathname === '/sw.js' ||
+      pathname === '/offline';
 
     if (!user && !isAuthRoute && !isPublicPath) {
       // User is not logged in and trying to access a protected route
