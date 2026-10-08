@@ -83,7 +83,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="flex h-16 items-center justify-between border-b px-6">
           <div className="flex items-center gap-2">
             <div className="bg-primary/10 p-1.5 rounded-md">
-              <Utensils className="h-5 w-5 text-primary" />
+              <UtensilsCrossed className="h-5 w-5 text-primary" />
             </div>
             <span className="text-xl font-bold tracking-tight">CalFlow</span>
           </div>
@@ -133,13 +133,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </aside>
 
-      {/* Main Content */}
+      {/* Mobile Top Header */}
       <main className="flex-1 flex flex-col overflow-hidden pb-16 md:pb-0">
-        {/* Mobile Top Header */}
         <div className="flex h-14 items-center justify-between border-b bg-background px-4 md:hidden">
           <div className="flex items-center gap-2">
             <div className="bg-primary/10 p-1 rounded-md">
-              <Utensils className="h-5 w-5 text-primary" />
+              <UtensilsCrossed className="h-5 w-5 text-primary" />
             </div>
             <span className="text-lg font-bold tracking-tight">CalFlow</span>
           </div>
