@@ -8,6 +8,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.7.1] — 2026-10-08
+
+**Mobile UI Polish & Glassmorphism Theme**
+
+### Added
+- Unified glassmorphism theme: added frosted glass (`backdrop-blur-md`) to mobile top header, mobile bottom navigation, desktop sidebar, and Auth cards.
+- Ambient glowing background blobs from auth layout applied globally to the dashboard layout for a premium consistent theme.
+- Global `-webkit-tap-highlight-color: transparent` to remove iOS Safari tap highlights.
+
+### Changed
+- Replaced basic buttons and `<a>` links in navigation components with Next.js `<Link>` for buttery smooth SPA client-side routing.
+- Replaced default button active translation with `active:scale-95` to provide a buttery smooth, bouncy touch feedback on all buttons and navigation links.
+- Increased default `Input`, `Textarea`, and `Button` heights from 32px (`h-8`) to 40px (`h-10`) with proportionally larger padding to improve mobile tap targets and prevent clumsy interactions.
+
+---
+
 ## [0.7.0] — 2026-10-02 · `76bb022`
 
 **Merge: Goal-Based Tracking**

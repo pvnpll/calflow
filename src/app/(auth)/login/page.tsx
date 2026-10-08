@@ -93,12 +93,12 @@ export default function LoginPage() {
           {/* Forgot password sits under the field, right-aligned —
               out of the label row so it never crowds the label on narrow screens */}
           <div className="flex justify-end pt-1">
-            <a
+            <Link
               href="/forgot-password"
               className="text-[13px] font-medium text-muted-foreground transition-colors hover:text-primary hover:underline relative z-50 cursor-pointer"
             >
               Forgot password?
-            </a>
+            </Link>
           </div>
         </div>
 
