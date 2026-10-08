@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.7.6] — 2026-10-09
+
+**Fix: Isolate AI Chat Sessions per User**
+
+### Fixed
+- Fixed a bug where AI chat sessions were stored in `localStorage` under a common key (`calflow_chat_messages`), causing new signups or different users logging in on the same device to see previous users' chat history.
+- Chat history is now isolated by appending the Supabase `userId` to the `localStorage` key.
+
+---
+
 ## [0.7.5] — 2026-10-08
 
 **Fix: Scrolling Background & Rubber Banding**

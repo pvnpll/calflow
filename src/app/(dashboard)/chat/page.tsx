@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import ChatMessage from '@/components/chat/ChatMessage';
 import ChatInput from '@/components/chat/ChatInput';
+import { createClient } from '@/lib/supabase/client';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -13,12 +14,26 @@ export default function ChatPage() {
     { role: 'assistant', content: 'Hi! I can help you log meals, check your progress, or answer nutrition questions. What did you have for lunch?' }
   ]);
   const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Restore messages from localStorage on client mount
+  // Fetch current user
   useEffect(() => {
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  // Restore messages from localStorage on client mount, tied to user
+  useEffect(() => {
+    if (!userId) return;
     try {
-      const saved = localStorage.getItem('calflow_chat_messages');
+      const saved = localStorage.getItem(`calflow_chat_messages_${userId}`);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -28,12 +43,13 @@ export default function ChatPage() {
     } catch (e) {
       console.error('Failed to restore chat messages:', e);
     }
-  }, []);
+  }, [userId]);
 
-  const saveMessages = (msgs: Message[]) => {
+  const saveMessages = (msgs: Message[], uid: string | null = userId) => {
     setMessages(msgs);
+    if (!uid) return;
     try {
-      localStorage.setItem('calflow_chat_messages', JSON.stringify(msgs));
+      localStorage.setItem(`calflow_chat_messages_${uid}`, JSON.stringify(msgs));
     } catch (e) {
       console.error('Failed to persist chat messages:', e);
     }
