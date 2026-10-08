@@ -7,11 +7,21 @@ import { Badge } from "@/components/ui/badge";
 import ProfileForm from "@/components/profile/ProfileForm";
 import GoalsForm from "@/components/profile/GoalsForm";
 import PreferencesForm from "@/components/profile/PreferencesForm";
+import ProfileOverview from "@/components/profile/ProfileOverview";
 import { ProfileProvider, useProfile } from "@/lib/context/ProfileContext";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { User as UserIcon, Target, SlidersHorizontal, Settings2, Mail, ShieldAlert, Trash2, Loader2, BadgeCheck, LogOut } from "lucide-react";
+import { User as UserIcon, Target, SlidersHorizontal, Settings2, Mail, ShieldAlert, Trash2, Loader2, BadgeCheck, LogOut, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+
+type Section = 'personal' | 'goals' | 'preferences' | 'account';
+
+const SECTION_META: Record<Section, { title: string; description: string }> = {
+  personal: { title: 'Personal Info', description: 'Used to calculate your calories, macros and water targets.' },
+  goals: { title: 'Goals & Targets', description: 'Your goal, pace and daily nutrition targets.' },
+  preferences: { title: 'Food Preferences', description: 'Guides AI meal suggestions and plans.' },
+  account: { title: 'Account', description: 'Sign-in details and danger zone.' },
+};
 
 function AccountTabContent() {
   const [email, setEmail] = useState<string | null>(null);
@@ -105,6 +115,13 @@ function AccountTabContent() {
 
 function ProfileTabs() {
   const { loading } = useProfile();
+  const [mode, setMode] = useState<'view' | 'edit'>('view');
+  const [editSection, setEditSection] = useState<Section>('personal');
+
+  const openEdit = (section: Section) => {
+    setEditSection(section);
+    setMode('edit');
+  };
 
   if (loading) {
     return (
@@ -128,52 +145,71 @@ function ProfileTabs() {
     );
   }
 
+  // ---- View mode: single-page overview with one edit entry point ----
+  if (mode === 'view') {
+    return <ProfileOverview onEdit={openEdit} />;
+  }
+
+  // ---- Edit mode: your existing sections (same forms, tab layout fixed) ----
+  const meta = SECTION_META[editSection];
+
   return (
-    <Tabs defaultValue="personal" className="w-full">
-      <TabsList className="grid h-auto w-full grid-cols-2 gap-1 p-1 sm:grid-cols-4">
-        <TabsTrigger value="personal" className="gap-1.5 px-2 py-2 text-[13px]">
-          <UserIcon className="h-4 w-4" /> Personal
-        </TabsTrigger>
-        <TabsTrigger value="goals" className="gap-1.5 px-2 py-2 text-[13px]">
-          <Target className="h-4 w-4" /> Goals
-        </TabsTrigger>
-        <TabsTrigger value="preferences" className="gap-1.5 px-2 py-2 text-[13px]">
-          <SlidersHorizontal className="h-4 w-4" /> Preferences
-        </TabsTrigger>
-        <TabsTrigger value="account" className="gap-1.5 px-2 py-2 text-[13px]">
-          <Settings2 className="h-4 w-4" /> Account
-        </TabsTrigger>
-      </TabsList>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-2">
+        <Button variant="ghost" size="sm" onClick={() => setMode('view')} className="gap-1.5">
+          <ArrowLeft className="h-4 w-4" /> Back to profile
+        </Button>
+        <span className="truncate text-xs text-muted-foreground">{meta.title}</span>
+      </div>
 
-      <TabsContent value="personal" className="mt-4">
-        <ProfileForm />
-      </TabsContent>
+      <div>
+        <h2 className="text-lg font-bold tracking-tight">{meta.title}</h2>
+        <p className="mt-0.5 text-sm text-muted-foreground">{meta.description}</p>
+      </div>
 
-      <TabsContent value="goals" className="mt-4">
-        <GoalsForm />
-      </TabsContent>
+      <Tabs value={editSection} onValueChange={(v) => setEditSection(v as Section)} className="w-full">
+        <TabsList className="grid h-auto w-full grid-cols-4 gap-1 p-1">
+          <TabsTrigger value="personal" className="gap-1.5 px-1 py-2 text-[13px]">
+            <UserIcon className="h-4 w-4" />
+            <span className="hidden sm:inline">Personal</span>
+          </TabsTrigger>
+          <TabsTrigger value="goals" className="gap-1.5 px-1 py-2 text-[13px]">
+            <Target className="h-4 w-4" />
+            <span className="hidden sm:inline">Goals</span>
+          </TabsTrigger>
+          <TabsTrigger value="preferences" className="gap-1.5 px-1 py-2 text-[13px]">
+            <SlidersHorizontal className="h-4 w-4" />
+            <span className="hidden sm:inline">Preferences</span>
+          </TabsTrigger>
+          <TabsTrigger value="account" className="gap-1.5 px-1 py-2 text-[13px]">
+            <Settings2 className="h-4 w-4" />
+            <span className="hidden sm:inline">Account</span>
+          </TabsTrigger>
+        </TabsList>
 
-      <TabsContent value="preferences" className="mt-4">
-        <PreferencesForm />
-      </TabsContent>
+        <TabsContent value="personal" className="mt-4">
+          <ProfileForm />
+        </TabsContent>
 
-      <TabsContent value="account" className="mt-4">
-        <AccountTabContent />
-      </TabsContent>
-    </Tabs>
+        <TabsContent value="goals" className="mt-4">
+          <GoalsForm />
+        </TabsContent>
+
+        <TabsContent value="preferences" className="mt-4">
+          <PreferencesForm />
+        </TabsContent>
+
+        <TabsContent value="account" className="mt-4">
+          <AccountTabContent />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
 
 export default function ProfilePage() {
   return (
     <div className="mx-auto w-full max-w-3xl space-y-6 pb-8">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Profile &amp; Settings</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Manage your body metrics, nutrition goals and food preferences.
-        </p>
-      </div>
-
       {/* Single fetch, shared across all tabs via context */}
       <ProfileProvider>
         <ProfileTabs />
