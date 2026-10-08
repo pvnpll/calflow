@@ -10,7 +10,7 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'CalFlow',
   description: 'AI-first personal nutrition tracking',
-  manifest: '/manifest.webmanifest', // Next.js automatically maps manifest.ts to /manifest.webmanifest
+  manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -18,6 +18,18 @@ export const metadata: Metadata = {
   },
   formatDetection: {
     telephone: false,
+  },
+  icons: {
+    icon: [
+      { url: '/api/icon/192', sizes: '192x192', type: 'image/png' },
+      { url: '/api/icon/512', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/api/icon/192' },
+    ],
+  },
+  other: {
+    'apple-mobile-web-app-capable': 'yes',
   },
 };
 
