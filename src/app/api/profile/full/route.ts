@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getProfile } from '@/lib/services/profile.service';
 import { getActiveGoals } from '@/lib/services/goals.service';
-import { getLatestWeight } from '@/lib/services/weight.service';
+import { getLatestWeight, syncProfileWeight } from '@/lib/services/weight.service';
 
 export const runtime = 'edge';
 
@@ -18,9 +18,16 @@ export async function GET(req: NextRequest) {
       getLatestWeight(user.id),
     ]);
 
-    const profile = profileResult.status === 'fulfilled' ? profileResult.value : null;
+    let profile = profileResult.status === 'fulfilled' ? profileResult.value : null;
     const goals = goalsResult.status === 'fulfilled' ? goalsResult.value : null;
     const latestWeight = weightResult.status === 'fulfilled' ? weightResult.value : null;
+
+    // Self-heal: the profile weight must match the latest entry in the weight trend
+    // (covers rows that drifted before weight and profile were kept in sync).
+    if (profile && latestWeight && Number(profile.current_weight_kg) !== Number(latestWeight.weight_kg)) {
+      await syncProfileWeight(user.id).catch(() => null);
+      profile = { ...profile, current_weight_kg: Number(latestWeight.weight_kg) };
+    }
 
     return NextResponse.json({
       profile,

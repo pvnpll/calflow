@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useProfile } from '@/lib/context/ProfileContext';
+import { calculateTargets } from '@/lib/nutrition-targets';
 import { GOAL_LABELS, GOAL_RATE_LABELS, coerceEnum, enumLabel } from '@/lib/utils';
 import { Target, RefreshCw, CheckCircle2, Loader2, Flame, Beef, Wheat, Droplet, Nut } from 'lucide-react';
 
@@ -80,48 +81,19 @@ export default function GoalsForm() {
   const missingFields = getMissingFields(profileData);
   const canCalculate = missingFields.length === 0;
 
-  const calculateTargets = (goal: string, rate: string, profile: any) => {
-    if (!profile?.current_weight_kg || !profile?.height_cm || !profile?.age || !profile?.sex) {
-      return null;
-    }
-
-    let bmr = 10 * profile.current_weight_kg + 6.25 * profile.height_cm - 5 * profile.age;
-    bmr += (profile.sex === 'male') ? 5 : -161;
-
-    let multiplier = 1.2;
-    switch (profile.activity_level) {
-      case 'lightly_active': multiplier = 1.375; break;
-      case 'moderately_active': multiplier = 1.55; break;
-      case 'very_active': multiplier = 1.725; break;
-      case 'extremely_active': multiplier = 1.9; break;
-    }
-
-    let tdee = bmr * multiplier;
-
-    if (goal === 'lose_weight') {
-      const deficit = rate === 'slow' ? 250 : rate === 'fast' ? 750 : 500;
-      tdee -= deficit;
-    } else if (goal === 'gain_weight' || goal === 'gain_muscle') {
-      const surplus = rate === 'slow' ? 250 : rate === 'fast' ? 750 : 500;
-      tdee += surplus;
-    }
-
-    const calories = Math.round(tdee);
-    return {
-      calorieTarget: String(calories),
-      proteinTarget: String(Math.round((calories * 0.3) / 4)),
-      carbohydrateTarget: String(Math.round((calories * 0.4) / 4)),
-      fatTarget: String(Math.round((calories * 0.3) / 9)),
-      fiberTarget: String(Math.round((calories / 1000) * 14)),
-      waterTargetL: ((profile.current_weight_kg * 35) / 1000).toFixed(1)
-    };
-  };
-
   const applyCalculation = (goal?: string, rate?: string) => {
     const g = goal ?? formData.primaryGoal;
     const r = rate ?? formData.goalRate;
-    const targets = calculateTargets(g, r, profileData);
-    if (targets) {
+    const t = calculateTargets(profileData, g, r);
+    if (t) {
+      const targets = {
+        calorieTarget: String(t.calorieTarget),
+        proteinTarget: String(t.proteinTarget),
+        carbohydrateTarget: String(t.carbohydrateTarget),
+        fatTarget: String(t.fatTarget),
+        fiberTarget: String(t.fiberTarget),
+        waterTargetL: (t.waterTargetMl / 1000).toFixed(1),
+      };
       setFormData(prev => ({ ...prev, ...targets }));
       setRecalcFlash(true);
       setTimeout(() => setRecalcFlash(false), 2500);

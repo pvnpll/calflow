@@ -18,6 +18,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
+import { TimezoneSync } from '@/components/shared/TimezoneSync';
 
 const navItems = [
   { name: 'Home', href: '/dashboard', icon: Home },
@@ -74,6 +75,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="relative flex min-h-[100dvh] bg-muted/20">
+      <TimezoneSync />
       {/* Subtle backdrop matching auth pages */}
       <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
         <div className="absolute -top-32 left-1/2 h-72 w-[42rem] -translate-x-1/2 rounded-full bg-primary/[0.07] blur-3xl" />

@@ -1,9 +1,10 @@
 import { createAdminClient } from '@/lib/supabase/server'
 import { TABLES } from '@/lib/db-tables'
+import { getUserToday } from '@/lib/services/user-time'
 
 export async function logWater(userId: string, amountMl: number, date?: string) {
   const supabase = createAdminClient()
-  const logDate = date || new Date().toISOString().split('T')[0]
+  const logDate = date || await getUserToday(userId)
   
   const { data, error } = await supabase
     .from(TABLES.WATER_LOGS)

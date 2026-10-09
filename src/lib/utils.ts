@@ -1,3 +1,4 @@
+import { parseDateStr, toDateStr } from "./date"
 export { cn } from "cn"
 
 export function formatNumber(n: number, decimals?: number): string {
@@ -8,7 +9,8 @@ export function formatNumber(n: number, decimals?: number): string {
 }
 
 export function formatDate(date: Date | string): string {
-  const d = new Date(date);
+  // 'YYYY-MM-DD' strings are calendar dates: parse as local so they don't shift a day west of UTC.
+  const d = typeof date === 'string' && /^d{4}-d{2}-d{2}$/.test(date) ? parseDateStr(date) : new Date(date);
   return d.toLocaleDateString(undefined, {
     year: 'numeric',
     month: 'long',
@@ -16,8 +18,9 @@ export function formatDate(date: Date | string): string {
   });
 }
 
+/** 'YYYY-MM-DD' for a Date in the browser's local timezone (not UTC). */
 export function toISODate(date: Date): string {
-  return date.toISOString().split('T')[0];
+  return toDateStr(date);
 }
 
 export function getDateRange(period: '7d' | '30d' | '90d' | 'all'): { start: Date; end: Date } {

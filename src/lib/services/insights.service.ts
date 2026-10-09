@@ -4,14 +4,10 @@ import { getWeightHistory } from './weight.service'
 import { getActiveGoals } from './goals.service'
 
 import { getProfile } from './profile.service'
+import { getUserDateRange } from './user-time'
 
 export async function getInsights(userId: string, days = 30) {
-  const endDate = new Date()
-  const startDate = new Date(endDate)
-  startDate.setDate(startDate.getDate() - days)
-  
-  const startIso = startDate.toISOString().split('T')[0]
-  const endIso = endDate.toISOString().split('T')[0]
+  const { start: startIso, end: endIso } = await getUserDateRange(userId, days)
   
   const [meals, waterLogs, weightHistory, goals, profile] = await Promise.all([
     getMealsByDateRange(userId, startIso, endIso),

@@ -1,6 +1,7 @@
 import { getActiveGoals } from './goals.service'
 import { getMealsByDate, getMealsByDateRange } from './meals.service'
 import { getWaterByDate, getWaterByDateRange } from './water.service'
+import { getUserToday } from './user-time'
 import type { NutritionGoals, Meal } from '@/lib/types'
 
 function aggregateMeals(meals: any[]) {
@@ -16,7 +17,7 @@ function aggregateMeals(meals: any[]) {
 }
 
 export async function getTodaySummary(userId: string) {
-  const today = new Date().toISOString().split('T')[0]
+  const today = await getUserToday(userId)
   const [goals, meals, waterTotal] = await Promise.all([
     getActiveGoals(userId),
     getMealsByDate(userId, today),

@@ -8,6 +8,7 @@ import { getWaterByDate, getWaterSummary, logWater } from '@/lib/services/water.
 import { getWeightHistory, logWeight } from '@/lib/services/weight.service';
 import { getInsights } from '@/lib/services/insights.service';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { getUserToday } from '@/lib/services/user-time';
 
 export const runtime = 'edge';
 
@@ -75,7 +76,7 @@ export async function POST(req: NextRequest) {
         if (params.start && params.end) {
           result = await getMealsByDateRange(userId, params.start, params.end);
         } else {
-          result = await getMealsByDate(userId, params.date || new Date().toISOString().split('T')[0]);
+          result = await getMealsByDate(userId, params.date || await getUserToday(userId));
         }
         break;
       case 'update_meal':
@@ -101,7 +102,7 @@ export async function POST(req: NextRequest) {
         if (params.start && params.end) {
           result = await getWaterSummary(userId, params.start, params.end);
         } else {
-          result = await getWaterByDate(userId, params.date || new Date().toISOString().split('T')[0]);
+          result = await getWaterByDate(userId, params.date || await getUserToday(userId));
         }
         break;
       case 'log_weight':

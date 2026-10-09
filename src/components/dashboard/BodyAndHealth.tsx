@@ -8,6 +8,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { parseDateStr, todayStr } from '@/lib/date';
 
 interface BodyAndHealthProps {
   weight: {
@@ -32,10 +33,10 @@ export function BodyAndHealth({ weight, weightHistory, onWeightLogged }: BodyAnd
   
   // Format chart data
   const chartData = [...weightHistory]
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .sort((a, b) => a.date.localeCompare(b.date))
     .slice(-30) // Last 30 entries
     .map(w => ({
-      date: new Date(w.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      date: parseDateStr(w.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
       weight: Number(w.weight_kg)
     }));
 
@@ -54,7 +55,7 @@ export function BodyAndHealth({ weight, weightHistory, onWeightLogged }: BodyAnd
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           weight_kg: parseFloat(newWeight),
-          date: new Date().toISOString().split('T')[0]
+          date: todayStr()
         })
       });
       if (res.ok) {

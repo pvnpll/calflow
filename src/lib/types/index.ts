@@ -17,6 +17,8 @@ export interface UserProfile {
   sex?: string;
   heightCm?: number;
   currentWeightKg?: number;
+  /** IANA timezone, e.g. "Asia/Kolkata" — synced from the browser. */
+  timezone?: string;
   activityLevel?: 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extremely_active';
   goal?: 'lose_weight' | 'maintain_weight' | 'gain_weight' | 'gain_muscle' | 'general_health';
   goalWeightKg?: number;

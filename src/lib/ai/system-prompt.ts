@@ -1,3 +1,5 @@
+import { isValidTimezone, nowTimeStr, todayStr } from '@/lib/date';
+
 export function buildSystemPrompt(profile: Record<string, any> | null, goals: Record<string, any> | null, insights?: Record<string, any> | null): string {
   const nameStr = profile?.name ? `\nUser Name: ${profile.name}` : '';
   const goalStr = profile?.goal ? `\nHealth Goal: ${profile.goal.replace(/_/g, ' ')}` : '';
@@ -50,7 +52,9 @@ Recent Progress (Last 7 Days):
 `;
   }
 
-  const currentDateStr = `\nCurrent Date: ${new Date().toISOString().split('T')[0]}\nCurrent Time: ${new Date().toLocaleTimeString()}`;
+  // Date/time in the user's own timezone (synced from their browser), not the server's.
+  const tz = isValidTimezone(profile?.timezone) ? profile!.timezone : undefined;
+  const currentDateStr = `\nCurrent Date: ${todayStr(tz)}\nCurrent Time: ${nowTimeStr(tz)} (${tz ?? 'UTC'})`;
 
   return `You are CalFlow, a personal nutrition tracking assistant. You help users track their daily nutrition, meals, water intake, and weight. You give personalized advice based on actual progress, not just generic rules.
 

@@ -7,6 +7,7 @@ import { GoalProgress } from '@/components/insights/GoalProgress';
 import { EnergyBalance } from '@/components/insights/EnergyBalance';
 import { GoalCheck } from '@/components/insights/GoalCheck';
 import WaterChart from '@/components/insights/WaterChart';
+import { addDaysStr, parseDateStr, todayStr } from '@/lib/date';
 
 export default function InsightsPage() {
   const [period, setPeriod] = useState('7');
@@ -21,9 +22,7 @@ export default function InsightsPage() {
       setLoading(true);
       try {
         const days = parseInt(period, 10) || 7;
-        const endDateObj = new Date();
-        const startDateObj = new Date();
-        startDateObj.setDate(startDateObj.getDate() - (days - 1));
+        const startDateStr = addDaysStr(todayStr(), -(days - 1));
 
         const res = await fetch(`/api/insights?days=${days}`);
         if (!res.ok) throw new Error('Failed to fetch insights');
@@ -55,10 +54,8 @@ export default function InsightsPage() {
         // Build continuous chart series for the period
         const dailyMap: Record<string, any> = {};
         for (let i = 0; i < days; i++) {
-          const d = new Date(startDateObj);
-          d.setDate(d.getDate() + i);
-          const dateKey = d.toISOString().split('T')[0];
-          const displayLabel = d.toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' });
+          const dateKey = addDaysStr(startDateStr, i);
+          const displayLabel = parseDateStr(dateKey).toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' });
           dailyMap[dateKey] = {
             date: displayLabel,
             calories: 0,

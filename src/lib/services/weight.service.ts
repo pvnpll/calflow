@@ -1,18 +1,40 @@
 import { createAdminClient } from '@/lib/supabase/server'
 import { TABLES } from '@/lib/db-tables'
+import { getUserDateRange, getUserToday } from '@/lib/services/user-time'
 
 export async function logWeight(userId: string, weightKg: number, date?: string, note?: string) {
   const supabase = createAdminClient()
-  const logDate = date || new Date().toISOString().split('T')[0]
-  
+  const logDate = date || await getUserToday(userId)
+
   const { data, error } = await supabase
     .from(TABLES.WEIGHT_LOGS)
     .insert({ user_id: userId, weight_kg: weightKg, date: logDate, note })
     .select()
     .single()
-    
+
   if (error) throw error
+  await syncProfileWeight(userId)
   return data
+}
+
+/**
+ * Keep the profile's current weight equal to the most recent entry in the weight trend.
+ * A back-dated log doesn't change it, because "latest" is by date. Returns that latest weight.
+ */
+export async function syncProfileWeight(userId: string): Promise<number | null> {
+  const latest = await getLatestWeight(userId)
+  if (!latest) return null
+
+  const latestKg = Number(latest.weight_kg)
+  const supabase = createAdminClient()
+  // update (not upsert): never create a profile row just to hold a weight.
+  const { error } = await supabase
+    .from(TABLES.USER_PROFILES)
+    .update({ current_weight_kg: latestKg })
+    .eq('user_id', userId)
+
+  if (error) throw error
+  return latestKg
 }
 
 export async function getWeightHistory(userId: string, startDate?: string, endDate?: string) {
@@ -38,6 +60,7 @@ export async function getLatestWeight(userId: string) {
     .select('*')
     .eq('user_id', userId)
     .order('date', { ascending: false })
+    .order('created_at', { ascending: false })
     .limit(1)
     .single()
     
@@ -55,7 +78,7 @@ export async function getLatestWeight(userId: string) {
  */
 export async function upsertWeightForDate(userId: string, weightKg: number, date?: string, note?: string) {
   const supabase = createAdminClient()
-  const logDate = date || new Date().toISOString().split('T')[0]
+  const logDate = date || await getUserToday(userId)
 
   const { data: existing, error: findError } = await supabase
     .from(TABLES.WEIGHT_LOGS)
@@ -76,6 +99,7 @@ export async function upsertWeightForDate(userId: string, weightKg: number, date
       .single()
 
     if (error) throw error
+    await syncProfileWeight(userId)
     return data
   }
 
@@ -83,14 +107,9 @@ export async function upsertWeightForDate(userId: string, weightKg: number, date
 }
 
 export async function getWeightChange(userId: string, days: number) {
-  const endDate = new Date()
-  const startDate = new Date(endDate)
-  startDate.setDate(startDate.getDate() - days)
+  const { start, end } = await getUserDateRange(userId, days)
   
-  const startIso = startDate.toISOString().split('T')[0]
-  const endIso = endDate.toISOString().split('T')[0]
-  
-  const history = await getWeightHistory(userId, startIso, endIso)
+  const history = await getWeightHistory(userId, start, end)
   
   if (history.length < 2) return 0
   

@@ -5,12 +5,13 @@ import * as nutritionService from '@/lib/services/nutrition.service';
 import * as waterService from '@/lib/services/water.service';
 import * as weightService from '@/lib/services/weight.service';
 import * as insightsService from '@/lib/services/insights.service';
+import { getUserToday } from '@/lib/services/user-time';
 import type { MealItemInput } from '@/lib/types';
 
 export async function executeTool(toolName: string, args: Record<string, any>, userId: string): Promise<any> {
   switch (toolName) {
     case 'log_meal': {
-      const today = new Date().toISOString().split('T')[0];
+      const today = await getUserToday(userId);
       const mealDate = args.date || today;
 
       // Infer meal type if omitted
@@ -73,7 +74,7 @@ export async function executeTool(toolName: string, args: Record<string, any>, u
         return mealsService.getMealsByDateRange(userId, args.start_date, args.end_date);
       }
       // Default: return today's meals
-      const today = new Date().toISOString().split('T')[0];
+      const today = await getUserToday(userId);
       return mealsService.getMealsByDate(userId, today);
     }
 
@@ -147,7 +148,7 @@ export async function executeTool(toolName: string, args: Record<string, any>, u
       if (args.start_date && args.end_date) {
         return waterService.getWaterSummary(userId, args.start_date, args.end_date);
       }
-      const todayDate = new Date().toISOString().split('T')[0];
+      const todayDate = await getUserToday(userId);
       return waterService.getWaterByDate(userId, todayDate);
     }
 

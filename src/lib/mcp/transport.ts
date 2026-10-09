@@ -1,6 +1,7 @@
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { createCalflowMcpServer } from "./server";
 import { createClient } from "@supabase/supabase-js";
+import { isValidTimezone } from "@/lib/date";
 
 /**
  * For stateless HTTP mode in MCP SDK, each HTTP request must create a fresh
@@ -57,6 +58,14 @@ export async function authenticateToken(req: Request) {
     return null;
   }
   
+  // The user's timezone lets MCP tools resolve "today" to their local date.
+  const { data: tzRow } = await admin
+    .from(TABLES.USER_PROFILES)
+    .select("timezone")
+    .eq("user_id", data.user_id)
+    .maybeSingle();
+  const timezone = isValidTimezone(tzRow?.timezone) ? tzRow?.timezone : undefined;
+
   const userAgent = req.headers.get("user-agent")?.toLowerCase() || "";
   let clientName = 'claude';
   if (data.client_id?.startsWith('claude_')) {
@@ -70,7 +79,7 @@ export async function authenticateToken(req: Request) {
     clientId: data.client_id || "unknown", 
     clientName,
     scopes: [], 
-    extra: { userId: data.user_id } 
+    extra: { userId: data.user_id, timezone }
   };
 }
 

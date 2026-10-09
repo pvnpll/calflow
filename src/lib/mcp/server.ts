@@ -7,8 +7,11 @@ import { logWater, getWaterByDateRange } from "@/lib/services/water.service";
 import { getInsights } from "@/lib/services/insights.service";
 import { createMeal, getMealsByDate, getMealsByDateRange, updateMeal, deleteMeal } from "@/lib/services/meals.service";
 import { getTodaySummary, getNutritionSummary } from "@/lib/services/nutrition.service";
+import { todayStr } from "@/lib/date";
 
 export function createCalflowMcpServer(authInfo?: any, defaultSource: 'chatgpt' | 'claude' | 'mcp' | 'calflow_ai' | 'web_app' = 'claude') {
+  // "Today" is the user's local date (their stored timezone), not the server's UTC date.
+  const today = todayStr(authInfo?.extra?.timezone as string | undefined);
   const server = new McpServer({
     name: "calflow",
     version: "1.0.0",
@@ -28,7 +31,7 @@ export function createCalflowMcpServer(authInfo?: any, defaultSource: 'chatgpt' 
       fat_g: z.number().describe("Estimated total fat in grams"),
       fiber_g: z.number().optional().describe("Estimated total fiber in grams"),
       meal_type: z.enum(['breakfast', 'lunch', 'dinner', 'snack']).optional().describe("Meal type: breakfast, lunch, dinner, or snack. Infer from time or food if omitted."),
-      date: z.string().optional().describe(`Date in YYYY-MM-DD format. ALWAYS OMIT to use today. If you must specify today, the current server date is ${new Date().toISOString().split('T')[0]}`),
+      date: z.string().optional().describe(`Date in YYYY-MM-DD format. ALWAYS OMIT to use today. If you must specify today, the current server date is ${today}`),
       time: z.string().optional().describe("Time in HH:mm format"),
       notes: z.string().optional().describe("Any additional notes"),
       items: z.array(z.object({
@@ -77,7 +80,7 @@ export function createCalflowMcpServer(authInfo?: any, defaultSource: 'chatgpt' 
         })) || [];
 
         const meal = await createMeal(userId, {
-          date: args.date || new Date().toISOString().split('T')[0],
+          date: args.date || today,
           mealType: inferredMealType,
           description: args.meal_text,
           estimatedCalories: args.calories,
@@ -106,7 +109,7 @@ export function createCalflowMcpServer(authInfo?: any, defaultSource: 'chatgpt' 
     "get_meals",
     "Retrieve meal records belonging to the currently authenticated CalFlow user for a specified date or date range.",
     {
-      start_date: z.string().optional().describe(`Start date (YYYY-MM-DD). ALWAYS OMIT to use today. Current server date: ${new Date().toISOString().split('T')[0]}`),
+      start_date: z.string().optional().describe(`Start date (YYYY-MM-DD). ALWAYS OMIT to use today. Current server date: ${today}`),
       end_date: z.string().optional().describe("End date in YYYY-MM-DD format")
     },
     async (args, extra) => {
@@ -117,7 +120,7 @@ export function createCalflowMcpServer(authInfo?: any, defaultSource: 'chatgpt' 
       if (args.start_date && args.end_date) {
         meals = await getMealsByDateRange(userId, args.start_date, args.end_date);
       } else {
-        const targetDate = args.start_date || new Date().toISOString().split('T')[0];
+        const targetDate = args.start_date || today;
         meals = await getMealsByDate(userId, targetDate);
       }
       return { content: [{ type: "text", text: JSON.stringify(meals, null, 2) }] };
@@ -143,14 +146,14 @@ export function createCalflowMcpServer(authInfo?: any, defaultSource: 'chatgpt' 
     "get_nutrition_summary",
     "Retrieve the authenticated user's nutrition summary for a date range. ALWAYS OMIT dates to get today's summary.",
     {
-      start_date: z.string().optional().describe(`Start date in YYYY-MM-DD format. ALWAYS OMIT to use today. Current server date: ${new Date().toISOString().split('T')[0]}`),
+      start_date: z.string().optional().describe(`Start date in YYYY-MM-DD format. ALWAYS OMIT to use today. Current server date: ${today}`),
       end_date: z.string().optional().describe("End date in YYYY-MM-DD format")
     },
     async (args, extra) => {
       const userId = authInfo?.extra?.userId as string;
       if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
       
-      const targetStartDate = args.start_date || new Date().toISOString().split('T')[0];
+      const targetStartDate = args.start_date || today;
       const targetEndDate = args.end_date || targetStartDate;
       
       const summary = await getNutritionSummary(userId, targetStartDate, targetEndDate);
@@ -309,7 +312,7 @@ export function createCalflowMcpServer(authInfo?: any, defaultSource: 'chatgpt' 
     "Record a new weight measurement for the user.",
     {
       weight_kg: z.number().describe("Weight in kilograms"),
-      date: z.string().optional().describe(`Date in YYYY-MM-DD format. ALWAYS OMIT to use today. Current server date: ${new Date().toISOString().split('T')[0]}`),
+      date: z.string().optional().describe(`Date in YYYY-MM-DD format. ALWAYS OMIT to use today. Current server date: ${today}`),
       note: z.string().optional().describe("Optional note for this weight log")
     },
     async (args, extra) => {
@@ -326,14 +329,14 @@ export function createCalflowMcpServer(authInfo?: any, defaultSource: 'chatgpt' 
     "get_weight_history",
     "Retrieve the user's weight log history for a specific date range. ALWAYS OMIT dates to get today's logs.",
     {
-      start_date: z.string().optional().describe(`Start date (YYYY-MM-DD). ALWAYS OMIT to use today. Current server date: ${new Date().toISOString().split('T')[0]}`),
+      start_date: z.string().optional().describe(`Start date (YYYY-MM-DD). ALWAYS OMIT to use today. Current server date: ${today}`),
       end_date: z.string().optional().describe("End date in YYYY-MM-DD format")
     },
     async (args, extra) => {
       const userId = authInfo?.extra?.userId as string;
       if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
       
-      const targetStartDate = args.start_date || new Date().toISOString().split('T')[0];
+      const targetStartDate = args.start_date || today;
       const targetEndDate = args.end_date || targetStartDate;
       
       const history = await getWeightHistory(userId, targetStartDate, targetEndDate);
@@ -347,7 +350,7 @@ export function createCalflowMcpServer(authInfo?: any, defaultSource: 'chatgpt' 
     "Record a new water consumption log for the user.",
     {
       amount_ml: z.number().describe("Amount of water consumed in milliliters (ml)"),
-      date: z.string().optional().describe(`Date in YYYY-MM-DD format. ALWAYS OMIT to use today. Current server date: ${new Date().toISOString().split('T')[0]}`)
+      date: z.string().optional().describe(`Date in YYYY-MM-DD format. ALWAYS OMIT to use today. Current server date: ${today}`)
     },
     async (args, extra) => {
       const userId = authInfo?.extra?.userId as string;
@@ -363,14 +366,14 @@ export function createCalflowMcpServer(authInfo?: any, defaultSource: 'chatgpt' 
     "get_water_logs",
     "Retrieve the user's water consumption logs for a specific date range. ALWAYS OMIT dates to get today's logs.",
     {
-      start_date: z.string().optional().describe(`Start date in YYYY-MM-DD format. ALWAYS OMIT to use today. Current server date: ${new Date().toISOString().split('T')[0]}`),
+      start_date: z.string().optional().describe(`Start date in YYYY-MM-DD format. ALWAYS OMIT to use today. Current server date: ${today}`),
       end_date: z.string().optional().describe("End date in YYYY-MM-DD format")
     },
     async (args, extra) => {
       const userId = authInfo?.extra?.userId as string;
       if (!userId) throw new Error("Unauthorized: Missing user_id in auth context");
       
-      const targetStartDate = args.start_date || new Date().toISOString().split('T')[0];
+      const targetStartDate = args.start_date || today;
       const targetEndDate = args.end_date || targetStartDate;
       
       const logs = await getWaterByDateRange(userId, targetStartDate, targetEndDate);

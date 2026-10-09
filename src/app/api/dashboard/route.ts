@@ -5,6 +5,7 @@ import { getMealsByDate } from '@/lib/services/meals.service';
 import { getWaterByDate } from '@/lib/services/water.service';
 import { getWeightHistory } from '@/lib/services/weight.service';
 import { getProfile } from '@/lib/services/profile.service';
+import { getUserToday } from '@/lib/services/user-time';
 
 export const runtime = 'edge';
 
@@ -14,7 +15,7 @@ export async function GET(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const dateStr = new Date().toISOString().split('T')[0];
+    const dateStr = await getUserToday(user.id);
 
     // Fetch everything in one parallel shot
     const [nutritionResult, mealsResult, waterResult, weightResult, profileResult] =

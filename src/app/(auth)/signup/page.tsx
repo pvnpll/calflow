@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { UserPlus, Loader2, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { AuthShell, AuthError } from '@/components/auth/AuthShell';
+import { getBrowserTimezone } from '@/lib/date';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -25,7 +26,7 @@ export default function SignupPage() {
     setError(null);
     const supabase = createClient();
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -39,6 +40,21 @@ export default function SignupPage() {
       setError(error.message);
       setLoading(false);
       return;
+    }
+
+    // Record the user's timezone right away so server-side "today" is correct from their first action.
+    // Without a session (email confirmation on) the dashboard's TimezoneSync does this after first sign-in.
+    const timezone = getBrowserTimezone();
+    if (data.session && timezone) {
+      try {
+        await fetch('/api/profile', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ timezone }),
+        });
+      } catch {
+        // non-fatal — TimezoneSync retries on the dashboard
+      }
     }
 
     router.push('/');

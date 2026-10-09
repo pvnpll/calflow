@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useProfile } from '@/lib/context/ProfileContext';
+import { calculateTargets } from '@/lib/nutrition-targets';
 import {
   ACTIVITY_LABELS,
   DIET_LABELS,
@@ -36,42 +37,6 @@ import {
   UtensilsCrossed,
   Wheat,
 } from 'lucide-react';
-
-/** Same Mifflin-St Jeor formula used by the Goals edit form. */
-function calcTargets(profile: any) {
-  if (!profile?.current_weight_kg || !profile?.height_cm || !profile?.age || !profile?.sex) {
-    return null;
-  }
-  let bmr = 10 * profile.current_weight_kg + 6.25 * profile.height_cm - 5 * profile.age;
-  bmr += profile.sex === 'male' ? 5 : -161;
-
-  let multiplier = 1.2;
-  switch (profile.activity_level) {
-    case 'lightly_active': multiplier = 1.375; break;
-    case 'moderately_active': multiplier = 1.55; break;
-    case 'very_active': multiplier = 1.725; break;
-    case 'extremely_active': multiplier = 1.9; break;
-  }
-
-  let tdee = bmr * multiplier;
-  const goal = profile.goal;
-  const rate = profile.goal_rate;
-  if (goal === 'lose_weight') {
-    tdee -= rate === 'slow' ? 250 : rate === 'fast' ? 750 : 500;
-  } else if (goal === 'gain_weight' || goal === 'gain_muscle') {
-    tdee += rate === 'slow' ? 250 : rate === 'fast' ? 750 : 500;
-  }
-
-  const calories = Math.round(tdee);
-  return {
-    calorieTarget: calories,
-    proteinTarget: Math.round((calories * 0.3) / 4),
-    carbohydrateTarget: Math.round((calories * 0.4) / 4),
-    fatTarget: Math.round((calories * 0.3) / 9),
-    fiberTarget: Math.round((calories / 1000) * 14),
-    waterTargetMl: Math.round(profile.current_weight_kg * 35),
-  };
-}
 
 function getMissingFields(profile: any): string[] {
   if (!profile) return ['Age', 'Sex', 'Height', 'Weight'];
@@ -153,7 +118,7 @@ export default function ProfileOverview({ onEdit }: { onEdit: (section: 'persona
     : null;
 
   const handleRecalculate = async () => {
-    const targets = calcTargets(profile);
+    const targets = calculateTargets(profile);
     if (!targets) return;
     setRecalculating(true);
     setRecalcError(null);

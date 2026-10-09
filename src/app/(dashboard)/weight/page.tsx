@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import WeightChart from '@/components/insights/WeightChart';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
+import { todayStr } from '@/lib/date';
 
 export default function WeightPage() {
   const [weight, setWeight] = useState('');
@@ -48,7 +49,7 @@ export default function WeightPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           weight_kg: parseFloat(weight),
-          date: new Date().toISOString().split('T')[0],
+          date: todayStr(),
           note: note || undefined,
         }),
       });
