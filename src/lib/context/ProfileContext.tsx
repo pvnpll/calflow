@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, useCallback, ReactNode 
 interface ProfileContextValue {
   profile: any;
   goals: any;
+  latestWeightKg: number | null;
   loading: boolean;
   refresh: () => void;
   refreshSilent: () => void;
@@ -12,6 +13,7 @@ interface ProfileContextValue {
 const ProfileContext = createContext<ProfileContextValue>({
   profile: null,
   goals: null,
+  latestWeightKg: null,
   loading: true,
   refresh: () => {},
   refreshSilent: () => {},
@@ -20,6 +22,7 @@ const ProfileContext = createContext<ProfileContextValue>({
 export function ProfileProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<any>(null);
   const [goals, setGoals] = useState<any>(null);
+  const [latestWeightKg, setLatestWeightKg] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
@@ -30,6 +33,9 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         const data = await res.json();
         setProfile(data.profile);
         setGoals(data.goals);
+        setLatestWeightKg(
+          typeof data.latestWeightKg === 'number' ? data.latestWeightKg : null
+        );
       }
     } catch (err) {
       console.error('ProfileContext fetch failed:', err);
@@ -46,6 +52,9 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         const data = await res.json();
         setProfile(data.profile);
         setGoals(data.goals);
+        setLatestWeightKg(
+          typeof data.latestWeightKg === 'number' ? data.latestWeightKg : null
+        );
       }
     } catch (err) {
       console.error('ProfileContext silent fetch failed:', err);
@@ -57,7 +66,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   }, [fetchData]);
 
   return (
-    <ProfileContext.Provider value={{ profile, goals, loading, refresh: fetchData, refreshSilent: fetchSilent }}>
+    <ProfileContext.Provider value={{ profile, goals, latestWeightKg, loading, refresh: fetchData, refreshSilent: fetchSilent }}>
       {children}
     </ProfileContext.Provider>
   );

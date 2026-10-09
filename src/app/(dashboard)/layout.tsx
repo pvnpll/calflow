@@ -28,6 +28,9 @@ const navItems = [
   { name: 'Profile', href: '/profile', icon: UserIcon },
 ];
 
+// Connect lives inside Profile on mobile — keep the bottom bar to 5 items.
+const mobileNavItems = navItems.filter((item) => item.name !== 'Connect');
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -166,9 +169,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </main>
 
-      {/* Mobile Bottom Navigation */}
+      {/* Mobile Bottom Navigation — Connect lives inside Profile */}
       <nav className="fixed bottom-0 z-50 flex h-[calc(4rem+env(safe-area-inset-bottom))] w-full items-center justify-around border-t bg-background/80 px-2 pb-safe backdrop-blur-md md:hidden">
-        {navItems.map((item) => {
+        {mobileNavItems.map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link

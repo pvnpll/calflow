@@ -48,6 +48,40 @@ export async function getLatestWeight(userId: string) {
   return data
 }
 
+/**
+ * Create today's weight entry, or update it if one already exists.
+ * Used when the current weight is edited from the profile — the trend
+ * always reflects the latest value for the day instead of duplicating rows.
+ */
+export async function upsertWeightForDate(userId: string, weightKg: number, date?: string, note?: string) {
+  const supabase = createAdminClient()
+  const logDate = date || new Date().toISOString().split('T')[0]
+
+  const { data: existing, error: findError } = await supabase
+    .from(TABLES.WEIGHT_LOGS)
+    .select('id')
+    .eq('user_id', userId)
+    .eq('date', logDate)
+    .limit(1)
+    .maybeSingle()
+
+  if (findError) throw findError
+
+  if (existing) {
+    const { data, error } = await supabase
+      .from(TABLES.WEIGHT_LOGS)
+      .update({ weight_kg: weightKg, ...(note !== undefined ? { note } : {}) })
+      .eq('id', existing.id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+
+  return logWeight(userId, weightKg, logDate, note)
+}
+
 export async function getWeightChange(userId: string, days: number) {
   const endDate = new Date()
   const startDate = new Date(endDate)

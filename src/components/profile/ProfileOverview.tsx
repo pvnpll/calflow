@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,13 +19,16 @@ import {
   AlertTriangle,
   Beef,
   CheckCircle2,
+  ChevronRight,
   CircleSlash,
   Droplet,
   Flame,
   Leaf,
   Loader2,
+  LogOut,
   Nut,
   Pencil,
+  Plug,
   RefreshCw,
   ShieldAlert,
   Target,
@@ -133,9 +137,11 @@ function PrefRow({ icon, label, items, emptyText }: { icon?: React.ReactNode; la
 
 export default function ProfileOverview({ onEdit }: { onEdit: (section: 'personal' | 'goals' | 'preferences' | 'account') => void }) {
   const { profile, goals, loading, refreshSilent } = useProfile();
+  const router = useRouter();
   const [recalculating, setRecalculating] = useState(false);
   const [recalcFlash, setRecalcFlash] = useState(false);
   const [recalcError, setRecalcError] = useState<string | null>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
   // Local copy of targets so recalculation updates only the tiles — no page reload.
   const [localGoals, setLocalGoals] = useState<any>(null);
 
@@ -188,6 +194,18 @@ export default function ProfileOverview({ onEdit }: { onEdit: (section: 'persona
 
   if (loading) return null;
 
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      router.push('/login');
+    } finally {
+      setLoggingOut(false);
+    }
+  };
+
   // Prefer freshly recalculated values; fall back to context goals.
   const visibleGoals = localGoals ?? goals;
 
@@ -198,21 +216,23 @@ export default function ProfileOverview({ onEdit }: { onEdit: (section: 'persona
     <div className="space-y-4">
       {/* Identity header */}
       <Card className="shadow-sm">
-        <CardContent className="flex items-center gap-4 py-6">
-          <Avatar className="h-14 w-14 shrink-0 self-center">
-            <AvatarFallback className="bg-primary/10 text-xl font-bold text-primary">{initial}</AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 flex-1 self-center">
-            <h2 className="truncate text-xl font-bold tracking-tight">{displayName}</h2>
-            <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted-foreground">
-              {profile?.age ? <span className="tabular-nums">{profile.age} yrs</span> : <span>Age not set</span>}
-              <span aria-hidden>·</span>
-              <span>{enumLabel(SEX_LABELS, profile?.sex)}</span>
-              <span aria-hidden>·</span>
-              <span>{enumLabel(GOAL_LABELS, profile?.goal, 'No goal yet')}</span>
-            </p>
+        <CardContent className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center">
+          <div className="flex min-w-0 flex-1 items-center gap-4">
+            <Avatar className="h-14 w-14 shrink-0 self-center">
+              <AvatarFallback className="bg-primary/10 text-xl font-bold text-primary">{initial}</AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1 self-center">
+              <h2 className="truncate text-xl font-bold tracking-tight">{displayName}</h2>
+              <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted-foreground">
+                {profile?.age ? <span className="tabular-nums">{profile.age} yrs</span> : <span>Age not set</span>}
+                <span aria-hidden>·</span>
+                <span>{enumLabel(SEX_LABELS, profile?.sex)}</span>
+                <span aria-hidden>·</span>
+                <span>{enumLabel(GOAL_LABELS, profile?.goal, 'No goal yet')}</span>
+              </p>
+            </div>
           </div>
-          <Button onClick={() => onEdit('personal')} className="shrink-0 gap-1.5 self-center">
+          <Button onClick={() => onEdit('personal')} className="w-full shrink-0 gap-1.5 sm:w-auto sm:self-center">
             <Pencil className="h-4 w-4" /> Edit profile
           </Button>
         </CardContent>
@@ -319,6 +339,35 @@ export default function ProfileOverview({ onEdit }: { onEdit: (section: 'persona
           <PrefRow icon={<ShieldAlert className="h-3 w-3 text-rose-500" />} label="Allergies" items={profile?.allergies} emptyText="None listed" />
           <PrefRow icon={<Leaf className="h-3 w-3 text-emerald-500" />} label="Foods you enjoy" items={profile?.preferences} emptyText="Nothing listed yet" />
           <PrefRow icon={<CircleSlash className="h-3 w-3 text-amber-500" />} label="Foods to avoid" items={profile?.foods_to_avoid} emptyText="Nothing listed" />
+        </CardContent>
+      </Card>
+
+      {/* Integrations — Connect entry point (also in sidebar on desktop) */}
+      <Card className="shadow-sm">
+        <CardContent className="py-4">
+          <button
+            onClick={() => router.push('/connect')}
+            className="flex w-full items-center gap-3 rounded-xl text-left transition-colors hover:bg-muted/50 px-1 py-1"
+          >
+            <span className="rounded-full bg-primary/10 p-2">
+              <Plug className="h-4 w-4 text-primary" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold">Connect</span>
+              <span className="block truncate text-xs text-muted-foreground">Connect AI apps using MCP</span>
+            </span>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </button>
+        </CardContent>
+      </Card>
+
+      {/* Sign out */}
+      <Card className="shadow-sm">
+        <CardContent className="py-4">
+          <Button variant="outline" onClick={handleLogout} disabled={loggingOut} className="w-full">
+            {loggingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
+            {loggingOut ? 'Logging out…' : 'Log out'}
+          </Button>
         </CardContent>
       </Card>
     </div>

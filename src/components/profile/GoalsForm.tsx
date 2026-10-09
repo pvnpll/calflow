@@ -5,10 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { useProfile } from '@/lib/context/ProfileContext';
-import { ACTIVITY_LABELS, coerceEnum, enumLabel } from '@/lib/utils';
-import { Target, RefreshCw, CheckCircle2, Loader2, AlertTriangle, Flame, Beef, Wheat, Droplet, Nut } from 'lucide-react';
+import { GOAL_LABELS, GOAL_RATE_LABELS, coerceEnum, enumLabel } from '@/lib/utils';
+import { Target, RefreshCw, CheckCircle2, Loader2, Flame, Beef, Wheat, Droplet, Nut } from 'lucide-react';
 
 export default function GoalsForm() {
   const { profile: profileData, goals, loading, refresh } = useProfile();
@@ -190,8 +189,6 @@ export default function GoalsForm() {
     }
   };
 
-  const activityDisplay = enumLabel(ACTIVITY_LABELS, profileData?.activity_level, 'Not set');
-
   return (
     <Card className="shadow-sm">
       <CardHeader className="pb-4">
@@ -212,7 +209,7 @@ export default function GoalsForm() {
               <Label>Primary goal</Label>
               <Select value={formData.primaryGoal} onValueChange={(v) => updateGoal(coerceEnum(v, GOAL_VALUES, 'maintain_weight'))}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select goal" />
+                  <SelectValue placeholder="Select goal">{enumLabel(GOAL_LABELS, formData.primaryGoal, 'Select goal')}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {GOAL_ITEMS.map((g) => (
@@ -238,7 +235,7 @@ export default function GoalsForm() {
                 <Label>Desired rate</Label>
                 <Select value={formData.goalRate} onValueChange={(v) => updateRate(coerceEnum(v, RATE_VALUES, 'moderate'))}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select rate" />
+                    <SelectValue placeholder="Select rate">{enumLabel(GOAL_RATE_LABELS, formData.goalRate, 'Select rate')}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {RATE_ITEMS.map((r) => (
@@ -251,44 +248,26 @@ export default function GoalsForm() {
           )}
         </div>
 
-        {/* Recalculate banner */}
-        <div className="rounded-xl border bg-muted/30 p-4">
-          {canCalculate ? (
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">Based on:</span>
-                <Badge variant="secondary" className="tabular-nums">{profileData.current_weight_kg} kg</Badge>
-                <Badge variant="secondary" className="tabular-nums">{profileData.height_cm} cm</Badge>
-                <Badge variant="secondary" className="tabular-nums">{profileData.age} yrs</Badge>
-                <Badge variant="secondary">{activityDisplay}</Badge>
-              </div>
-              <div className="flex items-center gap-3">
+        {/* Manual target inputs */}
+        <div className="space-y-4 border-t pt-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-base font-semibold">Daily Nutrition Targets</h3>
+            {canCalculate ? (
+              <span className="flex items-center gap-2">
                 {recalcFlash && (
                   <span className="flex items-center gap-1 text-xs font-medium text-emerald-600">
                     <CheckCircle2 className="h-3.5 w-3.5" /> Updated
                   </span>
                 )}
-                <Button type="button" variant="outline" size="sm" onClick={() => applyCalculation()} className="w-full sm:w-auto">
+                <Button type="button" variant="outline" size="sm" onClick={() => applyCalculation()}>
                   <RefreshCw className="h-3.5 w-3.5" /> Recalculate
                 </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex gap-2.5">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-              <p className="text-sm leading-relaxed text-amber-700 dark:text-amber-300">
-                <span className="font-semibold">Profile incomplete — auto-calc is off.</span>{' '}
-                Fill in <span className="font-medium">{missingFields.join(', ')}</span> under Personal Info.
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Manual target inputs */}
-        <div className="space-y-4 border-t pt-4">
-          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-            <h3 className="text-base font-semibold">Daily Nutrition Targets</h3>
-            <span className="text-xs text-muted-foreground">Edit manually or recalculate above</span>
+              </span>
+            ) : (
+              <span className="text-xs text-muted-foreground">
+                Fill in {missingFields.join(', ')} under Personal Info to enable recalculation
+              </span>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
             <div className="space-y-2">

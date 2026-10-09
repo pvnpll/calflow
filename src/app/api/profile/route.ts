@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getProfile, upsertProfile, updateProfile } from '@/lib/services/profile.service';
+import { getLatestWeight, upsertWeightForDate } from '@/lib/services/weight.service';
 
 export const runtime = 'edge';
 
