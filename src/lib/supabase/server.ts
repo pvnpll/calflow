@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
+import { AUTH_COOKIE_OPTIONS } from '@/lib/supabase/auth-config'
 
 /**
  * Standard cookie-based Supabase client for Next.js App Router (browser sessions).
@@ -15,9 +16,7 @@ export async function createClient() {
       url,
       anonKey,
       {
-        cookieOptions: {
-          maxAge: 30 * 24 * 60 * 60, // 30 days of inactivity
-        },
+        cookieOptions: AUTH_COOKIE_OPTIONS,
         cookies: {
           getAll() {
             return cookieStore.getAll()

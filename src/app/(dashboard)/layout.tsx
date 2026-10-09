@@ -13,12 +13,14 @@ import {
   MessageSquare,
   User as UserIcon,
   Plug,
+  Loader2,
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { TimezoneSync } from '@/components/shared/TimezoneSync';
+import { isOnboardingComplete } from '@/lib/onboarding';
 
 const navItems = [
   { name: 'Home', href: '/dashboard', icon: Home },
@@ -36,6 +38,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  // New users must finish onboarding (basic info + goal) before seeing the app.
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
   const supabaseRef = useRef<ReturnType<typeof createClient> | null>(null);
 
   const getSupabase = useCallback(() => {
@@ -48,12 +52,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     const supabase = getSupabase();
 
+    // getSession reads the local session (no network call). Every navigation is already verified by the
+    // proxy, so a failed network call here must not look like a logout — only a missing session does.
     const fetchUser = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error || !user) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
         router.push('/login');
       } else {
-        setUser(user);
+        setUser(session.user);
       }
     };
     fetchUser();
@@ -72,6 +78,29 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       subscription.unsubscribe();
     };
   }, [getSupabase, router]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const checkOnboarding = async () => {
+      try {
+        const res = await fetch('/api/profile');
+        if (res.ok) {
+          const profile = await res.json();
+          if (!cancelled && !isOnboardingComplete(profile)) {
+            router.replace('/onboarding');
+            return;
+          }
+        }
+      } catch {
+        // fail open: never lock someone out of the app because this check failed
+      }
+      if (!cancelled) setOnboardingChecked(true);
+    };
+    checkOnboarding();
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
 
   return (
     <div className="relative flex min-h-[100dvh] bg-muted/20">
@@ -166,20 +195,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <div className="flex-1 relative flex flex-col">
           <div className={`mx-auto max-w-5xl w-full flex-1 flex flex-col ${pathname === '/chat' ? 'p-0' : 'p-4 md:p-6 lg:p-8'}`}>
-            {children}
+            {onboardingChecked ? (
+              children
+            ) : (
+              <div className="flex flex-1 items-center justify-center py-24">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            )}
           </div>
         </div>
       </main>
 
       {/* Mobile Bottom Navigation — Connect lives inside Profile */}
-      <nav className="fixed bottom-0 z-50 flex h-[calc(4rem+env(safe-area-inset-bottom))] w-full items-center justify-around border-t bg-background/80 px-2 pb-safe backdrop-blur-md md:hidden">
+      <nav className="fixed bottom-0 z-50 flex h-[calc(4rem+env(safe-area-inset-bottom))] w-full items-stretch border-t bg-background/80 pb-safe backdrop-blur-md md:hidden">
         {mobileNavItems.map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link
               key={item.name}
               href={item.href}
-              className={`flex flex-col items-center justify-center space-y-1 rounded-md px-1 py-1 transition-all active:scale-95 ${
+              // flex-1 + full height: the whole column is the tap target, not just the icon and label.
+              className={`flex h-full min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-lg transition-all active:scale-95 active:bg-muted/60 ${
                 isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
               }`}
             >

@@ -1,4 +1,5 @@
 import { createBrowserClient } from '@supabase/ssr'
+import { AUTH_COOKIE_OPTIONS } from '@/lib/supabase/auth-config'
 
 export function createClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
@@ -8,9 +9,7 @@ export function createClient() {
     url,
     anonKey,
     {
-      cookieOptions: {
-        maxAge: 30 * 24 * 60 * 60, // 30 days of inactivity
-      },
+      cookieOptions: AUTH_COOKIE_OPTIONS,
     }
   )
 }

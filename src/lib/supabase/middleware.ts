@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { AUTH_COOKIE_OPTIONS, isDefinitelyUnauthenticated } from '@/lib/supabase/auth-config'
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -17,9 +18,7 @@ export async function updateSession(request: NextRequest) {
     supabaseUrl,
     supabaseAnonKey,
     {
-      cookieOptions: {
-        maxAge: 30 * 24 * 60 * 60, // 30 days of inactivity
-      },
+      cookieOptions: AUTH_COOKIE_OPTIONS,
       cookies: {
         getAll() {
           return request.cookies.getAll()
@@ -37,10 +36,26 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
+  // A redirect must carry the cookies set during token refresh. If they're dropped, the browser keeps
+  // the old (already rotated) refresh token and the next request logs the user out.
+  const redirectTo = (url: URL) => {
+    const redirect = NextResponse.redirect(url)
+    supabaseResponse.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie))
+    return redirect
+  }
+
   // IMPORTANT: Avoid writing any logic between createServerClient and
-  // supabase.auth.getUser().
+  // supabase.auth.getClaims().
   try {
-    const { data: { user } } = await supabase.auth.getUser()
+    // getClaims verifies the JWT locally when the project uses asymmetric signing keys (no network
+    // round-trip per navigation) and refreshes the session if the access token is about to expire.
+    const { data, error } = await supabase.auth.getClaims()
+    const user = data?.claims ?? null
+
+    // Supabase unreachable / rate-limited / 5xx: we can't tell, so don't bounce a signed-in user to /login.
+    if (!user && !isDefinitelyUnauthenticated(error)) {
+      return supabaseResponse
+    }
 
     const pathname = request.nextUrl.pathname
     
@@ -64,14 +79,14 @@ export async function updateSession(request: NextRequest) {
       // User is not logged in and trying to access a protected route
       const url = request.nextUrl.clone()
       url.pathname = '/login'
-      return NextResponse.redirect(url)
+      return redirectTo(url)
     }
 
     if (user && isAuthRoute) {
       // User is logged in and trying to access an auth route
       const url = request.nextUrl.clone()
       url.pathname = '/dashboard'
-      return NextResponse.redirect(url)
+      return redirectTo(url)
     }
   } catch (e) {
     console.error('Error fetching user in middleware:', e)

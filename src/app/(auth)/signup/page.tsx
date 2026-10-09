@@ -26,12 +26,13 @@ export default function SignupPage() {
     setError(null);
     const supabase = createClient();
 
+    const cleanName = name.trim().replace(/s+/g, ' ');
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
-          full_name: name,
+          full_name: cleanName,
         },
       }
     });
@@ -42,19 +43,20 @@ export default function SignupPage() {
       return;
     }
 
-    // Record the user's timezone right away so server-side "today" is correct from their first action.
-    // Without a session (email confirmation on) the dashboard's TimezoneSync does this after first sign-in.
-    const timezone = getBrowserTimezone();
-    if (data.session && timezone) {
-      try {
-        await fetch('/api/profile', {
+    // Seed the profile right away: the name (so the dashboard greets them by first name) and
+    // their timezone (so server-side "today" is correct from their first action). Each is a separate
+    // request so one failing can't lose the other. Without a session (email confirmation on) nothing
+    // is saved yet — onboarding pre-fills the name from the sign-up metadata and TimezoneSync saves the zone.
+    if (data.session) {
+      const save = (payload: Record<string, string>) =>
+        fetch('/api/profile', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ timezone }),
-        });
-      } catch {
-        // non-fatal — TimezoneSync retries on the dashboard
-      }
+          body: JSON.stringify(payload),
+        }).catch(() => {});
+      await save({ name: cleanName });
+      const timezone = getBrowserTimezone();
+      if (timezone) await save({ timezone });
     }
 
     router.push('/');

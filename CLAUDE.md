@@ -32,4 +32,6 @@ CalFlow is an AI-first nutrition tracker (Next.js App Router + Supabase + Tailwi
 
 **Dates** are plain `YYYY-MM-DD` strings in the *user's* timezone — never use `toISOString()` for them. Use `src/lib/date.ts` (`todayStr`, `addDaysStr`, `parseDateStr`): on the client omit the timezone (browser-local); on the server get the user's zone from `services/user-time.ts` (`getUserToday(userId)`), which reads `cf_user_profiles.timezone` (migration 004), kept in sync from the browser by `components/shared/TimezoneSync.tsx`. MCP gets it via `authInfo.extra.timezone`; the system prompt via `profile.timezone`.
 
+**Onboarding**: the `(dashboard)` layout redirects to `/onboarding` (outside the dashboard shell) until `isOnboardingComplete(profile)` (`lib/onboarding.ts`: age, sex, height, weight, goal) is true. The onboarding page saves targets (via `lib/nutrition-targets.ts`) first and the profile last, since the profile is what marks it complete. Signup seeds `profile.name`; the full name's first word drives the dashboard greeting.
+
 `goal-tracking.md` and `docs/landing-page-spec.md` are product/design specs, not documentation of current behavior.
