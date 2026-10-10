@@ -8,11 +8,20 @@ import { WaterTracker } from '@/components/dashboard/WaterTracker';
 import { RecentMeals } from '@/components/dashboard/RecentMeals';
 import { BodyAndHealth } from '@/components/dashboard/BodyAndHealth';
 import { createClient } from '@/lib/supabase/client';
+import Link from 'next/link';
+import { buttonVariants } from '@/components/ui/button';
+import { parseDateStr } from '@/lib/date';
+import { FriendsButton, RemoveFriendButton } from '@/components/dashboard/FriendsMenu';
+import { ShareButton, ShareDialogs, ShareIconButton, useShareDashboard } from '@/components/dashboard/ShareDashboard';
 
-export default function DashboardContent() {
+export default function DashboardContent({ friendId }: { friendId?: string }) {
+  const readOnly = !!friendId;
+  const shareCtl = useShareDashboard(!readOnly);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState('');
-  
+  const [unavailable, setUnavailable] = useState(false);
+  const [dataDate, setDataDate] = useState<string | null>(null);
+
   const [nutrition, setNutrition] = useState({
     calories: { consumed: 0, target: 2000 },
     protein: { consumed: 0, target: 150 },
@@ -30,12 +39,19 @@ export default function DashboardContent() {
 
   const fetchDashboardData = useCallback(async () => {
     try {
-      const res = await fetch('/api/dashboard');
+      const res = await fetch(friendId ? `/api/dashboard?friend=${encodeURIComponent(friendId)}` : '/api/dashboard');
+      if (res.status === 403) {
+        // Friend stopped sharing, or removed me / I removed them.
+        setUnavailable(true);
+        return;
+      }
       if (!res.ok) throw new Error('Failed to fetch dashboard data');
       const data = await res.json();
-      
+      setUnavailable(false);
+      setDataDate(data.date ?? null);
+
       if (data.profile) {
-        setUserName(data.profile.name?.split(' ')[0] || '');
+        setUserName(friendId ? (data.profile.name || '') : (data.profile.name?.split(' ')[0] || ''));
       }
 
       // Parse nutrition summary
@@ -113,14 +129,43 @@ export default function DashboardContent() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [friendId]);
 
   useEffect(() => {
+    // Switching dashboards: clear the previous person's data so none of it shows through.
+    setLoading(true);
+    setUnavailable(false);
+    setUserName('');
+    setNutrition({
+      calories: { consumed: 0, target: 2000 },
+      protein: { consumed: 0, target: 150 },
+      carbs: { consumed: 0, target: 250 },
+      fat: { consumed: 0, target: 65 },
+      fiber: { consumed: 0, target: 30 },
+    });
+    setWater({ consumed: 0, target: 2500 });
+    setMeals([]);
+    setWeightHistory([]);
+    setWeight({ current: 0, trend: 'stable', trendValue: 0 });
     fetchDashboardData();
   }, [fetchDashboardData]);
 
   if (loading) {
     return <DashboardSkeleton />;
+  }
+
+  if (unavailable) {
+    return (
+      <div className="flex flex-col items-center rounded-xl border border-dashed bg-muted/20 px-6 py-14 text-center">
+        <h2 className="text-lg font-semibold">This dashboard isn&apos;t available</h2>
+        <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+          They may have stopped sharing, or you&apos;re no longer connected. Ask them for a new link if you&apos;d like to see it again.
+        </p>
+        <Link href="/dashboard" className={buttonVariants({ className: 'mt-5' })}>
+          Back to my dashboard
+        </Link>
+      </div>
+    );
   }
 
   const getGreeting = () => {
@@ -130,20 +175,39 @@ export default function DashboardContent() {
     return 'Good evening';
   };
 
+  // For a friend, show *their* today (their timezone), not mine.
   const todayStr = new Intl.DateTimeFormat('en-US', {
     weekday: 'long',
     month: 'long',
     day: 'numeric'
-  }).format(new Date());
+  }).format(readOnly && dataDate ? parseDateStr(dataDate) : new Date());
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight">
-          {getGreeting()}{userName ? `, ${userName}` : ''}
-        </h1>
-        <p className="text-muted-foreground">{todayStr}</p>
+      <div className="flex flex-col gap-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 flex-col gap-1">
+            <div className="flex items-center gap-1.5">
+              <h1 className="text-2xl font-bold tracking-tight">
+                {readOnly
+                  ? (userName ? `${userName}'s day` : 'Shared dashboard')
+                  : <>{getGreeting()}{userName ? `, ${userName}` : ''}</>}
+              </h1>
+              {!readOnly && <ShareIconButton ctl={shareCtl} />}
+            </div>
+            <p className="text-muted-foreground">{todayStr}</p>
+          </div>
+          {friendId && <RemoveFriendButton friendId={friendId} name={userName} />}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <FriendsButton activeFriendId={friendId} />
+          {!readOnly && <ShareButton ctl={shareCtl} />}
+        </div>
+        {!readOnly && shareCtl.error && !shareCtl.confirmStop && (
+          <p className="text-sm font-medium text-destructive">{shareCtl.error}</p>
+        )}
       </div>
+      {!readOnly && <ShareDialogs ctl={shareCtl} />}
 
       <div className="flex justify-center py-6">
         <CalorieRing 
@@ -181,12 +245,13 @@ export default function DashboardContent() {
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-4 flex flex-col">
-          <WaterTracker 
-            initialConsumed={water.consumed} 
-            target={water.target} 
+          <WaterTracker
+            initialConsumed={water.consumed}
+            target={water.target}
+            readOnly={readOnly}
           />
           <div className="flex-grow">
-            <RecentMeals meals={meals} />
+            <RecentMeals meals={meals} readOnly={readOnly} />
           </div>
         </div>
         
@@ -195,7 +260,8 @@ export default function DashboardContent() {
             <BodyAndHealth 
               weight={weight} 
               weightHistory={weightHistory} 
-              onWeightLogged={fetchDashboardData} 
+              onWeightLogged={fetchDashboardData}
+              readOnly={readOnly}
             />
           </div>
         </div>

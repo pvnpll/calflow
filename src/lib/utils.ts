@@ -10,7 +10,7 @@ export function formatNumber(n: number, decimals?: number): string {
 
 export function formatDate(date: Date | string): string {
   // 'YYYY-MM-DD' strings are calendar dates: parse as local so they don't shift a day west of UTC.
-  const d = typeof date === 'string' && /^d{4}-d{2}-d{2}$/.test(date) ? parseDateStr(date) : new Date(date);
+  const d = typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date) ? parseDateStr(date) : new Date(date);
   return d.toLocaleDateString(undefined, {
     year: 'numeric',
     month: 'long',

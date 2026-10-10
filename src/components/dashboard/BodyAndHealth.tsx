@@ -19,9 +19,11 @@ interface BodyAndHealthProps {
   };
   weightHistory: any[];
   onWeightLogged: () => void;
+  /** Viewing someone else's dashboard: no logging. */
+  readOnly?: boolean;
 }
 
-export function BodyAndHealth({ weight, weightHistory, onWeightLogged }: BodyAndHealthProps) {
+export function BodyAndHealth({ weight, weightHistory, onWeightLogged, readOnly = false }: BodyAndHealthProps) {
   const [isLogging, setIsLogging] = useState(false);
   const [newWeight, setNewWeight] = useState('');
   const [saving, setSaving] = useState(false);
@@ -130,7 +132,7 @@ export function BodyAndHealth({ weight, weightHistory, onWeightLogged }: BodyAnd
       </div>
 
       {/* Log Weight Button */}
-      <div className="mb-6">
+      {!readOnly && <div className="mb-6">
         <Dialog open={isLogging} onOpenChange={setIsLogging}>
           <DialogTrigger render={
             <Button variant="outline" className="w-full">
@@ -160,7 +162,7 @@ export function BodyAndHealth({ weight, weightHistory, onWeightLogged }: BodyAnd
             </form>
           </DialogContent>
         </Dialog>
-      </div>
+      </div>}
 
       <div className="border-t pt-4 space-y-3 flex-grow">
         <div className="flex justify-between items-center text-sm">

@@ -69,7 +69,7 @@ function NumberField({
   maxLength?: number;
 }) {
   const clean = (raw: string) => {
-    if (!decimal) return raw.replace(/D/g, '');
+    if (!decimal) return raw.replace(/\D/g, '');
     const s = raw.replace(/[^0-9.]/g, '');
     const [int, ...rest] = s.split('.');
     return rest.length ? `${int}.${rest.join('')}` : int;

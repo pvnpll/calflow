@@ -9,9 +9,11 @@ import { todayStr } from '@/lib/date';
 interface WaterTrackerProps {
   initialConsumed: number; // in ml
   target: number; // in ml
+  /** Viewing someone else's dashboard: no logging buttons. */
+  readOnly?: boolean;
 }
 
-export function WaterTracker({ initialConsumed = 0, target = 2500 }: WaterTrackerProps) {
+export function WaterTracker({ initialConsumed = 0, target = 2500, readOnly = false }: WaterTrackerProps) {
   const [consumed, setConsumed] = useState(initialConsumed || 0);
   const [isAdding, setIsAdding] = useState(false);
 
@@ -73,7 +75,7 @@ export function WaterTracker({ initialConsumed = 0, target = 2500 }: WaterTracke
         />
       </div>
       
-      <div className="flex gap-2">
+      {!readOnly && <div className="flex gap-2">
         <Button 
           variant="outline" 
           size="sm" 
@@ -94,7 +96,7 @@ export function WaterTracker({ initialConsumed = 0, target = 2500 }: WaterTracke
           <Plus className="h-3 w-3 mr-1" />
           500ml
         </Button>
-      </div>
+      </div>}
     </Card>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -9,9 +9,16 @@ import { Label } from '@/components/ui/label';
 import { LogIn, Loader2, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { AuthShell, AuthError } from '@/components/auth/AuthShell';
+import { getNextFromLocation } from '@/lib/redirect';
 
 export default function LoginPage() {
   const router = useRouter();
+  // Keep ?next= when hopping between sign in and sign up (e.g. someone opening a share link).
+  const [nextQuery, setNextQuery] = useState('');
+  useEffect(() => {
+    const next = getNextFromLocation();
+    setNextQuery(next !== '/' ? `?next=${encodeURIComponent(next)}` : '');
+  }, []);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -35,7 +42,7 @@ export default function LoginPage() {
       return;
     }
 
-    router.push('/');
+    router.push(getNextFromLocation());
     router.refresh();
   };
 
@@ -47,7 +54,7 @@ export default function LoginPage() {
       footer={
         <>
           Don&apos;t have an account?{' '}
-          <Link href="/signup" className="font-medium text-primary hover:underline">
+          <Link href={`/signup${nextQuery}`}className="font-medium text-primary hover:underline">
             Sign up
           </Link>
         </>

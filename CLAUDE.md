@@ -34,4 +34,6 @@ CalFlow is an AI-first nutrition tracker (Next.js App Router + Supabase + Tailwi
 
 **Onboarding**: the `(dashboard)` layout redirects to `/onboarding` (outside the dashboard shell) until `isOnboardingComplete(profile)` (`lib/onboarding.ts`: age, sex, height, weight, goal) is true. The onboarding page saves targets (via `lib/nutrition-targets.ts`) first and the profile last, since the profile is what marks it complete. Signup seeds `profile.name`; the full name's first word drives the dashboard greeting.
 
+**Dashboard sharing**: an owner enables a link (`cf_dashboard_shares.token`, `/api/share`); opening `/s/<token>` (public route; signed-out visitors bounce through `/login?next=`) adds the owner to the visitor's friends (`cf_friendships`) and opens `/dashboard?friend=<ownerId>`. `/api/dashboard?friend=` is the only read path for another user's data and is gated by `canViewDashboard` (friend AND owner still sharing); it returns a trimmed payload (no age/sex/height/allergies/timezone, no weigh-in notes). Disabling sharing deletes all friendships and re-enabling issues a new token (`services/sharing.service.ts`).
+
 `goal-tracking.md` and `docs/landing-page-spec.md` are product/design specs, not documentation of current behavior.

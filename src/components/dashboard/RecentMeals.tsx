@@ -12,9 +12,11 @@ interface Meal {
 
 interface RecentMealsProps {
   meals: any[];
+  /** Viewing someone else's dashboard: adjust copy that talks to the owner. */
+  readOnly?: boolean;
 }
 
-export function RecentMeals({ meals }: RecentMealsProps) {
+export function RecentMeals({ meals, readOnly = false }: RecentMealsProps) {
   const getMealIcon = (type: string) => {
     switch (type) {
       case 'breakfast': return <Coffee className="h-4 w-4 text-orange-500" />;
@@ -33,7 +35,7 @@ export function RecentMeals({ meals }: RecentMealsProps) {
         {meals.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center p-4 text-muted-foreground bg-muted/30 rounded-lg border border-dashed">
             <Utensils className="h-8 w-8 mb-2 opacity-20" />
-            <p className="text-sm">No meals logged today. Talk to your AI assistant to get started!</p>
+            <p className="text-sm">{readOnly ? 'No meals logged today.' : 'No meals logged today. Talk to your AI assistant to get started!'}</p>
           </div>
         ) : (
           <ul className="space-y-4">

@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { AUTH_COOKIE_OPTIONS, isDefinitelyUnauthenticated } from '@/lib/supabase/auth-config'
+import { safeNextPath } from '@/lib/redirect'
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -68,6 +69,9 @@ export async function updateSession(request: NextRequest) {
       pathname.startsWith('/static') || 
       pathname.startsWith('/.well-known') || 
       pathname.startsWith('/auth/callback') ||
+      // Share links are public so link-preview crawlers (WhatsApp etc.) can read them; the page itself
+      // sends signed-out visitors to /login?next=... and back.
+      pathname.startsWith('/s/') ||
       pathname.match(/\.(png|json|xml|ico|webmanifest)$/i) || // Static assets
       pathname === '/apple-icon' ||
       pathname === '/icon' ||
@@ -78,15 +82,19 @@ export async function updateSession(request: NextRequest) {
     if (!user && !isAuthRoute && !isPublicPath) {
       // User is not logged in and trying to access a protected route
       const url = request.nextUrl.clone()
+      // Remember where they were going so login can return them there.
+      const destination = request.nextUrl.pathname + request.nextUrl.search
       url.pathname = '/login'
+      url.search = ''
+      url.searchParams.set('next', destination)
       return redirectTo(url)
     }
 
     if (user && isAuthRoute) {
       // User is logged in and trying to access an auth route
-      const url = request.nextUrl.clone()
-      url.pathname = '/dashboard'
-      return redirectTo(url)
+      // (honouring a safe ?next=, e.g. a stale /login?next=/s/<token> tab)
+      const dest = new URL(safeNextPath(request.nextUrl.searchParams.get('next'), '/dashboard'), request.url)
+      return redirectTo(dest.pathname === '/' ? new URL('/dashboard', request.url) : dest)
     }
   } catch (e) {
     console.error('Error fetching user in middleware:', e)

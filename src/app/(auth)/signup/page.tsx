@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -10,9 +10,15 @@ import { UserPlus, Loader2, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { AuthShell, AuthError } from '@/components/auth/AuthShell';
 import { getBrowserTimezone } from '@/lib/date';
+import { getNextFromLocation } from '@/lib/redirect';
 
 export default function SignupPage() {
   const router = useRouter();
+  const [nextQuery, setNextQuery] = useState('');
+  useEffect(() => {
+    const next = getNextFromLocation();
+    setNextQuery(next !== '/' ? `?next=${encodeURIComponent(next)}` : '');
+  }, []);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,7 +32,7 @@ export default function SignupPage() {
     setError(null);
     const supabase = createClient();
 
-    const cleanName = name.trim().replace(/s+/g, ' ');
+    const cleanName = name.trim().replace(/\s+/g, ' ');
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -59,7 +65,7 @@ export default function SignupPage() {
       if (timezone) await save({ timezone });
     }
 
-    router.push('/');
+    router.push(getNextFromLocation());
     router.refresh();
   };
 
@@ -71,7 +77,7 @@ export default function SignupPage() {
       footer={
         <>
           Already have an account?{' '}
-          <Link href="/login" className="font-medium text-primary hover:underline">
+          <Link href={`/login${nextQuery}`}className="font-medium text-primary hover:underline">
             Sign in
           </Link>
         </>

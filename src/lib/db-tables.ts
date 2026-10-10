@@ -13,4 +13,6 @@ export const TABLES = {
   AI_INTERACTIONS: 'cf_ai_interactions',
   MCP_AUTH_CODES: 'cf_mcp_auth_codes',
   MCP_TOKENS: 'cf_mcp_tokens',
+  DASHBOARD_SHARES: 'cf_dashboard_shares',
+  FRIENDSHIPS: 'cf_friendships',
 } as const;
