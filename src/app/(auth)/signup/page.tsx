@@ -90,6 +90,7 @@ export default function SignupPage() {
           <Label htmlFor="signup-name">Full name</Label>
           <Input
             id="signup-name"
+            name="name"
             type="text"
             placeholder="John Doe"
             required
@@ -103,6 +104,7 @@ export default function SignupPage() {
           <Label htmlFor="signup-email">Email</Label>
           <Input
             id="signup-email"
+            name="email"
             type="email"
             placeholder="m@example.com"
             required
@@ -117,6 +119,7 @@ export default function SignupPage() {
           <div className="relative">
             <Input
               id="signup-password"
+              name="password"
               type={showPassword ? 'text' : 'password'}
               required
               minLength={6}
