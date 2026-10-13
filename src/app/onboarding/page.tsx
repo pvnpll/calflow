@@ -11,6 +11,7 @@ import { createClient } from '@/lib/supabase/client';
 import { calculateTargets } from '@/lib/nutrition-targets';
 import { isOnboardingComplete } from '@/lib/onboarding';
 import { GOAL_RATE_LABELS } from '@/lib/utils';
+import { McpConnectInstructions } from '@/components/shared/McpConnectInstructions';
 
 const SEX_OPTIONS = [
   { value: 'male', label: 'Male' },
@@ -34,7 +35,7 @@ const GOAL_OPTIONS = [
 ];
 
 const HAS_RATE = ['lose_weight', 'gain_weight', 'gain_muscle'];
-const STEPS = ['About you', 'Body & lifestyle', 'Your goal'];
+const STEPS = ['About you', 'Body & lifestyle', 'Your goal', 'Connect AI'];
 
 interface FormState {
   name: string;
@@ -302,11 +303,13 @@ export default function OnboardingPage() {
             {step === 0 && `Welcome${form.name.trim() ? `, ${form.name.trim().split(' ')[0]}` : ''}! Let's set up your profile`}
             {step === 1 && 'Your body & lifestyle'}
             {step === 2 && 'What is your goal?'}
+            {step === 3 && 'Connect your AI assistant'}
           </CardTitle>
           <CardDescription>
             {step === 0 && 'A few basics so CalFlow can personalise your targets.'}
             {step === 1 && 'Used to estimate how many calories your body uses each day.'}
             {step === 2 && "We'll set your daily calorie, macro and water targets from this."}
+            {step === 3 && 'Optional — log meals and get insights straight from ChatGPT, Claude or Gemini using MCP. You can also do this later from the Connect page.'}
           </CardDescription>
         </CardHeader>
 
@@ -387,6 +390,8 @@ export default function OnboardingPage() {
               )}
             </div>
           )}
+
+          {step === 3 && <McpConnectInstructions />}
 
           {error && (
             <div className="rounded-xl border border-destructive/25 bg-destructive/[0.06] px-4 py-3 text-sm font-medium leading-relaxed text-destructive">
