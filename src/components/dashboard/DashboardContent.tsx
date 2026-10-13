@@ -14,8 +14,13 @@ import { parseDateStr } from '@/lib/date';
 import { FriendsButton, RemoveFriendButton } from '@/components/dashboard/FriendsMenu';
 import { ShareButton, ShareDialogs, ShareIconButton, useShareDashboard } from '@/components/dashboard/ShareDashboard';
 
-export default function DashboardContent({ friendId }: { friendId?: string }) {
-  const readOnly = !!friendId;
+/**
+ * `friendId`: a signed-in viewer looking at a friend's dashboard.
+ * `shareToken`: a signed-out visitor looking at a dashboard through its public link.
+ * Both are read-only.
+ */
+export default function DashboardContent({ friendId, shareToken }: { friendId?: string; shareToken?: string }) {
+  const readOnly = !!friendId || !!shareToken;
   const shareCtl = useShareDashboard(!readOnly);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState('');
@@ -39,7 +44,13 @@ export default function DashboardContent({ friendId }: { friendId?: string }) {
 
   const fetchDashboardData = useCallback(async () => {
     try {
-      const res = await fetch(friendId ? `/api/dashboard?friend=${encodeURIComponent(friendId)}` : '/api/dashboard');
+      const res = await fetch(
+        shareToken
+          ? `/api/dashboard?token=${encodeURIComponent(shareToken)}`
+          : friendId
+            ? `/api/dashboard?friend=${encodeURIComponent(friendId)}`
+            : '/api/dashboard',
+      );
       if (res.status === 403) {
         // Friend stopped sharing, or removed me / I removed them.
         setUnavailable(true);
@@ -51,7 +62,7 @@ export default function DashboardContent({ friendId }: { friendId?: string }) {
       setDataDate(data.date ?? null);
 
       if (data.profile) {
-        setUserName(friendId ? (data.profile.name || '') : (data.profile.name?.split(' ')[0] || ''));
+        setUserName(readOnly ? (data.profile.name || '') : (data.profile.name?.split(' ')[0] || ''));
       }
 
       // Parse nutrition summary
@@ -129,7 +140,7 @@ export default function DashboardContent({ friendId }: { friendId?: string }) {
     } finally {
       setLoading(false);
     }
-  }, [friendId]);
+  }, [friendId, shareToken, readOnly]);
 
   useEffect(() => {
     // Switching dashboards: clear the previous person's data so none of it shows through.
@@ -159,10 +170,12 @@ export default function DashboardContent({ friendId }: { friendId?: string }) {
       <div className="flex flex-col items-center rounded-xl border border-dashed bg-muted/20 px-6 py-14 text-center">
         <h2 className="text-lg font-semibold">This dashboard isn&apos;t available</h2>
         <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-          They may have stopped sharing, or you&apos;re no longer connected. Ask them for a new link if you&apos;d like to see it again.
+          {shareToken
+            ? 'They may have stopped sharing. Ask them for a new link if you’d like to see it again.'
+            : 'They may have stopped sharing, or you’re no longer connected. Ask them for a new link if you’d like to see it again.'}
         </p>
-        <Link href="/dashboard" className={buttonVariants({ className: 'mt-5' })}>
-          Back to my dashboard
+        <Link href={shareToken ? '/signup' : '/dashboard'} className={buttonVariants({ className: 'mt-5' })}>
+          {shareToken ? 'Start tracking with CalFlow' : 'Back to my dashboard'}
         </Link>
       </div>
     );
@@ -200,7 +213,7 @@ export default function DashboardContent({ friendId }: { friendId?: string }) {
           {friendId && <RemoveFriendButton friendId={friendId} name={userName} />}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <FriendsButton activeFriendId={friendId} />
+          {!shareToken && <FriendsButton activeFriendId={friendId} />}
           {!readOnly && <ShareButton ctl={shareCtl} />}
         </div>
         {!readOnly && shareCtl.error && !shareCtl.confirmStop && (

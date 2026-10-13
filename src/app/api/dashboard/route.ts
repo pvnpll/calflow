@@ -6,7 +6,7 @@ import { getWaterByDate } from '@/lib/services/water.service';
 import { getWeightHistory } from '@/lib/services/weight.service';
 import { getProfile } from '@/lib/services/profile.service';
 import { getUserToday } from '@/lib/services/user-time';
-import { canViewDashboard } from '@/lib/services/sharing.service';
+import { canViewDashboard, getOwnerIdByToken } from '@/lib/services/sharing.service';
 
 export const runtime = 'edge';
 
@@ -28,6 +28,14 @@ function publicMeal(meal: any) {
 
 export async function GET(req: NextRequest) {
   try {
+    // ?token=<share token> views a shared dashboard without an account (read-only, same trimmed payload).
+    const token = req.nextUrl.searchParams.get('token');
+    if (token) {
+      const ownerId = await getOwnerIdByToken(token);
+      if (!ownerId) return NextResponse.json({ error: 'not_shared' }, { status: 403 });
+      return buildDashboard(ownerId, true);
+    }
+
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -38,8 +46,15 @@ export async function GET(req: NextRequest) {
     if (isShared && !(await canViewDashboard(user.id, friendId))) {
       return NextResponse.json({ error: 'not_shared' }, { status: 403 });
     }
-    const targetId = isShared ? friendId : user.id;
+    return buildDashboard(isShared ? friendId : user.id, isShared);
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
 
+/** `isShared` trims the payload to what a viewer other than the owner may see. */
+async function buildDashboard(targetId: string, isShared: boolean) {
+  try {
     const dateStr = await getUserToday(targetId);
 
     // Fetch everything in one parallel shot

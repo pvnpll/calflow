@@ -6,12 +6,13 @@ import { useRouter } from 'next/navigation';
 import { Loader2, LinkIcon } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { AuthShell } from '@/components/auth/AuthShell';
+import { PublicSharedDashboard } from '@/components/sharing/PublicSharedDashboard';
 
-type State = 'joining' | 'invalid' | 'error';
+type State = 'joining' | 'public' | 'invalid' | 'error';
 
 /**
  * Landing for a share link. Signed-in: adds the owner to my friends and opens their dashboard.
- * Signed-out: sends them through login/signup and back here (/login?next=/s/<token>).
+ * Signed-out: shows the dashboard read-only, with a prompt to sign up (which returns here).
  */
 export function JoinShare({ token, ownerName }: { token: string; ownerName: string | null }) {
   const router = useRouter();
@@ -28,10 +29,7 @@ export function JoinShare({ token, ownerName }: { token: string; ownerName: stri
         });
         if (cancelled) return;
 
-        if (res.status === 401) {
-          router.replace(`/login?next=${encodeURIComponent(`/s/${token}`)}`);
-          return;
-        }
+        if (res.status === 401) return setState('public');
         if (res.status === 404) return setState('invalid');
         if (!res.ok) return setState('error');
 
@@ -47,40 +45,58 @@ export function JoinShare({ token, ownerName }: { token: string; ownerName: stri
     };
   }, [token, router]);
 
+  if (state === 'public') return <PublicSharedDashboard token={token} />;
+
   if (state === 'joining') {
     return (
-      <AuthShell
-        title={ownerName ? `${ownerName}'s dashboard` : 'Shared dashboard'}
-        description={ownerName ? `Adding ${ownerName} to your friends…` : 'Opening shared dashboard…'}
-        icon={<LinkIcon className="h-4 w-4 text-primary" />}
-      >
-        <div className="flex justify-center py-6">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
-      </AuthShell>
+      <Backdrop>
+        <AuthShell
+          title={ownerName ? `${ownerName}'s dashboard` : 'Shared dashboard'}
+          description={ownerName ? `Opening ${ownerName}'s dashboard…` : 'Opening shared dashboard…'}
+          icon={<LinkIcon className="h-4 w-4 text-primary" />}
+        >
+          <div className="flex justify-center py-6">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        </AuthShell>
+      </Backdrop>
     );
   }
 
   return (
-    <AuthShell
-      title={state === 'invalid' ? 'This link no longer works' : 'Something went wrong'}
-      description={
-        state === 'invalid'
-          ? 'The link is invalid, or the owner has stopped sharing their dashboard.'
-          : 'We could not open this shared dashboard. Please try again.'
-      }
-      icon={<LinkIcon className="h-4 w-4 text-primary" />}
-    >
-      <div className="flex gap-2">
-        {state === 'error' && (
-          <Button variant="outline" className="flex-1" onClick={() => window.location.reload()}>
-            Try again
-          </Button>
-        )}
-        <Link href="/dashboard" className={buttonVariants({ className: 'flex-1' })}>
-          Go to my dashboard
-        </Link>
+    <Backdrop>
+      <AuthShell
+        title={state === 'invalid' ? 'This link no longer works' : 'Something went wrong'}
+        description={
+          state === 'invalid'
+            ? 'The link is invalid, or the owner has stopped sharing their dashboard.'
+            : 'We could not open this shared dashboard. Please try again.'
+        }
+        icon={<LinkIcon className="h-4 w-4 text-primary" />}
+      >
+        <div className="flex gap-2">
+          {state === 'error' && (
+            <Button variant="outline" className="flex-1" onClick={() => window.location.reload()}>
+              Try again
+            </Button>
+          )}
+          <Link href="/dashboard" className={buttonVariants({ className: 'flex-1' })}>
+            Go to my dashboard
+          </Link>
+        </div>
+      </AuthShell>
+    </Backdrop>
+  );
+}
+
+function Backdrop({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative flex min-h-[100dvh] items-center justify-center overflow-hidden bg-background p-4">
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 bg-muted/30" />
+        <div className="absolute -top-32 left-1/2 h-72 w-[42rem] -translate-x-1/2 rounded-full bg-primary/[0.07] blur-3xl" />
       </div>
-    </AuthShell>
+      <div className="relative w-full max-w-md">{children}</div>
+    </div>
   );
 }

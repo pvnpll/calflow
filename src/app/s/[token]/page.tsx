@@ -21,15 +21,5 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
   const { token } = await params;
   const preview = await previewShare(token).catch(() => null);
 
-  return (
-    <div className="relative flex min-h-[100dvh] items-center justify-center overflow-hidden bg-background p-4">
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-muted/30" />
-        <div className="absolute -top-32 left-1/2 h-72 w-[42rem] -translate-x-1/2 rounded-full bg-primary/[0.07] blur-3xl" />
-      </div>
-      <div className="relative w-full max-w-md">
-        <JoinShare token={token} ownerName={preview?.ownerName ?? null} />
-      </div>
-    </div>
-  );
+  return <JoinShare token={token} ownerName={preview?.ownerName ?? null} />;
 }

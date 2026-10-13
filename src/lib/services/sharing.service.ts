@@ -89,6 +89,19 @@ export async function previewShare(token: string): Promise<{ ownerName: string }
   return { ownerName: await getOwnerName(share.user_id) }
 }
 
+/** Owner of an active share link, or null if the token is invalid or sharing is off. Needs no login. */
+export async function getOwnerIdByToken(token: unknown): Promise<string | null> {
+  if (!isValidShareToken(token)) return null
+  const supabase = createAdminClient()
+  const { data: share, error } = await supabase
+    .from(TABLES.DASHBOARD_SHARES)
+    .select('user_id, enabled')
+    .eq('token', token)
+    .maybeSingle()
+  if (error) throw error
+  return share?.enabled ? (share.user_id as string) : null
+}
+
 export type JoinResult =
   | { status: 'ok'; ownerId: string; ownerName: string }
   | { status: 'self' }
