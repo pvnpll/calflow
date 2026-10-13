@@ -3,6 +3,14 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Menu, X, UtensilsCrossed } from "lucide-react";
+import { cn } from "cn";
+
+const LINKS = [
+  { href: "#product", label: "Product" },
+  { href: "#ai", label: "AI" },
+  { href: "#insights", label: "Insights" },
+  { href: "#how-it-works", label: "How it works" },
+];
 
 export function LandingNav({ isLoggedIn }: { isLoggedIn?: boolean }) {
   const [scrolled, setScrolled] = useState(false);
@@ -10,52 +18,58 @@ export function LandingNav({ isLoggedIn }: { isLoggedIn?: boolean }) {
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      setScrolled(window.scrollY > 16);
     };
-    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
     <header
-      className={`fixed top-0 w-full z-50 transition-all duration-300 border-b border-transparent ${
+      className={cn(
+        "fixed inset-x-0 top-0 z-50 transition-all duration-300",
         scrolled
-          ? "bg-white/80 backdrop-blur-md border-neutral-200 dark:bg-neutral-950/80 dark:border-neutral-800"
-          : "bg-transparent"
-      }`}
+          ? "border-b border-border/60 bg-background/80 backdrop-blur-xl"
+          : "border-b border-transparent bg-transparent"
+      )}
     >
-      <div className="container mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
         <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-2 font-semibold text-xl tracking-tight">
-            <span className="rounded-md bg-black/10 dark:bg-white/10 p-1.5">
-              <UtensilsCrossed className="h-5 w-5" />
+          <Link href="/" className="flex items-center gap-2 text-[17px] font-semibold tracking-tight" aria-label="CalFlow home">
+            <span className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-foreground text-background">
+              <UtensilsCrossed className="h-4 w-4" />
             </span>
             CalFlow
           </Link>
-          <nav className="hidden md:flex gap-6 text-sm font-medium text-neutral-600 dark:text-neutral-400">
-            <Link href="#features" className="hover:text-black dark:hover:text-white transition-colors">Features</Link>
-            <Link href="#ai" className="hover:text-black dark:hover:text-white transition-colors">AI</Link>
-            <Link href="#insights" className="hover:text-black dark:hover:text-white transition-colors">Insights</Link>
-            <Link href="#how-it-works" className="hover:text-black dark:hover:text-white transition-colors">How it works</Link>
+          <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
+            {LINKS.map((l) => (
+              <Link key={l.href} href={l.href} className="transition-colors hover:text-foreground">
+                {l.label}
+              </Link>
+            ))}
           </nav>
         </div>
 
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden items-center gap-2 md:flex">
           {isLoggedIn ? (
             <Link
               href="/dashboard"
-              className="inline-flex h-9 items-center justify-center rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 shadow transition-colors hover:bg-neutral-900/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-950 disabled:pointer-events-none disabled:opacity-50 dark:bg-neutral-50 dark:text-neutral-900 dark:hover:bg-neutral-50/90"
+              className="inline-flex h-9 items-center justify-center rounded-full bg-foreground px-5 text-sm font-medium text-background transition-opacity hover:opacity-90"
             >
-              Go to Dashboard
+              Open app
             </Link>
           ) : (
             <>
-              <Link href="/login" className="text-sm font-medium hover:underline underline-offset-4">
+              <Link
+                href="/login"
+                className="inline-flex h-9 items-center justify-center rounded-full px-4 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
                 Log in
               </Link>
               <Link
                 href="/signup"
-                className="inline-flex h-9 items-center justify-center rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 shadow transition-colors hover:bg-neutral-900/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-950 disabled:pointer-events-none disabled:opacity-50 dark:bg-neutral-50 dark:text-neutral-900 dark:hover:bg-neutral-50/90"
+                className="inline-flex h-9 items-center justify-center rounded-full bg-foreground px-5 text-sm font-medium text-background transition-opacity hover:opacity-90"
               >
                 Get started
               </Link>
@@ -64,29 +78,43 @@ export function LandingNav({ isLoggedIn }: { isLoggedIn?: boolean }) {
         </div>
 
         <button
-          className="md:hidden p-2"
+          className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-muted md:hidden"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
         >
           {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
 
-      {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden absolute top-16 left-0 w-full bg-white dark:bg-neutral-950 border-b border-neutral-200 dark:border-neutral-800 py-4 px-4 flex flex-col gap-4">
-          <Link href="#features" onClick={() => setMobileMenuOpen(false)}>Features</Link>
-          <Link href="#ai" onClick={() => setMobileMenuOpen(false)}>AI</Link>
-          <Link href="#insights" onClick={() => setMobileMenuOpen(false)}>Insights</Link>
-          <Link href="#how-it-works" onClick={() => setMobileMenuOpen(false)}>How it works</Link>
-          <div className="h-px bg-neutral-200 dark:bg-neutral-800 my-2" />
-          {isLoggedIn ? (
-            <Link href="/dashboard" className="font-medium">Go to Dashboard</Link>
-          ) : (
-            <>
-              <Link href="/login" className="font-medium">Log in</Link>
-              <Link href="/signup" className="font-medium text-blue-600 dark:text-blue-400">Get started</Link>
-            </>
-          )}
+        <div className="border-t border-border/60 bg-background/95 px-5 py-4 backdrop-blur-xl md:hidden">
+          <nav className="flex flex-col gap-1">
+            {LINKS.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className="rounded-xl px-3 py-2.5 text-[15px] font-medium transition-colors hover:bg-muted"
+              >
+                {l.label}
+              </Link>
+            ))}
+            <div className="my-2 h-px bg-border/60" />
+            {isLoggedIn ? (
+              <Link href="/dashboard" className="rounded-xl bg-foreground px-3 py-2.5 text-center text-[15px] font-medium text-background">
+                Open app
+              </Link>
+            ) : (
+              <div className="flex gap-2">
+                <Link href="/login" className="flex-1 rounded-xl border border-border px-3 py-2.5 text-center text-[15px] font-medium">
+                  Log in
+                </Link>
+                <Link href="/signup" className="flex-1 rounded-xl bg-foreground px-3 py-2.5 text-center text-[15px] font-medium text-background">
+                  Get started
+                </Link>
+              </div>
+            )}
+          </nav>
         </div>
       )}
     </header>

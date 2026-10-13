@@ -1,109 +1,77 @@
 "use client";
 
-import React from "react";
 import Link from "next/link";
 import { ArrowRight, UtensilsCrossed } from "lucide-react";
+import { Reveal } from "./primitives";
 
 export function CtaSection({ isLoggedIn }: { isLoggedIn?: boolean }) {
   return (
-    <section className="py-32 px-4 relative overflow-hidden">
-      <div className="absolute inset-0 bg-blue-600 dark:bg-blue-900 -z-20"></div>
-      
-      {/* Decorative background elements */}
-      <div className="absolute inset-0 opacity-20 -z-10" 
-        style={{ 
-          backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.4) 1px, transparent 0)', 
-          backgroundSize: '32px 32px' 
-        }}>
-      </div>
-      <div className="absolute top-0 right-0 p-[30rem] bg-purple-500/30 rounded-full blur-[100px] -mr-64 -mt-64 -z-10"></div>
-      
-      <div className="container mx-auto max-w-4xl text-center">
-        <h2 className="text-4xl md:text-6xl font-bold tracking-tight text-white mb-6">
-          Start understanding your nutrition.
-        </h2>
-        <p className="text-xl text-blue-100 mb-12 max-w-2xl mx-auto">
-          Track less manually. Understand more.
-        </p>
-        
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          {isLoggedIn ? (
+    <section className="px-5 pb-20 pt-4 sm:pb-28">
+      <Reveal className="mx-auto max-w-6xl">
+        <div className="rounded-3xl bg-foreground px-6 py-16 text-center text-background sm:py-24 dark:bg-muted dark:text-foreground">
+          <h2 className="mx-auto max-w-xl text-balance text-3xl font-semibold tracking-tight sm:text-5xl">
+            Start understanding your nutrition.
+          </h2>
+          <p className="mx-auto mt-4 max-w-md text-background/70 sm:text-lg dark:text-muted-foreground">
+            Track less manually. Understand more.
+          </p>
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
-              href="/dashboard"
-              className="inline-flex h-14 items-center justify-center rounded-xl bg-white px-8 text-base font-medium text-blue-900 shadow-xl transition-transform hover:scale-105 focus-visible:outline-none w-full sm:w-auto"
+              href={isLoggedIn ? "/dashboard" : "/signup"}
+              className="inline-flex h-12 w-full items-center justify-center gap-1.5 rounded-full bg-background px-7 text-[15px] font-medium text-foreground transition-opacity hover:opacity-90 sm:w-auto dark:bg-foreground dark:text-background"
             >
-              Go to Dashboard
+              {isLoggedIn ? "Open app" : "Get started"}
+              <ArrowRight size={17} />
             </Link>
-          ) : (
             <Link
-              href="/signup"
-              className="inline-flex h-14 items-center justify-center rounded-xl bg-white px-8 text-base font-medium text-blue-900 shadow-xl transition-transform hover:scale-105 focus-visible:outline-none w-full sm:w-auto"
+              href="#product"
+              className="inline-flex h-12 w-full items-center justify-center rounded-full border border-background/25 px-7 text-[15px] font-medium transition-colors hover:bg-background/10 sm:w-auto dark:border-border dark:hover:bg-muted"
             >
-              Get started <ArrowRight size={18} className="ml-2" />
+              Explore the product
             </Link>
-          )}
-          <Link
-            href="#features"
-            className="inline-flex h-14 items-center justify-center rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-8 text-base font-medium text-white transition-colors hover:bg-white/20 focus-visible:outline-none w-full sm:w-auto"
-          >
-            Explore CalFlow
-          </Link>
+          </div>
         </div>
-      </div>
+      </Reveal>
     </section>
   );
 }
 
 export function LandingFooter() {
   return (
-    <footer className="bg-white dark:bg-neutral-950 border-t border-neutral-200 dark:border-neutral-900 pt-16 pb-8">
-      <div className="container mx-auto px-4 max-w-6xl">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
-          <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="flex items-center gap-2 font-semibold text-xl tracking-tight mb-4 inline-flex">
-              <span className="rounded-md bg-black/10 dark:bg-white/10 p-1.5">
-                <UtensilsCrossed className="h-5 w-5" />
-              </span>
-              CalFlow
-            </Link>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
-              AI-powered nutrition tracking.
-            </p>
-          </div>
-          
-          <div>
-            <h4 className="font-medium mb-4">Product</h4>
-            <ul className="space-y-3 text-sm text-neutral-500 dark:text-neutral-400">
-              <li><Link href="#features" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Features</Link></li>
-              <li><Link href="#ai" className="hover:text-neutral-900 dark:hover:text-white transition-colors">AI</Link></li>
-              <li><Link href="#insights" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Insights</Link></li>
-              <li><Link href="#how-it-works" className="hover:text-neutral-900 dark:hover:text-white transition-colors">How it works</Link></li>
-            </ul>
-          </div>
-          
-          <div>
-            <h4 className="font-medium mb-4">Resources</h4>
-            <ul className="space-y-3 text-sm text-neutral-500 dark:text-neutral-400">
-              <li><Link href="#" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Documentation</Link></li>
-              <li><Link href="#" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Privacy</Link></li>
-              <li><Link href="#" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Terms</Link></li>
-            </ul>
-          </div>
-          
-          <div>
-            <h4 className="font-medium mb-4">Account</h4>
-            <ul className="space-y-3 text-sm text-neutral-500 dark:text-neutral-400">
-              <li><Link href="/login" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Log in</Link></li>
-              <li><Link href="/signup" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Get started</Link></li>
-            </ul>
-          </div>
-        </div>
-        
-        <div className="pt-8 border-t border-neutral-200 dark:border-neutral-900 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-neutral-500">
-            © {new Date().getFullYear()} CalFlow. All rights reserved.
+    <footer className="border-t border-border/50 px-5 py-12">
+      <div className="mx-auto flex max-w-6xl flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <Link href="/" className="flex items-center gap-2 text-[15px] font-semibold tracking-tight">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-foreground text-background">
+              <UtensilsCrossed className="h-3.5 w-3.5" />
+            </span>
+            CalFlow
+          </Link>
+          <p className="mt-2 max-w-xs text-sm text-muted-foreground">
+            AI-powered nutrition tracking. Your nutrition. Understood.
           </p>
         </div>
+        <nav className="grid grid-cols-2 gap-8 text-sm sm:flex sm:gap-12">
+          <div className="space-y-2.5">
+            <p className="font-medium">Product</p>
+            <div className="flex flex-col gap-2 text-muted-foreground">
+              <Link href="#product" className="transition-colors hover:text-foreground">Product</Link>
+              <Link href="#ai" className="transition-colors hover:text-foreground">AI</Link>
+              <Link href="#how-it-works" className="transition-colors hover:text-foreground">How it works</Link>
+            </div>
+          </div>
+          <div className="space-y-2.5">
+            <p className="font-medium">Account</p>
+            <div className="flex flex-col gap-2 text-muted-foreground">
+              <Link href="/login" className="transition-colors hover:text-foreground">Log in</Link>
+              <Link href="/signup" className="transition-colors hover:text-foreground">Get started</Link>
+            </div>
+          </div>
+        </nav>
+      </div>
+      <div className="mx-auto mt-10 flex max-w-6xl flex-col gap-2 border-t border-border/50 pt-6 text-[13px] text-muted-foreground sm:flex-row sm:justify-between">
+        <p>© {new Date().getFullYear()} CalFlow. All rights reserved.</p>
+        <p>AI-generated estimates — not medical advice.</p>
       </div>
     </footer>
   );
