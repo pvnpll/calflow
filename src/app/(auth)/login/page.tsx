@@ -67,6 +67,7 @@ export default function LoginPage() {
           <Label htmlFor="login-email">Email</Label>
           <Input
             id="login-email"
+            name="email"
             type="email"
             placeholder="m@example.com"
             required
@@ -81,6 +82,7 @@ export default function LoginPage() {
           <div className="relative">
             <Input
               id="login-password"
+              name="password"
               type={showPassword ? 'text' : 'password'}
               required
               autoComplete="current-password"

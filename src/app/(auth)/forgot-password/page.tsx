@@ -57,6 +57,7 @@ export default function ForgotPasswordPage() {
           <Label htmlFor="forgot-email">Email</Label>
           <Input
             id="forgot-email"
+            name="email"
             type="email"
             placeholder="m@example.com"
             required

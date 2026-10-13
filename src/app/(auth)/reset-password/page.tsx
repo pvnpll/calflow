@@ -49,6 +49,7 @@ export default function ResetPasswordPage() {
           <div className="relative">
             <Input
               id="reset-password"
+              name="password"
               type={showPassword ? 'text' : 'password'}
               required
               minLength={6}

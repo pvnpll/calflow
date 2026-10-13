@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.7.7] — 2026-10-10
+
+**Fix: Password Autofill Support**
+
+### Fixed
+- Added missing `name="email"` and `name="password"` attributes to the inputs on the Login, Signup, Forgot Password, and Reset Password pages so that browser password managers (like iCloud Keychain, 1Password) can correctly identify the fields and trigger autofill.
+
+---
+
 ## [0.7.6] — 2026-10-09
 
 **Fix: Isolate AI Chat Sessions per User**
