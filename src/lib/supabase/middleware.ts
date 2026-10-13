@@ -8,6 +8,31 @@ export async function updateSession(request: NextRequest) {
     request,
   })
 
+  const pathname = request.nextUrl.pathname
+
+  // 1. API or static routes to ignore early.
+  // API routes handle their own auth checks; skipping them here avoids concurrent token-refresh races
+  // when the browser fires multiple parallel fetch calls upon waking from inactivity.
+  const isPublicPath =
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/static') ||
+    pathname.startsWith('/.well-known') ||
+    pathname.startsWith('/auth/callback') ||
+    // Share links are public so link-preview crawlers (WhatsApp etc.) can read them; the page itself
+    // sends signed-out visitors to /login?next=... and back.
+    pathname.startsWith('/s/') ||
+    pathname.match(/\.(png|json|xml|ico|webmanifest)$/i) || // Static assets
+    pathname === '/apple-icon' ||
+    pathname === '/icon' ||
+    pathname === '/manifest.json' ||
+    pathname === '/sw.js' ||
+    pathname === '/offline'
+
+  if (isPublicPath) {
+    return supabaseResponse
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
@@ -46,40 +71,28 @@ export async function updateSession(request: NextRequest) {
   }
 
   // IMPORTANT: Avoid writing any logic between createServerClient and
-  // supabase.auth.getClaims().
+  // supabase.auth.getUser().
   try {
-    // getClaims verifies the JWT locally when the project uses asymmetric signing keys (no network
-    // round-trip per navigation) and refreshes the session if the access token is about to expire.
-    const { data, error } = await supabase.auth.getClaims()
-    const user = data?.claims ?? null
+    // getUser() validates auth against the Supabase server and automatically refreshes expired
+    // access tokens using the refresh token stored in cookies, persisting rotated tokens via setAll().
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser()
 
     // Supabase unreachable / rate-limited / 5xx: we can't tell, so don't bounce a signed-in user to /login.
     if (!user && !isDefinitelyUnauthenticated(error)) {
       return supabaseResponse
     }
 
-    const pathname = request.nextUrl.pathname
-    
     // Auth routes where logged-in users shouldn't go (optional, handled in page.tsx already, but good practice)
-    const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/signup') || pathname.startsWith('/forgot-password') || pathname === '/'
-    
-    // API or static routes to ignore
-    const isPublicPath = pathname.startsWith('/api') || 
-      pathname.startsWith('/_next') || 
-      pathname.startsWith('/static') || 
-      pathname.startsWith('/.well-known') || 
-      pathname.startsWith('/auth/callback') ||
-      // Share links are public so link-preview crawlers (WhatsApp etc.) can read them; the page itself
-      // sends signed-out visitors to /login?next=... and back.
-      pathname.startsWith('/s/') ||
-      pathname.match(/\.(png|json|xml|ico|webmanifest)$/i) || // Static assets
-      pathname === '/apple-icon' ||
-      pathname === '/icon' ||
-      pathname === '/manifest.json' ||
-      pathname === '/sw.js' ||
-      pathname === '/offline';
+    const isAuthRoute =
+      pathname.startsWith('/login') ||
+      pathname.startsWith('/signup') ||
+      pathname.startsWith('/forgot-password') ||
+      pathname === '/'
 
-    if (!user && !isAuthRoute && !isPublicPath) {
+    if (!user && !isAuthRoute) {
       // User is not logged in and trying to access a protected route
       const url = request.nextUrl.clone()
       // Remember where they were going so login can return them there.

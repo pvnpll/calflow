@@ -9,6 +9,7 @@ export function createClient() {
     url,
     anonKey,
     {
+      isSingleton: true,
       cookieOptions: AUTH_COOKIE_OPTIONS,
     }
   )

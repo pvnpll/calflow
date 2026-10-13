@@ -8,6 +8,8 @@
  */
 export const AUTH_COOKIE_OPTIONS = {
   maxAge: 400 * 24 * 60 * 60,
+  path: '/',
+  sameSite: 'lax' as const,
 } as const
 
 /**
@@ -17,5 +19,7 @@ export const AUTH_COOKIE_OPTIONS = {
 export function isDefinitelyUnauthenticated(error: { name?: string; status?: number } | null | undefined): boolean {
   if (!error) return true // no error and no user/claims => simply not signed in
   if (error.name === 'AuthSessionMissingError') return true
+  // Transient network failures or infrastructure 5xx errors are NOT authentication failures
+  if (!error.status || error.status >= 500) return false
   return error.status === 400 || error.status === 401 || error.status === 403
 }

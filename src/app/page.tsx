@@ -11,9 +11,9 @@ export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { user } } = await supabase.auth.getUser();
   
-  const isLoggedIn = !!session;
+  const isLoggedIn = !!user;
 
   return (
     <div className="min-h-screen bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-50 selection:bg-blue-200 dark:selection:bg-blue-900 font-sans">

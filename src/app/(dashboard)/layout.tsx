@@ -52,23 +52,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     const supabase = getSupabase();
 
-    // getSession reads the local session (no network call). Every navigation is already verified by the
-    // proxy, so a failed network call here must not look like a logout — only a missing session does.
+    // Fetch user for UI display (avatar, email, name in sidebar).
+    // The server proxy has already verified authentication for dashboard routes;
+    // do NOT redirect to /login here on temporary delay, sleep wake, or network reconnect.
     const fetchUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) {
-        router.push('/login');
-      } else {
-        setUser(session.user);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setUser(session.user);
+        } else {
+          // Fall back to getUser if session hasn't hydrated locally yet
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            setUser(user);
+          }
+        }
+      } catch {
+        // Fail quietly on transient network/hydration issues; server proxy handles route protection
       }
     };
     fetchUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !session)) {
-          router.push('/login');
-        } else if (session?.user) {
+      (_event, session) => {
+        if (session?.user) {
           setUser(session.user);
         }
       }
@@ -77,7 +84,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return () => {
       subscription.unsubscribe();
     };
-  }, [getSupabase, router]);
+  }, [getSupabase]);
 
   useEffect(() => {
     let cancelled = false;
