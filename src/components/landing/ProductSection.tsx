@@ -8,10 +8,10 @@ const ROWS = [
   {
     icon: <MessagesSquare className="h-4 w-4" />,
     eyebrow: "Log",
-    title: "Just say what you ate.",
-    body: "No forms, no database search. Type or speak naturally — CalFlow AI structures it into calories, protein, carbs, fat, and fiber.",
+    title: "Tell AI Assistant what you ate.",
+    body: "No forms, no database search. AI Assistant works out the calories, protein, carbs, fat, and fiber, then saves the meal to CalFlow through MCP. Compatible with ChatGPT, Gemini, Claude.",
     shot: <ChatShot />,
-    caption: "CalFlow AI logging a meal and answering from real data.",
+    caption: "ChatGPT logging a meal to CalFlow and answering from your saved data.",
   },
   {
     icon: <Droplets className="h-4 w-4" />,
@@ -43,9 +43,9 @@ const ROWS = [
     icon: <TrendingUp className="h-4 w-4" />,
     eyebrow: "Understand",
     title: "Your history becomes advice.",
-    body: "CalFlow compares today against your targets and your past weeks — then recommends the meal that closes the gap.",
+    body: "Every meal AI Assistant logs builds your record. CalFlow compares today against your targets and past weeks, then recommends the meal that closes the gap.",
     shot: <InsightsShot />,
-    caption: "AI-generated insights and a dinner recommendation.",
+    caption: "Insights and a dinner recommendation, built from your logged meals.",
   },
 ];
 
@@ -54,8 +54,8 @@ export function ProductSection() {
     <Section
       id="product"
       eyebrow="Product"
-      title="I eat → CalFlow understands → CalFlow advises."
-      sub="One continuous loop: log naturally, watch the living picture build, and get told what to do next."
+      title="Log calories → Get Insights"
+      sub="Your AI assistant does the logging through MCP. CalFlow keeps the record and turns it into insights and help you reach your goal."
     >
       <div className="space-y-16 sm:space-y-24">
         {ROWS.map((r, i) => (

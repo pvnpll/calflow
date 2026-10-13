@@ -3,7 +3,7 @@
 // To use a real PNG later: drop it in public/landing/ and use
 // <LandingShot src="/landing/x.png" alt="..." /> instead.
 import { cn } from 'cn';
-import { Coffee, Sun, Utensils, Droplets, Sparkles } from 'lucide-react';
+import { Coffee, Sun, Utensils, Droplets, Sparkles, Plug } from 'lucide-react';
 
 export function LandingShot({ src, alt, className }: { src: string; alt: string; className?: string }) {
   // eslint-disable-next-line @next/next/no-img-element
@@ -117,26 +117,39 @@ export function DashboardShot({ className }: { className?: string }) {
   );
 }
 
-/** The real AI chat: natural log + answer from actual data. */
+/** A tool call as ChatGPT shows it when it talks to CalFlow over MCP. */
+function ToolCall({ name }: { name: string }) {
+  return (
+    <div className="mr-8 flex w-fit items-center gap-2 rounded-full border border-border/60 px-3 py-1.5 text-xs text-muted-foreground">
+      <Plug className="h-3.5 w-3.5" />
+      <span>
+        Used CalFlow <span className="font-mono">{name}</span>
+      </span>
+    </div>
+  );
+}
+
+/** ChatGPT logging a meal to CalFlow over MCP, then answering from the saved data. */
 export function ChatShot({ className }: { className?: string }) {
   return (
-    <ShotFrame label="CalFlow AI" className={className}>
+    <ShotFrame label="ChatGPT" className={className}>
       <div className="space-y-3 text-[13px] leading-relaxed">
         <div className="ml-8 rounded-2xl rounded-br-md bg-muted/60 px-3.5 py-2.5">
           I had 3 eggs, 2 rotis and some curd for lunch.
         </div>
+        <ToolCall name="log_meal" />
         <div className="mr-8 rounded-2xl rounded-bl-md border border-border/60 px-3.5 py-2.5">
           Logged — roughly 540 kcal, 27g protein. You&apos;re at 1,842 of 2,200 kcal today.
         </div>
         <div className="ml-8 rounded-2xl rounded-br-md bg-muted/60 px-3.5 py-2.5">
           What am I short on today?
         </div>
+        <ToolCall name="get_daily_summary" />
         <div className="mr-8 rounded-2xl rounded-bl-md border border-border/60 px-3.5 py-2.5">
           Protein and fiber — about 38g protein and 11g fiber under target. Want a dinner idea to close it?
         </div>
         <div className="flex items-center gap-2 rounded-full border border-border/60 px-3.5 py-2.5 text-muted-foreground">
-          <span className="flex-1">Ask anything…</span>
-          <span className="text-xs font-medium">Send</span>
+          <span className="flex-1">Message ChatGPT</span>
         </div>
       </div>
     </ShotFrame>
