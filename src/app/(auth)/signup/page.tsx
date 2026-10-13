@@ -4,11 +4,10 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { UserPlus, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, User, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { AuthShell, AuthError } from '@/components/auth/AuthShell';
+import { AuthField, AuthPasswordField } from '@/components/auth/AuthFields';
 import { getBrowserTimezone } from '@/lib/date';
 import { getNextFromLocation } from '@/lib/redirect';
 
@@ -22,7 +21,6 @@ export default function SignupPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -73,75 +71,65 @@ export default function SignupPage() {
     <AuthShell
       title="Create an account"
       description="Start tracking nutrition with AI"
-      icon={<UserPlus className="h-4 w-4 text-primary" />}
       footer={
         <>
           Already have an account?{' '}
-          <Link href={`/login${nextQuery}`}className="font-medium text-primary hover:underline">
+          <Link href={`/login${nextQuery}`} className="font-semibold text-primary hover:underline dark:text-white">
             Sign in
           </Link>
         </>
       }
     >
-      <form onSubmit={handleSignup} className="space-y-4">
+      <form onSubmit={handleSignup} className="space-y-5">
         {error && <AuthError message={error} />}
 
-        <div className="space-y-2">
-          <Label htmlFor="signup-name">Full name</Label>
-          <Input
-            id="signup-name"
-            name="name"
-            type="text"
-            placeholder="John Doe"
-            required
-            autoComplete="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
+        <AuthField
+          id="signup-name"
+          name="name"
+          label="Full name"
+          type="text"
+          placeholder="e.g. Alex Morgan"
+          autoComplete="name"
+          autoCapitalize="words"
+          required
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          icon={<User className="h-[18px] w-[18px]" />}
+        />
 
-        <div className="space-y-2">
-          <Label htmlFor="signup-email">Email</Label>
-          <Input
-            id="signup-email"
-            name="email"
-            type="email"
-            placeholder="m@example.com"
-            required
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
+        <AuthField
+          id="signup-email"
+          name="email"
+          label="Email"
+          type="email"
+          placeholder="you@example.com"
+          autoComplete="email"
+          inputMode="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          icon={<Mail className="h-[18px] w-[18px]" />}
+        />
 
-        <div className="space-y-2">
-          <Label htmlFor="signup-password">Password</Label>
-          <div className="relative">
-            <Input
-              id="signup-password"
-              name="password"
-              type={showPassword ? 'text' : 'password'}
-              required
-              minLength={6}
-              autoComplete="new-password"
-              placeholder="At least 6 characters"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="pr-10"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((s) => !s)}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
-          <p className="text-xs text-muted-foreground">Use at least 6 characters.</p>
-        </div>
+        <AuthPasswordField
+          id="signup-password"
+          name="password"
+          label="Password"
+          placeholder="Create a strong password"
+          autoComplete="new-password"
+          required
+          minLength={6}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          showStrength
+          hint="Use 6+ characters with a mix of letters & numbers."
+        />
 
-        <Button type="submit" className="w-full" disabled={loading}>
+        <Button
+          type="submit"
+          className="h-12 w-full rounded-2xl text-[15px] font-semibold shadow-lg shadow-primary/20 transition-all hover:shadow-xl active:scale-[0.98] dark:bg-white dark:text-black dark:shadow-white/10 dark:hover:bg-white/90"
+          disabled={loading}
+        >
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}
           {loading ? 'Creating account…' : 'Create account'}
         </Button>
@@ -149,4 +137,5 @@ export default function SignupPage() {
     </AuthShell>
   );
 }
+
 

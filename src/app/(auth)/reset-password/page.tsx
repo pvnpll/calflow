@@ -4,15 +4,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { ShieldCheck, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { AuthShell, AuthError } from '@/components/auth/AuthShell';
+import { AuthPasswordField } from '@/components/auth/AuthFields';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -39,39 +37,29 @@ export default function ResetPasswordPage() {
     <AuthShell
       title="Update password"
       description="Choose a new password"
-      icon={<ShieldCheck className="h-4 w-4 text-primary" />}
     >
-      <form onSubmit={handleUpdatePassword} className="space-y-4">
+      <form onSubmit={handleUpdatePassword} className="space-y-5">
         {error && <AuthError message={error} />}
 
-        <div className="space-y-2">
-          <Label htmlFor="reset-password">New password</Label>
-          <div className="relative">
-            <Input
-              id="reset-password"
-              name="password"
-              type={showPassword ? 'text' : 'password'}
-              required
-              minLength={6}
-              autoComplete="new-password"
-              placeholder="At least 6 characters"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="pr-10"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((s) => !s)}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
-          <p className="text-xs text-muted-foreground">Use at least 6 characters.</p>
-        </div>
+        <AuthPasswordField
+          id="reset-password"
+          name="password"
+          label="New password"
+          placeholder="Create a strong password"
+          autoComplete="new-password"
+          required
+          minLength={6}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          showStrength
+          hint="Use 6+ characters with a mix of letters & numbers."
+        />
 
-        <Button type="submit" className="w-full" disabled={loading}>
+        <Button
+          type="submit"
+          className="h-12 w-full rounded-2xl text-[15px] font-semibold shadow-lg shadow-primary/20 transition-all hover:shadow-xl active:scale-[0.98] dark:bg-white dark:text-black dark:shadow-white/10 dark:hover:bg-white/90"
+          disabled={loading}
+        >
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}
           {loading ? 'Updating…' : 'Update password'}
         </Button>
@@ -79,4 +67,5 @@ export default function ResetPasswordPage() {
     </AuthShell>
   );
 }
+
 

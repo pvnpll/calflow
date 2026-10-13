@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Loader2, LinkIcon } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { PublicSharedDashboard } from '@/components/sharing/PublicSharedDashboard';
@@ -53,7 +53,6 @@ export function JoinShare({ token, ownerName }: { token: string; ownerName: stri
         <AuthShell
           title={ownerName ? `${ownerName}'s dashboard` : 'Shared dashboard'}
           description={ownerName ? `Opening ${ownerName}'s dashboard…` : 'Opening shared dashboard…'}
-          icon={<LinkIcon className="h-4 w-4 text-primary" />}
         >
           <div className="flex justify-center py-6">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -72,7 +71,6 @@ export function JoinShare({ token, ownerName }: { token: string; ownerName: stri
             ? 'The link is invalid, or the owner has stopped sharing their dashboard.'
             : 'We could not open this shared dashboard. Please try again.'
         }
-        icon={<LinkIcon className="h-4 w-4 text-primary" />}
       >
         <div className="flex gap-2">
           {state === 'error' && (

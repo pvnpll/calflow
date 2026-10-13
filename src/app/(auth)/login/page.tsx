@@ -4,11 +4,10 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { LogIn, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { AuthShell, AuthError } from '@/components/auth/AuthShell';
+import { AuthField, AuthPasswordField } from '@/components/auth/AuthFields';
 import { getNextFromLocation } from '@/lib/redirect';
 
 export default function LoginPage() {
@@ -21,7 +20,6 @@ export default function LoginPage() {
   }, []);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -50,68 +48,60 @@ export default function LoginPage() {
     <AuthShell
       title="Welcome back"
       description="Sign in to continue tracking"
-      icon={<LogIn className="h-4 w-4 text-primary" />}
       footer={
         <>
           Don&apos;t have an account?{' '}
-          <Link href={`/signup${nextQuery}`}className="font-medium text-primary hover:underline">
+          <Link href={`/signup${nextQuery}`} className="font-semibold text-primary hover:underline dark:text-white">
             Sign up
           </Link>
         </>
       }
     >
-      <form onSubmit={handleLogin} className="space-y-4">
+      <form onSubmit={handleLogin} className="space-y-5">
         {error && <AuthError message={error} />}
 
-        <div className="space-y-2">
-          <Label htmlFor="login-email">Email</Label>
-          <Input
-            id="login-email"
-            name="email"
-            type="email"
-            placeholder="m@example.com"
-            required
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
+        <AuthField
+          id="login-email"
+          name="email"
+          label="Email"
+          type="email"
+          placeholder="you@example.com"
+          autoComplete="email"
+          inputMode="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          icon={<Mail className="h-[18px] w-[18px]" />}
+        />
 
         <div className="space-y-2">
-          <Label htmlFor="login-password">Password</Label>
-          <div className="relative">
-            <Input
-              id="login-password"
-              name="password"
-              type={showPassword ? 'text' : 'password'}
-              required
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="pr-10"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((s) => !s)}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
+          <AuthPasswordField
+            id="login-password"
+            name="password"
+            label="Password"
+            placeholder="Enter your password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
           {/* Forgot password sits under the field, right-aligned —
               out of the label row so it never crowds the label on narrow screens */}
-          <div className="flex justify-end pt-1">
+          <div className="flex justify-end pt-0.5">
             <Link
               href="/forgot-password"
-              className="text-[13px] font-medium text-muted-foreground transition-colors hover:text-primary hover:underline relative z-50 cursor-pointer"
+              className="text-[13px] font-semibold text-muted-foreground transition-colors hover:text-primary hover:underline dark:hover:text-white"
             >
               Forgot password?
             </Link>
           </div>
         </div>
 
-        <Button type="submit" className="w-full" disabled={loading}>
+        <Button
+          type="submit"
+          className="h-12 w-full rounded-2xl text-[15px] font-semibold shadow-lg shadow-primary/20 transition-all hover:shadow-xl active:scale-[0.98] dark:bg-white dark:text-black dark:shadow-white/10 dark:hover:bg-white/90"
+          disabled={loading}
+        >
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}
           {loading ? 'Signing in…' : 'Sign in'}
         </Button>
@@ -119,4 +109,5 @@ export default function LoginPage() {
     </AuthShell>
   );
 }
+
 

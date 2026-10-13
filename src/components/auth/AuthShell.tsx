@@ -1,70 +1,81 @@
 // Shared auth page shell — keeps login / signup / forgot / reset visually identical
 // and aligned with the dashboard + profile Card system.
-import Link from 'next/link';
-import { UtensilsCrossed } from 'lucide-react';
+import { UtensilsCrossed, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from 'cn';
 
 export function AuthShell({
   title,
   description,
-  icon,
   children,
   footer,
 }: {
   title: string;
   description: string;
-  icon?: React.ReactNode;
   children: React.ReactNode;
   footer?: React.ReactNode;
 }) {
   return (
-    <div className="flex w-full flex-col gap-5">
-      <Link href="/login" className="mx-auto flex items-center gap-2.5 transition-all active:scale-95" aria-label="CalFlow home">
-        <span className="rounded-full bg-primary/10 p-2.5">
-          <UtensilsCrossed className="h-5 w-5 text-primary" />
-        </span>
-        <span className="text-2xl font-bold tracking-tight">CalFlow</span>
-      </Link>
-
-      <Card className="shadow-sm bg-background/60 backdrop-blur-xl border-white/10 dark:border-white/5">
-        <CardHeader className="pb-4">
-          <div className="flex items-center gap-3">
-            {icon ? (
-              <span className="rounded-full bg-primary/10 p-2">{icon}</span>
-            ) : null}
-            <div>
-              <CardTitle className="text-lg">{title}</CardTitle>
-              <CardDescription>{description}</CardDescription>
+    <div className="flex w-full flex-col gap-4">
+      <Card className="overflow-hidden rounded-3xl border-border/60 bg-card/80 shadow-2xl shadow-black/[0.04] backdrop-blur-xl dark:bg-zinc-950/80 dark:shadow-black/40 dark:ring-1 dark:ring-white/10">
+        <CardHeader className="space-y-0 px-6 pb-2 pt-7 sm:px-8 sm:pt-8">
+          {/* Single centered brand + title header — always the CalFlow logo */}
+          <div className="flex flex-col items-center gap-3 text-center">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/60 shadow-lg shadow-primary/20 ring-1 ring-white/20 dark:from-white dark:to-white/60 dark:shadow-white/10">
+              <UtensilsCrossed className="h-5 w-5 text-primary-foreground dark:text-black" />
+            </span>
+            <div className="space-y-1">
+              <CardTitle className="text-[22px] font-semibold leading-tight tracking-tight">
+                {title}
+              </CardTitle>
+              <CardDescription className="text-[15px] leading-snug">
+                {description}
+              </CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent>{children}</CardContent>
+        <CardContent className="px-6 pb-6 pt-5 sm:px-8 sm:pb-8">{children}</CardContent>
         {footer ? (
-          <div className="border-t px-6 py-4 text-center text-sm text-muted-foreground">
+          <div className="border-t border-border/60 bg-muted/40 px-6 py-5 text-center text-[14px] text-muted-foreground dark:border-white/[0.06] dark:bg-white/[0.02]">
             {footer}
           </div>
         ) : null}
       </Card>
 
-      <p className="text-center text-xs text-muted-foreground">
+      <p className="text-center text-xs font-medium tracking-wide text-muted-foreground/80">
         AI-first personal nutrition tracking
       </p>
     </div>
   );
 }
 
-export function AuthError({ message }: { message: string }) {
+export function AuthError({ message, className }: { message: string; className?: string }) {
   return (
-    <div className="rounded-xl border border-destructive/25 bg-destructive/[0.06] px-4 py-3 text-sm font-medium leading-relaxed text-destructive">
-      {message}
+    <div
+      role="alert"
+      className={cn(
+        'flex items-start gap-2.5 rounded-2xl border border-destructive/20 bg-destructive/[0.06] px-4 py-3 text-sm font-medium leading-relaxed text-destructive dark:bg-destructive/10',
+        className
+      )}
+    >
+      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+      <span>{message}</span>
     </div>
   );
 }
 
-export function AuthSuccess({ message }: { message: string }) {
+export function AuthSuccess({ message, className }: { message: string; className?: string }) {
   return (
-    <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/[0.07] px-4 py-3 text-sm font-medium leading-relaxed text-emerald-700 dark:text-emerald-300">
-      {message}
+    <div
+      role="status"
+      className={cn(
+        'flex items-start gap-2.5 rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.07] px-4 py-3 text-sm font-medium leading-relaxed text-emerald-700 dark:text-emerald-300',
+        className
+      )}
+    >
+      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+      <span>{message}</span>
     </div>
   );
 }
+
