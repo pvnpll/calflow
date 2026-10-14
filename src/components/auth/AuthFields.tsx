@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { cn } from 'cn';
 
 const FIELD_INPUT =
-  'h-12 rounded-2xl border-border/70 bg-muted/40 pl-11 text-[15px] shadow-sm transition-all placeholder:text-muted-foreground/70 hover:border-border hover:bg-muted/60 focus-visible:border-primary/50 focus-visible:bg-background focus-visible:ring-4 focus-visible:ring-primary/10 dark:border-white/10 dark:bg-white/[0.04] dark:hover:border-white/20 dark:hover:bg-white/[0.06] dark:focus-visible:border-white/30 dark:focus-visible:bg-white/[0.05] dark:focus-visible:ring-white/10';
+  'h-11 rounded-2xl border-border/70 bg-muted/40 pl-11 text-[15px] shadow-sm transition-all placeholder:text-muted-foreground/70 hover:border-border hover:bg-muted/60 focus-visible:border-primary/50 focus-visible:bg-background focus-visible:ring-4 focus-visible:ring-primary/10 sm:h-12 dark:border-white/10 dark:bg-white/[0.04] dark:hover:border-white/20 dark:hover:bg-white/[0.06] dark:focus-visible:border-white/30 dark:focus-visible:bg-white/[0.05] dark:focus-visible:ring-white/10';
 
 export function AuthField({
   id,

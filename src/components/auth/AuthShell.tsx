@@ -16,33 +16,33 @@ export function AuthShell({
   footer?: React.ReactNode;
 }) {
   return (
-    <div className="flex w-full flex-col gap-4">
+    <div className="flex w-full flex-col gap-2.5 sm:gap-4">
       <Card className="overflow-hidden rounded-3xl border-border/60 bg-card/80 shadow-2xl shadow-black/[0.04] backdrop-blur-xl dark:bg-zinc-950/80 dark:shadow-black/40 dark:ring-1 dark:ring-white/10">
-        <CardHeader className="space-y-0 px-6 pb-2 pt-7 sm:px-8 sm:pt-8">
+        <CardHeader className="space-y-0 px-5 pb-1 pt-5 sm:px-8 sm:pt-8">
           {/* Single centered brand + title header — always the CalFlow logo */}
-          <div className="flex flex-col items-center gap-3 text-center">
-            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/60 shadow-lg shadow-primary/20 ring-1 ring-white/20 dark:from-white dark:to-white/60 dark:shadow-white/10">
-              <UtensilsCrossed className="h-5 w-5 text-primary-foreground dark:text-black" />
+          <div className="flex flex-col items-center gap-2 text-center sm:gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/60 shadow-lg shadow-primary/20 ring-1 ring-white/20 sm:h-12 sm:w-12 dark:from-white dark:to-white/60 dark:shadow-white/10">
+              <UtensilsCrossed className="h-4 w-4 text-primary-foreground sm:h-5 sm:w-5 dark:text-black" />
             </span>
-            <div className="space-y-1">
-              <CardTitle className="text-[22px] font-semibold leading-tight tracking-tight">
+            <div className="space-y-0.5">
+              <CardTitle className="text-xl font-semibold leading-tight tracking-tight sm:text-[22px]">
                 {title}
               </CardTitle>
-              <CardDescription className="text-[15px] leading-snug">
+              <CardDescription className="text-sm leading-snug sm:text-[15px]">
                 {description}
               </CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="px-6 pb-6 pt-5 sm:px-8 sm:pb-8">{children}</CardContent>
+        <CardContent className="px-5 pb-5 pt-3.5 sm:px-8 sm:pb-8 sm:pt-5">{children}</CardContent>
         {footer ? (
-          <div className="border-t border-border/60 bg-muted/40 px-6 py-5 text-center text-[14px] text-muted-foreground dark:border-white/[0.06] dark:bg-white/[0.02]">
+          <div className="border-t border-border/60 bg-muted/40 px-5 py-3.5 text-center text-[13px] text-muted-foreground sm:py-5 sm:text-[14px] dark:border-white/[0.06] dark:bg-white/[0.02]">
             {footer}
           </div>
         ) : null}
       </Card>
 
-      <p className="text-center text-xs font-medium tracking-wide text-muted-foreground/80">
+      <p className="hidden text-center text-xs font-medium tracking-wide text-muted-foreground/80 sm:block">
         AI-first personal nutrition tracking
       </p>
     </div>

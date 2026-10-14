@@ -80,7 +80,7 @@ export default function SignupPage() {
         </>
       }
     >
-      <form onSubmit={handleSignup} className="space-y-5">
+      <form onSubmit={handleSignup} className="space-y-3.5 sm:space-y-5">
         {error && <AuthError message={error} />}
 
         <AuthField
@@ -127,7 +127,7 @@ export default function SignupPage() {
 
         <Button
           type="submit"
-          className="h-12 w-full rounded-2xl text-[15px] font-semibold shadow-lg shadow-primary/20 transition-all hover:shadow-xl active:scale-[0.98] dark:bg-white dark:text-black dark:shadow-white/10 dark:hover:bg-white/90"
+          className="h-11 w-full rounded-2xl text-[15px] font-semibold shadow-lg shadow-primary/20 transition-all hover:shadow-xl active:scale-[0.98] sm:h-12 dark:bg-white dark:text-black dark:shadow-white/10 dark:hover:bg-white/90"
           disabled={loading}
         >
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}
