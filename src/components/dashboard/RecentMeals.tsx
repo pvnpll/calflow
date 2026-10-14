@@ -1,5 +1,6 @@
 import { Card } from '@/components/ui/card';
 import { Utensils, Coffee, Sun, Moon } from 'lucide-react';
+import { MEAL_TYPE_LABELS, enumLabel } from '@/lib/utils';
 
 interface Meal {
   id: string;
@@ -48,7 +49,7 @@ export function RecentMeals({ meals, readOnly = false }: RecentMealsProps) {
                       {getMealIcon(meal.meal_type)}
                     </div>
                     <div>
-                      <p className="font-medium text-sm capitalize">{meal.meal_type}</p>
+                      <p className="font-medium text-sm">{enumLabel(MEAL_TYPE_LABELS, meal.meal_type, 'Meal')}</p>
                       <p className="text-sm text-muted-foreground line-clamp-1">{meal.description || 'Meal'}</p>
                     </div>
                   </div>

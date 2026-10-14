@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, ChevronDown, ChevronUp, Flame, Beef, Wheat, Droplet, Leaf, Sparkles, List } from 'lucide-react';
 import EditMealDialog from './EditMealDialog';
 import { formatMicroKey, formatMicroValue } from '@/lib/format-micros';
-import { cn } from '@/lib/utils';
+import { MEAL_TYPE_LABELS, cn, enumLabel } from '@/lib/utils';
 
 interface MealCardProps {
   meal: any;
@@ -85,11 +85,11 @@ export default function MealCard({ meal, onUpdate }: MealCardProps) {
         <div className="flex items-start justify-between gap-3 px-4 pt-4 sm:px-5">
           <div className="min-w-0 flex-1">
             <p className="text-[15px] font-semibold leading-snug text-balance">
-              {meal.description || `${meal.meal_type ?? 'Meal'} Meal`}
+              {meal.description || `${enumLabel(MEAL_TYPE_LABELS, meal.meal_type, 'Meal')} Meal`}
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               {meal.meal_type && (
-                <Badge variant="secondary" className="capitalize">{meal.meal_type}</Badge>
+                <Badge variant="secondary">{enumLabel(MEAL_TYPE_LABELS, meal.meal_type)}</Badge>
               )}
               {meal.source && (
                 <Badge variant="outline" className="font-normal gap-1">

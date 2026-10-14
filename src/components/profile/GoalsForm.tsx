@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useProfile } from '@/lib/context/ProfileContext';
 import { calculateTargets } from '@/lib/nutrition-targets';
-import { GOAL_LABELS, GOAL_RATE_LABELS, coerceEnum, enumLabel } from '@/lib/utils';
+import { coerceEnum } from '@/lib/utils';
 import { Target, RefreshCw, CheckCircle2, Loader2, Flame, Beef, Wheat, Droplet, Nut } from 'lucide-react';
 
 export default function GoalsForm() {
@@ -32,6 +32,8 @@ export default function GoalsForm() {
     { value: 'moderate', label: 'Moderate (~0.5 kg/week)' },
     { value: 'fast', label: 'Fast (~0.75 kg/week)' },
   ];
+  const GOAL_ITEM_MAP = Object.fromEntries(GOAL_ITEMS.map((g) => [g.value, g.label]));
+  const RATE_ITEM_MAP = Object.fromEntries(RATE_ITEMS.map((r) => [r.value, r.label]));
 
   const [formData, setFormData] = useState({
     primaryGoal: 'maintain_weight',
@@ -179,9 +181,9 @@ export default function GoalsForm() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2 sm:col-span-2">
               <Label>Primary goal</Label>
-              <Select value={formData.primaryGoal} onValueChange={(v) => updateGoal(coerceEnum(v, GOAL_VALUES, 'maintain_weight'))}>
+              <Select value={formData.primaryGoal} items={GOAL_ITEM_MAP} onValueChange={(v) => updateGoal(coerceEnum(v, GOAL_VALUES, 'maintain_weight'))}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select goal">{enumLabel(GOAL_LABELS, formData.primaryGoal, 'Select goal')}</SelectValue>
+                  <SelectValue placeholder="Select goal" />
                 </SelectTrigger>
                 <SelectContent>
                   {GOAL_ITEMS.map((g) => (
@@ -205,9 +207,9 @@ export default function GoalsForm() {
               </div>
               <div className="space-y-2">
                 <Label>Desired rate</Label>
-                <Select value={formData.goalRate} onValueChange={(v) => updateRate(coerceEnum(v, RATE_VALUES, 'moderate'))}>
+                <Select value={formData.goalRate} items={RATE_ITEM_MAP} onValueChange={(v) => updateRate(coerceEnum(v, RATE_VALUES, 'moderate'))}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select rate">{enumLabel(GOAL_RATE_LABELS, formData.goalRate, 'Select rate')}</SelectValue>
+                    <SelectValue placeholder="Select rate" />
                   </SelectTrigger>
                   <SelectContent>
                     {RATE_ITEMS.map((r) => (

@@ -124,7 +124,11 @@ export default function InsightsPage() {
     <div className="container mx-auto p-4 max-w-5xl space-y-8 pb-24">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Insights</h1>
-        <Select value={period} onValueChange={(v) => setPeriod(v ?? '7')}>
+        <Select
+          value={period}
+          items={{ '7': 'Last 7 days', '30': 'Last 30 days', '90': 'Last 90 days' }}
+          onValueChange={(v) => setPeriod(v ?? '7')}
+        >
           <SelectTrigger className="w-[130px]">
             <SelectValue placeholder="Period" />
           </SelectTrigger>

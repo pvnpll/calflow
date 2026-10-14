@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useProfile } from '@/lib/context/ProfileContext';
-import { ACTIVITY_LABELS, SEX_LABELS, coerceEnum } from '@/lib/utils';
+import { coerceEnum } from '@/lib/utils';
 import { Loader2, CheckCircle2, UserRound } from 'lucide-react';
 
 const SEX_VALUES = ['male', 'female'];
@@ -14,6 +14,7 @@ const SEX_ITEMS = [
   { value: 'male', label: 'Male' },
   { value: 'female', label: 'Female' },
 ];
+const SEX_ITEM_MAP = Object.fromEntries(SEX_ITEMS.map((s) => [s.value, s.label]));
 const ACTIVITY_VALUES = ['sedentary', 'lightly_active', 'moderately_active', 'very_active', 'extremely_active'];
 const ACTIVITY_ITEMS = [
   { value: 'sedentary', label: 'Sedentary (desk job)' },
@@ -22,6 +23,7 @@ const ACTIVITY_ITEMS = [
   { value: 'very_active', label: 'Very Active (5+ days/wk)' },
   { value: 'extremely_active', label: 'Athlete / Physical job' },
 ];
+const ACTIVITY_ITEM_MAP = Object.fromEntries(ACTIVITY_ITEMS.map((a) => [a.value, a.label]));
 
 export default function ProfileForm() {
   const { profile, loading, refresh } = useProfile();
@@ -126,7 +128,7 @@ export default function ProfileForm() {
 
             <div className="space-y-2">
               <Label>Sex</Label>
-              <Select value={formData.sex} onValueChange={(v) => setFormData({ ...formData, sex: coerceEnum(v, SEX_VALUES, 'male') })}>
+              <Select value={formData.sex} items={SEX_ITEM_MAP} onValueChange={(v) => setFormData({ ...formData, sex: coerceEnum(v, SEX_VALUES, 'male') })}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
@@ -165,7 +167,7 @@ export default function ProfileForm() {
             </div>
             <div className="space-y-2">
               <Label>Activity level</Label>
-              <Select value={formData.activity_level} onValueChange={(v) => setFormData({ ...formData, activity_level: coerceEnum(v, ACTIVITY_VALUES, 'moderately_active') })}>
+              <Select value={formData.activity_level} items={ACTIVITY_ITEM_MAP} onValueChange={(v) => setFormData({ ...formData, activity_level: coerceEnum(v, ACTIVITY_VALUES, 'moderately_active') })}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>

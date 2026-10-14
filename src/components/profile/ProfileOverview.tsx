@@ -38,6 +38,66 @@ import {
   Wheat,
 } from 'lucide-react';
 
+const WEIGHT_GOALS = ['lose_weight', 'gain_weight', 'gain_muscle'];
+
+function GoalSummary({
+  goal,
+  goalWeightKg,
+  goalRate,
+  canCalculate,
+  recalculating,
+  recalcFlash,
+  missingFields,
+  onRecalculate,
+}: {
+  goal: unknown;
+  goalWeightKg: unknown;
+  goalRate: unknown;
+  canCalculate: boolean;
+  recalculating: boolean;
+  recalcFlash: boolean;
+  missingFields: string[];
+  onRecalculate: () => void;
+}) {
+  const goalLabel = enumLabel(GOAL_LABELS, goal, 'No goal set');
+  const hasWeightGoal = typeof goal === 'string' && (WEIGHT_GOALS as string[]).includes(goal);
+  const weightNum = typeof goalWeightKg === 'number' ? goalWeightKg : Number(goalWeightKg);
+  const hasTarget = hasWeightGoal && Number.isFinite(weightNum) && weightNum > 0;
+  const rateLabel = enumLabel(GOAL_RATE_LABELS, goalRate, '');
+
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold">{goalLabel}</p>
+        {hasWeightGoal && (
+          <p className="mt-0.5 text-xs text-muted-foreground tabular-nums">
+            {hasTarget ? `Target → ${weightNum} kg` : 'No target weight set'}
+            {rateLabel ? ` · ${rateLabel}` : ''}
+          </p>
+        )}
+      </div>
+      {canCalculate ? (
+        <span className="flex items-center gap-2">
+          {recalcFlash && (
+            <span className="flex items-center gap-1 text-xs font-medium text-emerald-600">
+              <CheckCircle2 className="h-3.5 w-3.5" /> Updated
+            </span>
+          )}
+          <Button type="button" variant="outline" size="sm" onClick={onRecalculate} disabled={recalculating}>
+            {recalculating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+            {recalculating ? 'Recalculating…' : 'Recalculate targets'}
+          </Button>
+        </span>
+      ) : (
+        <span className="flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-300">
+          <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+          Add {missingFields.join(', ')} to enable recalculation
+        </span>
+      )}
+    </div>
+  );
+}
+
 function getMissingFields(profile: any): string[] {
   if (!profile) return ['Age', 'Sex', 'Height', 'Weight'];
   const missing: string[] = [];
@@ -242,36 +302,16 @@ export default function ProfileOverview({ onEdit }: { onEdit: (section: 'persona
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-wrap items-center gap-1.5 text-sm">
-            <Badge className="gap-1">{enumLabel(GOAL_LABELS, profile?.goal, 'No goal set')}</Badge>
-            {(profile?.goal === 'lose_weight' || profile?.goal === 'gain_weight' || profile?.goal === 'gain_muscle') && (
-              <>
-                {profile?.goal_weight_kg && (
-                  <Badge variant="secondary" className="tabular-nums">→ {profile.goal_weight_kg} kg</Badge>
-                )}
-                <Badge variant="outline">{enumLabel(GOAL_RATE_LABELS, profile?.goal_rate, 'Moderate')}</Badge>
-              </>
-            )}
-            <span className="min-w-2 flex-1" aria-hidden />
-            {canCalculate ? (
-              <span className="flex items-center gap-2">
-                {recalcFlash && (
-                  <span className="flex items-center gap-1 text-xs font-medium text-emerald-600">
-                    <CheckCircle2 className="h-3.5 w-3.5" /> Updated
-                  </span>
-                )}
-                <Button type="button" variant="outline" size="sm" onClick={handleRecalculate} disabled={recalculating}>
-                  {recalculating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-                  {recalculating ? 'Recalculating…' : 'Recalculate targets'}
-                </Button>
-              </span>
-            ) : (
-              <span className="flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-300">
-                <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
-                Add {missingFields.join(', ')} to enable recalculation
-              </span>
-            )}
-          </div>
+          <GoalSummary
+            goal={profile?.goal}
+            goalWeightKg={profile?.goal_weight_kg}
+            goalRate={profile?.goal_rate}
+            canCalculate={canCalculate}
+            recalculating={recalculating}
+            recalcFlash={recalcFlash}
+            missingFields={missingFields}
+            onRecalculate={handleRecalculate}
+          />
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
             <TargetTile icon={<Flame className="h-3.5 w-3.5 text-orange-500" />} label="Calories" value={String(visibleGoals?.calorie_target ?? '—')} unit="kcal" />
             <TargetTile icon={<Beef className="h-3.5 w-3.5 text-rose-500" />} label="Protein" value={String(visibleGoals?.protein_target ?? '—')} unit="g" />

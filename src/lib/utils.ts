@@ -100,6 +100,13 @@ export const GOAL_RATE_LABELS: Record<string, string> = {
   fast: 'Fast (~0.75 kg/week)',
 };
 
+export const MEAL_TYPE_LABELS: Record<string, string> = {
+  breakfast: 'Breakfast',
+  lunch: 'Lunch',
+  snack: 'Snack',
+  dinner: 'Dinner',
+};
+
 export const DIET_LABELS: Record<string, string> = {
   omnivore: 'Omnivore',
   pescatarian: 'Pescatarian',

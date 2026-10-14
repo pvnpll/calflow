@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { MEAL_TYPE_LABELS } from '@/lib/utils';
 
 export default function AddMealDialog({ open, onOpenChange, date, onSuccess, initialMealType }: any) {
   const [loading, setLoading] = useState(false);
@@ -69,7 +70,7 @@ export default function AddMealDialog({ open, onOpenChange, date, onSuccess, ini
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
           <div className="space-y-2">
             <Label htmlFor="meal_type">Meal Type</Label>
-            <Select value={mealType} onValueChange={(v) => setMealType(v ?? 'breakfast')}>
+            <Select value={mealType} items={MEAL_TYPE_LABELS} onValueChange={(v) => setMealType(v ?? 'breakfast')}>
               <SelectTrigger>
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>

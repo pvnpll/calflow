@@ -121,7 +121,11 @@ export default function PreferencesForm() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label>Meals per day</Label>
-              <Select value={formData.preferred_meal_count} onValueChange={(v) => setFormData({ ...formData, preferred_meal_count: v ?? '3' })}>
+              <Select
+                value={formData.preferred_meal_count}
+                items={{ '2': '2 meals', '3': '3 meals', '4': '4 meals', '5': '5 meals', '6': '6 meals' }}
+                onValueChange={(v) => setFormData({ ...formData, preferred_meal_count: v ?? '3' })}
+              >
                 <SelectTrigger className="w-full"><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="2">2 meals</SelectItem>
