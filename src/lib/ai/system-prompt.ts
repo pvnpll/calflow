@@ -67,6 +67,23 @@ CORE BEHAVIOR:
   2. THEN call update_meal with that meal_id and the updated fields.
   3. NEVER call log_meal for modifications — that creates duplicates.
 - If the conversation context already contains a recently logged meal (from a prior tool call response that includes an "id" field), use that id directly with update_meal.
+- CONSERVATIVE & REALISTIC ESTIMATION (CRITICAL FOR PROTEIN):
+  * When estimating macros and micros, ALWAYS provide realistic and conservative estimates. Never inflate protein or assume best-case marketing claims.
+  * PROTEIN REALISM: AI models frequently overestimate protein, which causes users to fall short of their actual fitness and health targets. Strictly use realistic, conservative protein benchmarks based on USDA cooked portions:
+    - 1 large whole egg = ~6.0-6.3g protein (NOT 8-10g). 1 large egg white = ~3.6g.
+    - Cooked chicken breast (boneless, skinless) = ~31g protein per 100g cooked (meat loses ~20-25% water weight when cooked; a typical 150g raw breast yields ~115g cooked = ~35g protein, not 50g+).
+    - Cooked lean beef / steak = ~26-28g protein per 100g cooked.
+    - Cooked fish / salmon = ~22-25g protein per 100g cooked.
+    - Paneer = ~18g protein per 100g. Firm tofu = ~8-10g protein per 100g.
+    - Cooked lentils / dal = ~7-9g protein per 100g cooked (~15-18g per 1 cup cooked, NOT 25-30g). Never use dry uncooked values for cooked dal.
+    - Cooked white/brown rice = ~2.5g protein per 100g cooked (~4g per cup).
+    - Wheat roti / chapati = ~3g protein per medium roti (35-40g dough).
+    - Greek yogurt = ~9-10g protein per 100g. Cow's milk / curd = ~3.2-3.4g per 100ml (1 cup = ~8g protein).
+    - Peanut butter / nuts = ~4g protein per 1 tbsp (16g), with ~8g fat. They are primarily fat sources, not high-protein staples.
+    - Vegetables / greens = only trace protein (1-2g per serving); do not inflate.
+    - When portion or preparation is ambiguous, err on the conservative (lower) side for protein.
+  * REALISTIC CALORIES & FATS: Account realistically for hidden cooking oils, ghee, butter, and dressings (~1-2 tsp oil = 5-10g fat, 45-90 kcal per cooked dish).
+  * REALISTIC MICRONUTRIENTS: Base vitamins and minerals on realistic USDA/FDA reference values for the actual portion consumed; do not hallucinate or overstate retention after cooking.
 - COMPREHENSIVE NUTRITION & VITAMINS: Do NOT just provide basic macros. You MUST estimate all relevant vitamins and minerals contained in the foods based on standard USDA/FDA nutritional data:
   * Vitamins: vitamin_a_mcg, vitamin_c_mg, vitamin_d_mcg, vitamin_e_mg, vitamin_k_mcg, vitamin_b1_mg, vitamin_b2_mg, vitamin_b3_mg, vitamin_b6_mg, folate_mcg, vitamin_b12_mcg, choline_mg, biotin_mcg
   * Minerals & Electrolytes: calcium_mg, iron_mg, magnesium_mg, potassium_mg, sodium_mg, zinc_mg, selenium_mcg, phosphorus_mg, copper_mg, manganese_mg

@@ -5,18 +5,18 @@ export const calflowTools: AIToolDefinition[] = [
     type: 'function',
     function: {
       name: 'log_meal',
-      description: 'Log a meal with items and nutrition estimates',
+      description: 'Log a meal with items and conservative, realistic nutrition estimates (specifically avoiding protein overestimation)',
       parameters: {
         type: 'object',
         properties: {
           date: { type: 'string', description: 'YYYY-MM-DD. ALWAYS OMIT this field to default to the current date (today), unless the user explicitly specifies a different date (e.g. yesterday, Monday).' },
           meal_type: { type: 'string', enum: ['breakfast', 'lunch', 'dinner', 'snack'] },
           description: { type: 'string' },
-          calories: { type: 'number', description: 'Total calories estimated' },
-          protein_g: { type: 'number', description: 'Total protein in grams estimated' },
-          carbs_g: { type: 'number', description: 'Total carbs in grams estimated' },
-          fat_g: { type: 'number', description: 'Total fat in grams estimated' },
-          fiber_g: { type: 'number', description: 'Total fiber in grams estimated' },
+          calories: { type: 'number', description: 'Total realistic calories estimated, accounting for cooking oils/fats' },
+          protein_g: { type: 'number', description: 'Conservative, realistic protein in grams. DO NOT overestimate; reference USDA cooked portion standards (e.g., egg ~6g, 100g cooked chicken breast ~31g, 1 cup cooked dal ~15-18g).' },
+          carbs_g: { type: 'number', description: 'Total realistic carbs in grams estimated' },
+          fat_g: { type: 'number', description: 'Total realistic fat in grams estimated, including cooking fats' },
+          fiber_g: { type: 'number', description: 'Total realistic fiber in grams estimated' },
           items: {
             type: 'array',
             items: {
@@ -26,7 +26,7 @@ export const calflowTools: AIToolDefinition[] = [
                 quantity: { type: 'number' },
                 unit: { type: 'string' },
                 estimated_calories: { type: 'number' },
-                estimated_protein: { type: 'number' },
+                estimated_protein: { type: 'number', description: 'Conservative, realistic protein in grams for this item' },
                 estimated_carbs: { type: 'number' },
                 estimated_fat: { type: 'number' },
                 estimated_fiber: { type: 'number' },
@@ -38,13 +38,13 @@ export const calflowTools: AIToolDefinition[] = [
             type: 'object',
             properties: {
               calories: { type: 'number' },
-              protein_g: { type: 'number' },
+              protein_g: { type: 'number', description: 'Conservative, realistic total protein in grams' },
               carbs_g: { type: 'number' },
               fat_g: { type: 'number' },
               fiber_g: { type: 'number' }
             }
           },
-          micronutrients: { type: 'object' },
+          micronutrients: { type: 'object', description: 'Complete realistic vitamins and minerals based on USDA standards' },
           confidence: { type: 'string', enum: ['low', 'medium', 'high'] }
         },
         required: ['description']
@@ -89,12 +89,12 @@ export const calflowTools: AIToolDefinition[] = [
             properties: {
               description: { type: 'string', description: 'Updated meal description' },
               meal_type: { type: 'string', enum: ['breakfast', 'lunch', 'dinner', 'snack'] },
-              estimated_calories: { type: 'number' },
-              estimated_protein: { type: 'number' },
-              estimated_carbs: { type: 'number' },
-              estimated_fat: { type: 'number' },
-              estimated_fiber: { type: 'number' },
-              micronutrients: { type: 'object' },
+              estimated_calories: { type: 'number', description: 'Updated realistic total calories' },
+              estimated_protein: { type: 'number', description: 'Updated conservative, realistic protein in grams. DO NOT overestimate.' },
+              estimated_carbs: { type: 'number', description: 'Updated realistic carbohydrates in grams' },
+              estimated_fat: { type: 'number', description: 'Updated realistic fat in grams, accounting for oils' },
+              estimated_fiber: { type: 'number', description: 'Updated realistic fiber in grams' },
+              micronutrients: { type: 'object', description: 'Updated realistic micronutrients dictionary' },
               items: {
                 type: 'array',
                 description: 'Replaces all items on the meal',
@@ -105,7 +105,7 @@ export const calflowTools: AIToolDefinition[] = [
                     quantity: { type: 'number' },
                     unit: { type: 'string' },
                     estimated_calories: { type: 'number' },
-                    estimated_protein: { type: 'number' },
+                    estimated_protein: { type: 'number', description: 'Conservative, realistic protein in grams for this item' },
                     estimated_carbs: { type: 'number' },
                     estimated_fat: { type: 'number' },
                     estimated_fiber: { type: 'number' },

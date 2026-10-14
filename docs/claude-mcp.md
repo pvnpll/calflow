@@ -22,11 +22,11 @@ To securely authenticate Claude on behalf of the user, CalFlow implements an OAu
 3. The user signs in, approves the connection, and Claude handles the rest.
 
 ## Available MCP Tools
-- `log_meal`: Record a natural-language meal description along with Claude's nutrient estimates.
+- `log_meal`: Record a natural-language meal description along with conservative and realistic nutrient estimates. Uses USDA reference standards and strictly avoids protein overestimation (e.g. egg ~6g, 100g cooked chicken breast ~31g, 1 cup cooked lentils ~15-18g).
 - `get_meals`: Retrieve meal records for a specified date or date range.
 - `get_daily_summary`: Retrieve total calories, macros, and meal count for a specific day.
 - `get_nutrition_summary`: Retrieve aggregated nutrition stats (averages) for a date range.
-- `update_meal`: Update an existing meal record.
+- `update_meal`: Update an existing meal record with conservative, realistic nutrition estimates and comprehensive micronutrients.
 - `delete_meal`: Delete a specific meal record.
 
 ## Authentication & Security Model
