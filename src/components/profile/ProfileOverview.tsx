@@ -39,6 +39,8 @@ import {
 } from 'lucide-react';
 
 const WEIGHT_GOALS = ['lose_weight', 'gain_weight', 'gain_muscle'];
+// Muscle gain and recomposition use a fixed calorie adjustment, so no pace is shown for them.
+const RATE_GOALS = ['lose_weight', 'gain_weight'];
 
 function GoalSummary({
   goal,
@@ -63,7 +65,7 @@ function GoalSummary({
   const hasWeightGoal = typeof goal === 'string' && (WEIGHT_GOALS as string[]).includes(goal);
   const weightNum = typeof goalWeightKg === 'number' ? goalWeightKg : Number(goalWeightKg);
   const hasTarget = hasWeightGoal && Number.isFinite(weightNum) && weightNum > 0;
-  const rateLabel = enumLabel(GOAL_RATE_LABELS, goalRate, '');
+  const rateLabel = RATE_GOALS.includes(goal as string) ? enumLabel(GOAL_RATE_LABELS, goalRate, '') : '';
 
   return (
     <div className="flex flex-wrap items-center gap-3">

@@ -32,8 +32,8 @@ const ACTIVITY_MULTIPLIERS: Record<string, number> = {
 const KCAL_PER_KG_PER_DAY = 7700 / 7; // ~1,100 kcal/day per 1 kg/week
 const RATE_KG_PER_WEEK: Record<string, number> = { slow: 0.25, moderate: 0.5, fast: 0.75 };
 
-// Lean-gain surpluses (kcal/day) — ACSM/Helms: 250-500, smaller is better for natural lifters.
-const MUSCLE_SURPLUS: Record<string, number> = { slow: 200, moderate: 300, fast: 450 };
+// Lean-gain surplus (kcal/day) — ACSM/Helms: 250-500, smaller is better for natural lifters.
+const MUSCLE_SURPLUS = 250;
 
 // Protein g/kg when cutting — rises with the size of the deficit (Helms 2014; ISSN 2017).
 const CUT_PROTEIN_G_PER_KG: Record<string, number> = { slow: 1.6, moderate: 1.8, fast: 2.0 };
@@ -46,6 +46,9 @@ const GENERAL_PROTEIN_G_PER_KG: Record<string, number> = {
   extremely_active: 1.6,
 };
 const MUSCLE_PROTEIN_G_PER_KG = 1.8; // above Morton's 1.62 breakpoint, inside ISSN 1.4-2.0
+// Recomposition (fat loss + muscle gain at maintenance calories) leans on protein: 2.0-2.4 g/kg
+// (Barakat 2020; Helms 2014). 2.0 sits at the low end, still capped at 2.2 g/kg and 35% of calories.
+const RECOMP_PROTEIN_G_PER_KG = 2.0;
 
 const MIN_CARBS_G = 130;
 const FAT_SHARE = 0.25;
@@ -102,7 +105,7 @@ export function calculateTargets(
     const maxDeficit = Math.min(0.25 * tdee, 0.01 * weight * KCAL_PER_KG_PER_DAY);
     calories = Math.max(tdee - Math.min(wanted, maxDeficit), minIntake);
   } else if (effectiveGoal === 'gain_muscle') {
-    calories = tdee + Math.min(MUSCLE_SURPLUS[rateKey], 0.15 * tdee);
+    calories = tdee + Math.min(MUSCLE_SURPLUS, 0.15 * tdee);
   } else if (effectiveGoal === 'gain_weight') {
     const wanted = RATE_KG_PER_WEEK[rateKey] * KCAL_PER_KG_PER_DAY;
     calories = tdee + Math.min(wanted, 0.2 * tdee);
@@ -114,6 +117,7 @@ export function calculateTargets(
   let proteinPerKg =
     effectiveGoal === 'lose_weight' ? CUT_PROTEIN_G_PER_KG[rateKey]
     : effectiveGoal === 'gain_muscle' ? MUSCLE_PROTEIN_G_PER_KG
+    : effectiveGoal === 'body_recomposition' ? RECOMP_PROTEIN_G_PER_KG
     // In a surplus, >= 1.6 g/kg (Morton 2018) steers the gain toward lean mass.
     : effectiveGoal === 'gain_weight' ? Math.max(GENERAL_PROTEIN_G_PER_KG[activity], 1.6)
     : GENERAL_PROTEIN_G_PER_KG[activity];

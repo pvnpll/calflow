@@ -2,6 +2,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 import type { UserProfile } from '@/lib/types'
 import { isValidTimezone } from '@/lib/date'
 import { TABLES } from '@/lib/db-tables'
+import { GoalValidationError, validateGoalWeight } from '@/lib/goal-validation'
 import { getLatestWeight, upsertWeightForDate } from '@/lib/services/weight.service'
 
 function toDbProfile(data: Partial<UserProfile>) {
@@ -52,7 +53,22 @@ async function recordWeightFromProfile(userId: string, weightKg: number | undefi
   }
 }
 
+/**
+ * Rejects a goal weight on the wrong side of the current weight for the goal. Checked only when
+ * the goal or goal weight is being written, so logging a weight that reaches the target still works.
+ */
+async function assertGoalWeightValid(userId: string, data: Partial<UserProfile>) {
+  if (data.goal === undefined && data.goalWeightKg === undefined) return
+  const existing = await getProfile(userId)
+  const goal = data.goal ?? existing?.goal
+  const goalWeightKg = data.goalWeightKg !== undefined ? data.goalWeightKg : existing?.goal_weight_kg
+  const currentWeightKg = data.currentWeightKg ?? existing?.current_weight_kg
+  const problem = validateGoalWeight(goal, goalWeightKg == null ? null : Number(goalWeightKg), currentWeightKg)
+  if (problem) throw new GoalValidationError(problem)
+}
+
 export async function upsertProfile(userId: string, data: Partial<UserProfile>) {
+  await assertGoalWeightValid(userId, data)
   const supabase = createAdminClient()
   const { data: profile, error } = await supabase
     .from(TABLES.USER_PROFILES)
@@ -66,6 +82,7 @@ export async function upsertProfile(userId: string, data: Partial<UserProfile>) 
 }
 
 export async function updateProfile(userId: string, data: Partial<UserProfile>) {
+  await assertGoalWeightValid(userId, data)
   const supabase = createAdminClient()
   const { data: profile, error } = await supabase
     .from(TABLES.USER_PROFILES)

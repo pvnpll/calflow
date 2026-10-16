@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { createClient } from '@/lib/supabase/client';
 import { calculateTargets } from '@/lib/nutrition-targets';
 import { isOnboardingComplete } from '@/lib/onboarding';
+import { GOAL_WEIGHT_GOALS, validateGoalWeight } from '@/lib/goal-validation';
 import { GOAL_RATE_LABELS } from '@/lib/utils';
 import { McpConnectInstructions } from '@/components/shared/McpConnectInstructions';
 
@@ -30,11 +31,13 @@ const GOAL_OPTIONS = [
   { value: 'lose_weight', label: 'Lose weight', hint: 'Reduce body fat with a calorie deficit' },
   { value: 'maintain_weight', label: 'Maintain weight', hint: 'Stay at your current weight' },
   { value: 'gain_weight', label: 'Gain weight', hint: 'Build up with a calorie surplus' },
-  { value: 'gain_muscle', label: 'Gain muscle', hint: 'Lean gain with higher protein' },
-  { value: 'general_health', label: 'General health', hint: 'Eat well, no weight target' },
+  { value: 'gain_muscle', label: 'Gain muscle', hint: 'Lean gain with a small surplus and higher protein' },
+  { value: 'body_recomposition', label: 'Body recomposition', hint: 'Lose fat and build muscle at maintenance calories' },
 ];
 
-const HAS_RATE = ['lose_weight', 'gain_weight', 'gain_muscle'];
+// Muscle gain and recomposition use a fixed calorie adjustment, so only weight-change goals have a pace.
+const HAS_GOAL_WEIGHT = GOAL_WEIGHT_GOALS;
+const HAS_RATE = ['lose_weight', 'gain_weight'];
 const STEPS = ['About you', 'Body & lifestyle', 'Your goal', 'Connect AI'];
 
 interface FormState {
@@ -186,8 +189,9 @@ export default function OnboardingPage() {
   const age = Number(form.age);
   const height = Number(form.height);
   const weight = Number(form.weight);
-  const goalWeight = form.goalWeight ? Number(form.goalWeight) : null;
+  const hasGoalWeight = HAS_GOAL_WEIGHT.includes(form.goal);
   const hasRate = HAS_RATE.includes(form.goal);
+  const goalWeight = hasGoalWeight && form.goalWeight ? Number(form.goalWeight) : null;
 
   /** Returns an error message for the step, or null if it's valid. */
   const validate = (s: number): string | null => {
@@ -203,13 +207,7 @@ export default function OnboardingPage() {
     }
     if (s === 2) {
       if (!form.goal) return 'Please choose a goal.';
-      if (goalWeight !== null) {
-        if (!(goalWeight >= 25 && goalWeight <= 400)) return 'Enter a goal weight in kg (25–400).';
-        if (form.goal === 'lose_weight' && goalWeight >= weight) return 'Your goal weight should be below your current weight.';
-        if ((form.goal === 'gain_weight' || form.goal === 'gain_muscle') && goalWeight <= weight) {
-          return 'Your goal weight should be above your current weight.';
-        }
-      }
+      return validateGoalWeight(form.goal, goalWeight, weight);
     }
     return null;
   };
@@ -373,20 +371,24 @@ export default function OnboardingPage() {
                 ))}
               </div>
 
-              {hasRate && (
+              {(hasGoalWeight || hasRate) && (
                 <div className="space-y-4 border-t pt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="ob-goal-weight">Goal weight (kg) <span className="font-normal text-muted-foreground">— optional</span></Label>
-                    <NumberField id="ob-goal-weight" decimal placeholder={form.goal === 'lose_weight' ? 'e.g. 65' : 'e.g. 75'} value={form.goalWeight} onChange={(v) => set('goalWeight', v)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>How fast?</Label>
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                      {Object.entries(GOAL_RATE_LABELS).map(([value, label]) => (
-                        <ChoiceButton key={value} selected={form.rate === value} onClick={() => set('rate', value)} label={label.split(' (')[0]} hint={label.match(/\((.*)\)/)?.[1]} />
-                      ))}
+                  {hasGoalWeight && (
+                    <div className="space-y-2">
+                      <Label htmlFor="ob-goal-weight">Goal weight (kg) <span className="font-normal text-muted-foreground">— optional</span></Label>
+                      <NumberField id="ob-goal-weight" decimal placeholder={form.goal === 'lose_weight' ? 'e.g. 65' : 'e.g. 75'} value={form.goalWeight} onChange={(v) => set('goalWeight', v)} />
                     </div>
-                  </div>
+                  )}
+                  {hasRate && (
+                    <div className="space-y-2">
+                      <Label>How fast?</Label>
+                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                        {Object.entries(GOAL_RATE_LABELS).map(([value, label]) => (
+                          <ChoiceButton key={value} selected={form.rate === value} onClick={() => set('rate', value)} label={label.split(' (')[0]} hint={label.match(/\((.*)\)/)?.[1]} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

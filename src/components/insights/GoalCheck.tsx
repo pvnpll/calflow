@@ -14,7 +14,8 @@ export function GoalCheck({ goal, weightTrend, goalRate }: GoalCheckProps) {
   let title = "On track";
   let color = "text-emerald-500";
 
-  const targetTrend = goalRate === 'slow' ? 0.25 : goalRate === 'fast' ? 0.75 : 0.5;
+  // Muscle gain has no user-chosen pace: its fixed ~250 kcal/day surplus is about 0.25 kg/week.
+  const targetTrend = goal === 'gain_muscle' ? 0.25 : goalRate === 'slow' ? 0.25 : goalRate === 'fast' ? 0.75 : 0.5;
 
   if (goal === 'lose_weight') {
     if (weightTrend < 0 && Math.abs(weightTrend) > targetTrend + 0.2) {
@@ -29,6 +30,12 @@ export function GoalCheck({ goal, weightTrend, goalRate }: GoalCheckProps) {
       title = "Losing slower than expected";
       message = `Your recent weight trend (-${Math.abs(weightTrend).toFixed(2)} kg/week) is slower than your target. Consider slightly reducing your intake.`;
       color = "text-blue-500";
+    }
+  } else if (goal === 'body_recomposition') {
+    if (Math.abs(weightTrend) > 0.25) {
+      title = "Weight is changing";
+      message = `Your weight trend (${weightTrend > 0 ? '+' : '-'}${Math.abs(weightTrend).toFixed(2)} kg/week) is moving more than expected for recomposition. Your calories may be above or below maintenance — recomposition works best with a stable weight.`;
+      color = "text-amber-500";
     }
   } else if (goal === 'gain_weight' || goal === 'gain_muscle') {
     if (weightTrend > targetTrend + 0.2) {

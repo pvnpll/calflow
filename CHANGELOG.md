@@ -8,6 +8,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.8.0] — 2026-10-16
+
+**Onboarding Progress Saving & Goal Changes**
+
+### Added
+- **Body Recomposition goal**: lose fat and build muscle at maintenance calories with 2.0 g/kg protein.
+
+### Changed
+- Onboarding saves each step on **Continue** and resumes at the first incomplete step after a refresh (the optional Connect AI step is not resumable).
+- **Gain Muscle** no longer asks for a pace; it uses a fixed ~250 kcal/day surplus.
+- Only Lose Weight and Gain Weight show the pace selector.
+- "View health history" on the dashboard opens Insights and is hidden on shared dashboards.
+- The MCP `update_goals` tool accepts `body_recomposition`.
+- Goal weight is now validated everywhere (onboarding, Goals form, profile API and MCP): Lose Weight needs a goal below the current weight, Gain Weight / Gain Muscle above it. The API returns 400 with the reason.
+
+### Removed
+- **General Health goal** (duplicate of Maintain Weight). Migration `006_retire_general_health_goal.sql` moves existing users to Maintain Weight; apply it with the Supabase CLI.
+
+### Fixed
+- Tapping a chart on mobile no longer leaves a focus box around it.
+
+---
+
 ## [0.7.7] — 2026-10-10
 
 **Fix: Password Autofill Support**

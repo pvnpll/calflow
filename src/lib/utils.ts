@@ -91,7 +91,7 @@ export const GOAL_LABELS: Record<string, string> = {
   maintain_weight: 'Maintain Weight',
   gain_weight: 'Gain Weight',
   gain_muscle: 'Gain Muscle',
-  general_health: 'General Health',
+  body_recomposition: 'Body Recomposition',
 };
 
 export const GOAL_RATE_LABELS: Record<string, string> = {

@@ -323,9 +323,9 @@ export function createCalflowMcpServer(authInfo?: any, defaultSource: 'chatgpt' 
     "update_goals",
     "Update the authenticated user's profile and/or nutrition goals. You can update goal parameters (like goal_weight_kg, goal, goal_rate) or macronutrient targets.",
     {
-      goal: z.enum(['lose_weight', 'maintain_weight', 'gain_weight', 'gain_muscle']).optional().describe("Primary health goal"),
+      goal: z.enum(['lose_weight', 'maintain_weight', 'gain_weight', 'gain_muscle', 'body_recomposition']).optional().describe("Primary health goal. body_recomposition = lose fat and build muscle at maintenance calories."),
       goal_weight_kg: z.number().optional().describe("Target weight in kg"),
-      goal_rate: z.enum(['slow', 'moderate', 'fast']).optional().describe("Desired rate of progress"),
+      goal_rate: z.enum(['slow', 'moderate', 'fast']).optional().describe("Desired rate of progress (only used for lose_weight and gain_weight)"),
       calorie_target: z.number().optional().describe("Daily calorie target"),
       protein_target: z.number().optional().describe("Daily protein target (g)"),
       carbohydrate_target: z.number().optional().describe("Daily carb target (g)"),

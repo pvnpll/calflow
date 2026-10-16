@@ -20,7 +20,7 @@ export interface UserProfile {
   /** IANA timezone, e.g. "Asia/Kolkata" — synced from the browser. */
   timezone?: string;
   activityLevel?: 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extremely_active';
-  goal?: 'lose_weight' | 'maintain_weight' | 'gain_weight' | 'gain_muscle' | 'general_health';
+  goal?: 'lose_weight' | 'maintain_weight' | 'gain_weight' | 'gain_muscle' | 'body_recomposition';
   goalWeightKg?: number;
   goalRate?: 'slow' | 'moderate' | 'fast';
   diet?: 'omnivore' | 'vegetarian' | 'vegan' | 'pescatarian' | 'keto' | 'paleo' | 'other';

@@ -8,7 +8,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useProfile } from '@/lib/context/ProfileContext';
 import { calculateTargets } from '@/lib/nutrition-targets';
 import { coerceEnum } from '@/lib/utils';
+import { GOAL_WEIGHT_GOALS, validateGoalWeight } from '@/lib/goal-validation';
 import { Target, RefreshCw, CheckCircle2, Loader2, Flame, Beef, Wheat, Droplet, Nut } from 'lucide-react';
+
+// Goals with an optional target weight; only weight-change goals have a pace (muscle gain and
+// recomposition use a fixed calorie adjustment).
+const HAS_GOAL_WEIGHT = GOAL_WEIGHT_GOALS;
+const HAS_RATE = ['lose_weight', 'gain_weight'];
 
 export default function GoalsForm() {
   const { profile: profileData, goals, loading, refresh } = useProfile();
@@ -17,7 +23,7 @@ export default function GoalsForm() {
   const [error, setError] = useState<string | null>(null);
   const [recalcFlash, setRecalcFlash] = useState(false);
 
-  const GOAL_VALUES = ['lose_weight', 'maintain_weight', 'gain_weight', 'gain_muscle', 'general_health'];
+  const GOAL_VALUES = ['lose_weight', 'maintain_weight', 'gain_weight', 'gain_muscle', 'body_recomposition'];
   const RATE_VALUES = ['slow', 'moderate', 'fast'];
 
   const GOAL_ITEMS = [
@@ -25,7 +31,7 @@ export default function GoalsForm() {
     { value: 'maintain_weight', label: 'Maintain Weight' },
     { value: 'gain_weight', label: 'Gain Weight' },
     { value: 'gain_muscle', label: 'Gain Muscle' },
-    { value: 'general_health', label: 'General Health' },
+    { value: 'body_recomposition', label: 'Body Recomposition' },
   ];
   const RATE_ITEMS = [
     { value: 'slow', label: 'Slow (~0.25 kg/week)' },
@@ -116,9 +122,18 @@ export default function GoalsForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
     setSuccess(false);
     setError(null);
+
+    const goalWeightKg =
+      HAS_GOAL_WEIGHT.includes(formData.primaryGoal) && formData.goalWeightKg ? parseFloat(formData.goalWeightKg) : null;
+    const problem = validateGoalWeight(formData.primaryGoal, goalWeightKg, Number(profileData?.current_weight_kg));
+    if (problem) {
+      setError(problem);
+      return;
+    }
+
+    setSaving(true);
     try {
       const goalsPayload = {
         calorieTarget: parseFloat(formData.calorieTarget) || 2000,
@@ -131,7 +146,7 @@ export default function GoalsForm() {
 
       const profilePayload = {
         goal: formData.primaryGoal,
-        goalWeightKg: formData.goalWeightKg ? parseFloat(formData.goalWeightKg) : null,
+        goalWeightKg,
         goalRate: formData.goalRate
       };
 
@@ -193,32 +208,32 @@ export default function GoalsForm() {
               </Select>
             </div>
 
-          {(formData.primaryGoal === 'lose_weight' || formData.primaryGoal === 'gain_weight' || formData.primaryGoal === 'gain_muscle') && (
-            <>
-              <div className="space-y-2">
-                <Label>Goal Weight (kg)</Label>
-                <Input
-                  type="number"
-                  step="0.1"
-                  placeholder="e.g. 68"
-                  value={formData.goalWeightKg}
-                  onChange={(e) => setFormData({ ...formData, goalWeightKg: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Desired rate</Label>
-                <Select value={formData.goalRate} items={RATE_ITEM_MAP} onValueChange={(v) => updateRate(coerceEnum(v, RATE_VALUES, 'moderate'))}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select rate" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {RATE_ITEMS.map((r) => (
-                      <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </>
+          {HAS_GOAL_WEIGHT.includes(formData.primaryGoal) && (
+            <div className="space-y-2">
+              <Label>Goal Weight (kg)</Label>
+              <Input
+                type="number"
+                step="0.1"
+                placeholder="e.g. 68"
+                value={formData.goalWeightKg}
+                onChange={(e) => setFormData({ ...formData, goalWeightKg: e.target.value })}
+              />
+            </div>
+          )}
+          {HAS_RATE.includes(formData.primaryGoal) && (
+            <div className="space-y-2">
+              <Label>Desired rate</Label>
+              <Select value={formData.goalRate} items={RATE_ITEM_MAP} onValueChange={(v) => updateRate(coerceEnum(v, RATE_VALUES, 'moderate'))}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select rate" />
+                </SelectTrigger>
+                <SelectContent>
+                  {RATE_ITEMS.map((r) => (
+                    <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           )}
         </div>
 
