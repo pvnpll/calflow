@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Scale, TrendingDown, TrendingUp, Minus, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -179,11 +180,16 @@ export function BodyAndHealth({ weight, weightHistory, onWeightLogged, readOnly 
         </div>
       </div>
       
-      <div className="mt-4 pt-4 border-t">
-        <Button variant="link" className="px-0 h-auto text-sm text-muted-foreground">
-          View health history →
-        </Button>
-      </div>
+      {!readOnly && (
+        <div className="mt-4 pt-4 border-t">
+          <Link
+            href="/insights"
+            className={buttonVariants({ variant: 'link', className: 'px-0 h-auto text-sm text-muted-foreground' })}
+          >
+            View health history →
+          </Link>
+        </div>
+      )}
     </Card>
   );
 }

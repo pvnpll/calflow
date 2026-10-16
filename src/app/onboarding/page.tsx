@@ -142,7 +142,8 @@ export default function OnboardingPage() {
     setError(null);
   };
 
-  // Pre-fill from whatever exists (sign-up name, partial profile). Already onboarded -> straight to the app.
+  // Pre-fill from whatever exists (sign-up name, partial profile) and resume at the first step that is
+  // still incomplete. Already onboarded -> straight to the app.
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -169,6 +170,9 @@ export default function OnboardingPage() {
           goalWeight: profile?.goal_weight_kg ? String(profile.goal_weight_kg) : '',
           rate: profile?.goal_rate || 'moderate',
         }));
+        if (!profile?.age || !profile?.sex) setStep(0);
+        else if (!profile?.height_cm || !profile?.current_weight_kg || !profile?.activity_level) setStep(1);
+        else setStep(2);
       } catch {
         // start with an empty form
       }
@@ -210,12 +214,6 @@ export default function OnboardingPage() {
     return null;
   };
 
-  const next = () => {
-    const problem = validate(step);
-    if (problem) return setError(problem);
-    setStep((s) => s + 1);
-  };
-
   const targets = useMemo(() => {
     if (!form.goal || !form.sex || !form.activity || !age || !height || !weight) return null;
     return calculateTargets(
@@ -225,46 +223,55 @@ export default function OnboardingPage() {
     );
   }, [form.goal, form.sex, form.activity, form.rate, age, height, weight]);
 
-  const finish = async () => {
-    const problem = validate(0) || validate(1) || validate(2);
+  const putJson = (url: string, body: unknown) =>
+    fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+
+  /** Saves the fields collected on a step so a refresh resumes from there. */
+  const saveStep = async (s: number) => {
+    if (s === 0) {
+      const res = await putJson('/api/profile', { name: form.name.trim().replace(/\s+/g, ' '), age, sex: form.sex });
+      if (!res.ok) throw new Error('profile');
+    } else if (s === 1) {
+      const res = await putJson('/api/profile', {
+        heightCm: height,
+        currentWeightKg: weight, // also logs today's entry in the weight trend
+        activityLevel: form.activity,
+      });
+      if (!res.ok) throw new Error('profile');
+    } else if (s === 2) {
+      if (!targets) throw new Error('targets');
+      // Targets first, goal last: the goal is what marks onboarding complete, so a failure
+      // in between leaves the user in onboarding rather than in the app without targets.
+      const goalsRes = await putJson('/api/goals', targets);
+      if (!goalsRes.ok) throw new Error('goals');
+      const res = await putJson('/api/profile', {
+        goal: form.goal,
+        goalRate: form.rate,
+        ...(goalWeight !== null ? { goalWeightKg: goalWeight } : {}),
+      });
+      if (!res.ok) throw new Error('profile');
+    }
+  };
+
+  const next = async () => {
+    const problem = validate(step);
     if (problem) return setError(problem);
-    if (!targets) return setError('Could not calculate your targets — please check your details.');
 
     setSaving(true);
     setError(null);
     try {
-      // Targets first, profile last: the profile is what marks onboarding complete, so a failure
-      // in between leaves the user in onboarding rather than in the app without goals.
-      const goalsRes = await fetch('/api/goals', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(targets),
-      });
-      if (!goalsRes.ok) throw new Error('goals');
-
-      const profileRes = await fetch('/api/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: form.name.trim().replace(/\s+/g, ' '),
-          age,
-          sex: form.sex,
-          heightCm: height,
-          currentWeightKg: weight, // also logs today's entry in the weight trend
-          activityLevel: form.activity,
-          goal: form.goal,
-          goalRate: form.rate,
-          ...(goalWeight !== null ? { goalWeightKg: goalWeight } : {}),
-        }),
-      });
-      if (!profileRes.ok) throw new Error('profile');
-
-      router.replace('/dashboard');
-      router.refresh();
+      await saveStep(step);
+      setStep((s) => s + 1);
     } catch {
       setError('Something went wrong while saving. Please try again.');
-      setSaving(false);
     }
+    setSaving(false);
+  };
+
+  // Everything was saved step by step; the last step (Connect AI) only hands off to the app.
+  const finish = () => {
+    router.replace('/dashboard');
+    router.refresh();
   };
 
   const signOut = async () => {
@@ -408,13 +415,20 @@ export default function OnboardingPage() {
               <span />
             )}
             {isLast ? (
-              <Button type="button" onClick={finish} disabled={saving || !targets}>
-                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                {saving ? 'Setting up…' : 'Finish setup'}
+              <Button type="button" onClick={finish}>
+                <CheckCircle2 className="h-4 w-4" /> Finish setup
               </Button>
             ) : (
-              <Button type="button" onClick={next}>
-                Continue <ArrowRight className="h-4 w-4" />
+              <Button type="button" onClick={next} disabled={saving}>
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Saving…
+                  </>
+                ) : (
+                  <>
+                    Continue <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
               </Button>
             )}
           </div>
