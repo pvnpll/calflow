@@ -6,3 +6,4 @@ These files are historical reference schemas from when the shared Supabase proje
 - **`combined_database_init.sql`**: Early prototype schema script before table prefixes were finalized.
 
 Current Calflow active migrations are located in `../migrations/`.
+
