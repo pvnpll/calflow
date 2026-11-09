@@ -70,7 +70,7 @@ export function LandingFooter() {
         </nav>
       </div>
       <div className="mx-auto mt-10 flex max-w-6xl flex-col gap-2 border-t border-border/50 pt-6 text-[13px] text-muted-foreground sm:flex-row sm:justify-between">
-        <p>© {new Date().getFullYear()} CalFlow. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} CalFlow. All rights reserved. · Developed by <a href="https://pvnpll.in" target="_blank" rel="noopener noreferrer" className="font-medium text-foreground underline underline-offset-4 hover:opacity-80">pvnpll</a></p>
         <p>AI-generated estimates — not medical advice.</p>
       </div>
     </footer>

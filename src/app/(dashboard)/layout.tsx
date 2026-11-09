@@ -185,6 +185,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Tooltip>
             </div>
           </div>
+          <div className="mt-3 border-t border-border/40 pt-2 px-2 text-[11px] text-muted-foreground">
+            Developed by <a href="https://pvnpll.in" target="_blank" rel="noopener noreferrer" className="font-medium text-foreground underline underline-offset-2 hover:opacity-80">pvnpll</a>
+          </div>
         </div>
       </aside>
 
