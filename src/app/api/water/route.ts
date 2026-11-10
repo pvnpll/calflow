@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getWaterByDate, getWaterSummary, logWater } from '@/lib/services/water.service';
+import { WaterValidationError } from '@/lib/water-validation';
 
 export const runtime = 'edge';
 
@@ -15,7 +16,10 @@ export async function GET(req: NextRequest) {
     const start = searchParams.get('start');
     const end = searchParams.get('end');
 
-    if (start && end) {
+    if (start || end) {
+      if (!start || !end) {
+        return NextResponse.json({ error: 'Both start and end dates must be provided together' }, { status: 400 });
+      }
       const summary = await getWaterSummary(user.id, start, end);
       return NextResponse.json(summary);
     } else if (date) {
@@ -25,7 +29,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Missing date or start/end query parameters' }, { status: 400 });
     }
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const status = error instanceof WaterValidationError || error.status === 400 ? 400 : 500;
+    return NextResponse.json({ error: error.message }, { status });
   }
 }
 
@@ -39,6 +44,7 @@ export async function POST(req: NextRequest) {
     const water = await logWater(user.id, body.amount_ml, body.date);
     return NextResponse.json(water, { status: 201 });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const status = error instanceof WaterValidationError || error.status === 400 ? 400 : 500;
+    return NextResponse.json({ error: error.message }, { status });
   }
 }

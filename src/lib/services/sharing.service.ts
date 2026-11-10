@@ -1,5 +1,8 @@
 import { createAdminClient } from '@/lib/supabase/server'
 import { TABLES } from '@/lib/db-tables'
+import { isValidShareToken, TOKEN_RE, UUID_RE } from '@/lib/sharing-validation'
+
+export { isValidShareToken, TOKEN_RE, UUID_RE }
 
 /**
  * Dashboard sharing. Invariant: a cf_friendships row only exists while the owner's share is enabled —
@@ -8,13 +11,6 @@ import { TABLES } from '@/lib/db-tables'
  *
  * All access control lives here (service-role client); callers pass the authenticated user's id.
  */
-
-const TOKEN_RE = /^[A-Za-z0-9_-]{16,64}$/
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-
-export function isValidShareToken(token: unknown): token is string {
-  return typeof token === 'string' && TOKEN_RE.test(token)
-}
 
 /** 128 bits of randomness, URL-safe (22 chars). */
 function generateToken(): string {
@@ -57,17 +53,20 @@ export async function enableSharing(userId: string) {
   return getShareStatus(userId)
 }
 
-/** Kills the link and removes every viewer. */
+/** Kills the link and removes every viewer. Immediately rotates token to invalidate in-flight joins. */
 export async function disableSharing(userId: string) {
   const supabase = createAdminClient()
+
+  // 1. Immediately disable share and rotate token so any in-flight join sees enabled=false / stale token
+  const { error: shareError } = await supabase
+    .from(TABLES.DASHBOARD_SHARES)
+    .update({ enabled: false, token: generateToken() })
+    .eq('user_id', userId)
+  if (shareError) throw shareError
+
+  // 2. Remove all friendships
   const { error: friendsError } = await supabase.from(TABLES.FRIENDSHIPS).delete().eq('owner_id', userId)
   if (friendsError) throw friendsError
-
-  const { error } = await supabase
-    .from(TABLES.DASHBOARD_SHARES)
-    .update({ enabled: false })
-    .eq('user_id', userId)
-  if (error) throw error
 }
 
 export async function getOwnerName(userId: string): Promise<string> {
@@ -125,6 +124,24 @@ export async function joinByToken(viewerId: string, token: string): Promise<Join
     .from(TABLES.FRIENDSHIPS)
     .upsert({ viewer_id: viewerId, owner_id: share.user_id }, { onConflict: 'viewer_id,owner_id', ignoreDuplicates: true })
   if (insertError) throw insertError
+
+  // Concurrency fence: verify that the share token is still active and unchanged.
+  // If disableSharing ran concurrently during the join, clean up the racy friendship immediately.
+  const { data: verifiedShare } = await supabase
+    .from(TABLES.DASHBOARD_SHARES)
+    .select('enabled')
+    .eq('user_id', share.user_id)
+    .eq('token', token)
+    .maybeSingle()
+
+  if (!verifiedShare?.enabled) {
+    await supabase
+      .from(TABLES.FRIENDSHIPS)
+      .delete()
+      .eq('viewer_id', viewerId)
+      .eq('owner_id', share.user_id)
+    return { status: 'invalid' }
+  }
 
   return { status: 'ok', ownerId: share.user_id, ownerName: await getOwnerName(share.user_id) }
 }

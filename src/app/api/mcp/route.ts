@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
 
             const forwardedHost = req.headers.get('x-forwarded-host');
             const forwardedProto = req.headers.get('x-forwarded-proto') || 'https';
-            let base = process.env.NEXT_PUBLIC_APP_URL || (forwardedHost ? `${forwardedProto}://${forwardedHost}` : new URL(req.url).origin);
+            const base = process.env.NEXT_PUBLIC_APP_URL || (forwardedHost ? `${forwardedProto}://${forwardedHost}` : new URL(req.url).origin);
             const endpointUrl = new URL(req.nextUrl.pathname, base);
             endpointUrl.searchParams.set("sessionId", sessionId);
             // Send standard MCP endpoint event with absolute URL
